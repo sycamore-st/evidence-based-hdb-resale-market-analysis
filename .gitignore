@@ -8,7 +8,7 @@ __pycache__/
 *.html
 #*.svg
 *.csv
-*.png
+#*.png
 #*.txt
 *.geojson
 
@@ -28,6 +28,7 @@ outputs/section1/results/*.twbr
 outputs/section1/results/*.twbx
 outputs/section1/results/final/town_indicator_svgs/
 outputs/section1/results/final/town_indicator_pngs/
+outputs/section3/charts/*.png
 
 *.parquet
 
