@@ -90,16 +90,6 @@ Interpretation:
 
 ## 3. Solution
 
-### 3.0 Evaluation design
-
-Question C now uses a strict time-aware train-test split.
-
-- the **latest 9 months** are held out for evaluation
-- the training set uses the **immediately preceding rolling window**, capped at about **5 years** of history before the holdout starts
-- in practice, this should be described as using the prior **3-5 years** when that amount of history is available
-
-This matters because the business use case is operational recovery on future transactions, not random row reconstruction inside a mixed-time sample.
-
 ### 3.1 Unsupervised track
 
 The unsupervised track fits `MiniBatchKMeans` clusters and then maps each recovered segment to the modal flat type observed in training data.
@@ -152,6 +142,14 @@ Interpretation:
 
 
 ### 3.2 Supervised track
+
+Uses a strict time-aware train-test split.
+
+- the **latest 9 months** are held out for evaluation
+- the training set uses the **immediately preceding rolling window**, capped at about **5 years** of history before the holdout starts
+- in practice, this should be described as using the prior **3-5 years** when that amount of history is available
+
+This matters because the business use case is operational recovery on future transactions, not random row reconstruction inside a mixed-time sample.
 
 The supervised track predicts `flat_type` directly from:
 
