@@ -13,6 +13,7 @@ from src.common.config import PROJECT_ROOT
 
 
 THEME_TOKENS_CANDIDATES = [
+    PROJECT_ROOT / "deck" / "theme_tokens.json",
     PROJECT_ROOT / "slides" / "section1" / "theme_tokens.json",
     PROJECT_ROOT / "slides" / "theme_tokens.json",
 ]
