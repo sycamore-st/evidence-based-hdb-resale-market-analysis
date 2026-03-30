@@ -1,0 +1,3377 @@
+{
+  "segment_feature": "recovered_segment",
+  "cluster_count": 8,
+  "segment_to_flat_type_mapping": {
+    "SEGMENT_0": "4 ROOM",
+    "SEGMENT_1": "3 ROOM",
+    "SEGMENT_2": "4 ROOM",
+    "SEGMENT_3": "5 ROOM",
+    "SEGMENT_4": "3 ROOM",
+    "SEGMENT_5": "4 ROOM",
+    "SEGMENT_6": "EXECUTIVE",
+    "SEGMENT_7": "4 ROOM"
+  },
+  "accuracy": 0.6422976501305483,
+  "report": {
+    "1 ROOM": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 0.0
+    },
+    "2 ROOM": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 5.0
+    },
+    "3 ROOM": {
+      "precision": 0.7129629629629629,
+      "recall": 0.8461538461538461,
+      "f1-score": 0.7738693467336684,
+      "support": 91.0
+    },
+    "4 ROOM": {
+      "precision": 0.6077586206896551,
+      "recall": 0.8294117647058824,
+      "f1-score": 0.7014925373134329,
+      "support": 170.0
+    },
+    "5 ROOM": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 85.0
+    },
+    "EXECUTIVE": {
+      "precision": 0.6511627906976745,
+      "recall": 0.875,
+      "f1-score": 0.7466666666666667,
+      "support": 32.0
+    },
+    "MULTI-GENERATION": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1-score": 0.0,
+      "support": 0.0
+    },
+    "accuracy": 0.6422976501305483,
+    "macro avg": {
+      "precision": 0.2816977677643275,
+      "recall": 0.3643665158371041,
+      "f1-score": 0.3174326501019668,
+      "support": 383.0
+    },
+    "weighted avg": {
+      "precision": 0.4935660690579545,
+      "recall": 0.6422976501305483,
+      "f1-score": 0.5576218674396365,
+      "support": 383.0
+    }
+  },
+  "confusion_labels": [
+    "1 ROOM",
+    "2 ROOM",
+    "3 ROOM",
+    "4 ROOM",
+    "5 ROOM",
+    "EXECUTIVE",
+    "MULTI-GENERATION"
+  ],
+  "confusion_matrix": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      4,
+      1,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      77,
+      14,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      27,
+      141,
+      0,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      72,
+      0,
+      13,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      4,
+      0,
+      28,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "pricing_model": "xgboost",
+  "split_holdout_months": [
+    "2017-10"
+  ],
+  "pricing_with_known_flat_type_rmse": 30065.18835354219,
+  "pricing_with_recovered_segment_rmse": 29245.9495974412,
+  "pricing_rmse_delta": -819.2387561009928,
+  "segment_summary": [
+    {
+      "recovered_segment": "SEGMENT_0",
+      "transactions": 1779,
+      "median_price": 408000.0,
+      "median_floor_area": 107.0,
+      "median_flat_age": 18.0
+    },
+    {
+      "recovered_segment": "SEGMENT_1",
+      "transactions": 1702,
+      "median_price": 320000.0,
+      "median_floor_area": 68.0,
+      "median_flat_age": 37.0
+    },
+    {
+      "recovered_segment": "SEGMENT_2",
+      "transactions": 1494,
+      "median_price": 428888.0,
+      "median_floor_area": 95.0,
+      "median_flat_age": 14.0
+    },
+    {
+      "recovered_segment": "SEGMENT_3",
+      "transactions": 1519,
+      "median_price": 448000.0,
+      "median_floor_area": 110.0,
+      "median_flat_age": 15.0
+    },
+    {
+      "recovered_segment": "SEGMENT_4",
+      "transactions": 2391,
+      "median_price": 313000.0,
+      "median_floor_area": 72.0,
+      "median_flat_age": 32.0
+    },
+    {
+      "recovered_segment": "SEGMENT_5",
+      "transactions": 1574,
+      "median_price": 442944.0,
+      "median_floor_area": 104.0,
+      "median_flat_age": 30.0
+    },
+    {
+      "recovered_segment": "SEGMENT_6",
+      "transactions": 1066,
+      "median_price": 660000.0,
+      "median_floor_area": 143.0,
+      "median_flat_age": 24.0
+    },
+    {
+      "recovered_segment": "SEGMENT_7",
+      "transactions": 471,
+      "median_price": 730000.0,
+      "median_floor_area": 96.0,
+      "median_flat_age": 7.0
+    }
+  ],
+  "test_assignments": [
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "STANDARD",
+      "flat_type": "2 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "MODEL A",
+      "flat_type": "2 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "STANDARD",
+      "flat_type": "2 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "KALLANG/WHAMPOA",
+      "flat_model": "STANDARD",
+      "flat_type": "2 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "QUEENSTOWN",
+      "flat_model": "STANDARD",
+      "flat_type": "2 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "ANG MO KIO",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "QUEENSTOWN",
+      "flat_model": "STANDARD",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CENTRAL AREA",
+      "flat_model": "STANDARD",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BISHAN",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "GEYLANG",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "GEYLANG",
+      "flat_model": "STANDARD",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "GEYLANG",
+      "flat_model": "STANDARD",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CENTRAL AREA",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT BATOK",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "KALLANG/WHAMPOA",
+      "flat_model": "STANDARD",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG EAST",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG EAST",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "ANG MO KIO",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "KALLANG/WHAMPOA",
+      "flat_model": "STANDARD",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT MERAH",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT TIMAH",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "QUEENSTOWN",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "GEYLANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT MERAH",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "KALLANG/WHAMPOA",
+      "flat_model": "STANDARD",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT MERAH",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CENTRAL AREA",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "ANG MO KIO",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CLEMENTI",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CLEMENTI",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "QUEENSTOWN",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CENTRAL AREA",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CENTRAL AREA",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "GEYLANG",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "QUEENSTOWN",
+      "flat_model": "STANDARD",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "QUEENSTOWN",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "QUEENSTOWN",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "ANG MO KIO",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT MERAH",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "ANG MO KIO",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "ANG MO KIO",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT MERAH",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "KALLANG/WHAMPOA",
+      "flat_model": "IMPROVED",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "ANG MO KIO",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CLEMENTI",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "MODEL A",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "ANG MO KIO",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "3 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A2",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG EAST",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BISHAN",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "QUEENSTOWN",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT PANJANG",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "ANG MO KIO",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SEMBAWANG",
+      "flat_model": "MODEL A2",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "MODEL A2",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PASIR RIS",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT MERAH",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT MERAH",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PASIR RIS",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SEMBAWANG",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT MERAH",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A2",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT BATOK",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT BATOK",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "DBSS",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "IMPROVED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SEMBAWANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CLEMENTI",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BISHAN",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "KALLANG/WHAMPOA",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SEMBAWANG",
+      "flat_model": "MODEL A2",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT BATOK",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SERANGOON",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG EAST",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "KALLANG/WHAMPOA",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CLEMENTI",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "ANG MO KIO",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "IMPROVED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "QUEENSTOWN",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT BATOK",
+      "flat_model": "MODEL A2",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CLEMENTI",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "ANG MO KIO",
+      "flat_model": "DBSS",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "GEYLANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "ANG MO KIO",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PASIR RIS",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "ANG MO KIO",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "GEYLANG",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "KALLANG/WHAMPOA",
+      "flat_model": "IMPROVED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG EAST",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT PANJANG",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "KALLANG/WHAMPOA",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT MERAH",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "GEYLANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT PANJANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT PANJANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG EAST",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG EAST",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SERANGOON",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BISHAN",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "DBSS",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SEMBAWANG",
+      "flat_model": "MODEL A2",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "QUEENSTOWN",
+      "flat_model": "IMPROVED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CLEMENTI",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "IMPROVED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A2",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "GEYLANG",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PASIR RIS",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT MERAH",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT PANJANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "NEW GENERATION",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_1",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT PANJANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "MODEL A",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "SIMPLIFIED",
+      "flat_type": "4 ROOM",
+      "recovered_segment": "SEGMENT_4",
+      "predicted_flat_type": "3 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT MERAH",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "DBSS",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT MERAH",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT BATOK",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MODEL A",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT PANJANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "DBSS",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "ANG MO KIO",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "DBSS",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT MERAH",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "KALLANG/WHAMPOA",
+      "flat_model": "DBSS",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT PANJANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SEMBAWANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT BATOK",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG EAST",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT BATOK",
+      "flat_model": "MODEL A",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT PANJANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "MARINE PARADE",
+      "flat_model": "STANDARD",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SEMBAWANG",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "QUEENSTOWN",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "STANDARD",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BISHAN",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BISHAN",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PASIR RIS",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT MERAH",
+      "flat_model": "STANDARD",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "GEYLANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MODEL A",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "KALLANG/WHAMPOA",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CENTRAL AREA",
+      "flat_model": "TYPE S2",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "DBSS",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SEMBAWANG",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BISHAN",
+      "flat_model": "MODEL A",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PASIR RIS",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BISHAN",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PUNGGOL",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TOA PAYOH",
+      "flat_model": "ADJOINED FLAT",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PASIR RIS",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT PANJANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "QUEENSTOWN",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_7",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "HOUGANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "ANG MO KIO",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT PANJANG",
+      "flat_model": "IMPROVED",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_5",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "5 ROOM",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT PANJANG",
+      "flat_model": "MAISONETTE",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "MAISONETTE",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "YISHUN",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "CHOA CHU KANG",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "MAISONETTE",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MAISONETTE",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PASIR RIS",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MAISONETTE",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "WOODLANDS",
+      "flat_model": "MAISONETTE",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PASIR RIS",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT BATOK",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "MAISONETTE",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT BATOK",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PASIR RIS",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "MAISONETTE",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BEDOK",
+      "flat_model": "MAISONETTE",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SENGKANG",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_2",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PASIR RIS",
+      "flat_model": "MAISONETTE",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "BUKIT BATOK",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "PREMIUM APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_0",
+      "predicted_flat_type": "4 ROOM"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "TAMPINES",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "JURONG WEST",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "SERANGOON",
+      "flat_model": "MAISONETTE",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PASIR RIS",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "PASIR RIS",
+      "flat_model": "APARTMENT",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    },
+    {
+      "transaction_month": "2017-10-01 00:00:00",
+      "town": "GEYLANG",
+      "flat_model": "MAISONETTE",
+      "flat_type": "EXECUTIVE",
+      "recovered_segment": "SEGMENT_6",
+      "predicted_flat_type": "EXECUTIVE"
+    }
+  ],
+  "per_class_accuracy": [
+    {
+      "flat_type": "1 ROOM",
+      "correct_predictions": 0,
+      "actual_count": 0,
+      "per_class_accuracy": NaN
+    },
+    {
+      "flat_type": "2 ROOM",
+      "correct_predictions": 0,
+      "actual_count": 5,
+      "per_class_accuracy": 0.0
+    },
+    {
+      "flat_type": "3 ROOM",
+      "correct_predictions": 77,
+      "actual_count": 91,
+      "per_class_accuracy": 0.8461538461538461
+    },
+    {
+      "flat_type": "4 ROOM",
+      "correct_predictions": 141,
+      "actual_count": 170,
+      "per_class_accuracy": 0.8294117647058824
+    },
+    {
+      "flat_type": "5 ROOM",
+      "correct_predictions": 0,
+      "actual_count": 85,
+      "per_class_accuracy": 0.0
+    },
+    {
+      "flat_type": "EXECUTIVE",
+      "correct_predictions": 28,
+      "actual_count": 32,
+      "per_class_accuracy": 0.875
+    },
+    {
+      "flat_type": "MULTI-GENERATION",
+      "correct_predictions": 0,
+      "actual_count": 0,
+      "per_class_accuracy": NaN
+    }
+  ],
+  "k_comparison": [
+    {
+      "k": 2,
+      "mapped_accuracy": 0.4699738903394256,
+      "silhouette_score": 0.21898843359538067,
+      "davies_bouldin_score": 1.646714754218219
+    },
+    {
+      "k": 3,
+      "mapped_accuracy": 0.5013054830287206,
+      "silhouette_score": 0.19695213300521744,
+      "davies_bouldin_score": 1.7114159930414352
+    },
+    {
+      "k": 4,
+      "mapped_accuracy": 0.5744125326370757,
+      "silhouette_score": 0.1790996999156391,
+      "davies_bouldin_score": 1.7900828211411237
+    },
+    {
+      "k": 5,
+      "mapped_accuracy": 0.5483028720626631,
+      "silhouette_score": 0.14189237911565153,
+      "davies_bouldin_score": 1.9820692853519706
+    },
+    {
+      "k": 6,
+      "mapped_accuracy": 0.6344647519582245,
+      "silhouette_score": 0.11690670633866462,
+      "davies_bouldin_score": 1.9770900400913112
+    },
+    {
+      "k": 7,
+      "mapped_accuracy": 0.5848563968668408,
+      "silhouette_score": 0.12448678145340107,
+      "davies_bouldin_score": 1.9082287933276372
+    },
+    {
+      "k": 8,
+      "mapped_accuracy": 0.6422976501305483,
+      "silhouette_score": 0.1252111317426468,
+      "davies_bouldin_score": 1.9078304094694207
+    },
+    {
+      "k": 9,
+      "mapped_accuracy": 0.5535248041775457,
+      "silhouette_score": 0.12459728062538575,
+      "davies_bouldin_score": 1.924854945394492
+    },
+    {
+      "k": 10,
+      "mapped_accuracy": 0.49869451697127937,
+      "silhouette_score": 0.11545192951487943,
+      "davies_bouldin_score": 1.9504567360144343
+    }
+  ]
+}

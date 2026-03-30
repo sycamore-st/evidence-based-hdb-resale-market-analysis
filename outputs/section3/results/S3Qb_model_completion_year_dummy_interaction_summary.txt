@@ -1,0 +1,387 @@
+                            WLS Regression Results                            
+==============================================================================
+Dep. Variable:         floor_area_sqm   R-squared:                       0.987
+Model:                            WLS   Adj. R-squared:                  0.985
+Method:                 Least Squares   F-statistic:                 2.584e+04
+Date:                Sun, 29 Mar 2026   Prob (F-statistic):               0.00
+Time:                        13:04:43   Log-Likelihood:                -5317.6
+No. Observations:                1743   AIC:                         1.114e+04
+Df Residuals:                    1489   BIC:                         1.253e+04
+Df Model:                         253                                         
+Covariance Type:                  HC3                                         
+=======================================================================================================================================================
+                                                                                          coef    std err          z      P>|z|      [0.025      0.975]
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+Intercept                                                                              95.6365    280.005      0.342      0.733    -453.163     644.436
+C(completion_year)[T.1967]                                                             30.4082    280.122      0.109      0.914    -518.622     579.438
+C(completion_year)[T.1968]                                                             21.5875    280.011      0.077      0.939    -527.225     570.400
+C(completion_year)[T.1969]                                                             22.8282    280.015      0.082      0.935    -525.991     571.647
+C(completion_year)[T.1970]                                                            -14.0636    280.318     -0.050      0.960    -563.476     535.349
+C(completion_year)[T.1971]                                                             -0.2655    280.689     -0.001      0.999    -550.405     549.874
+C(completion_year)[T.1972]                                                            -12.1921    280.039     -0.044      0.965    -561.058     536.674
+C(completion_year)[T.1973]                                                             -6.9195    280.050     -0.025      0.980    -555.807     541.968
+C(completion_year)[T.1974]                                                             -6.7264    280.009     -0.024      0.981    -555.533     542.081
+C(completion_year)[T.1975]                                                             -9.4659    280.006     -0.034      0.973    -558.268     539.336
+C(completion_year)[T.1976]                                                             -8.5822    280.008     -0.031      0.976    -557.387     540.223
+C(completion_year)[T.1977]                                                             -4.5588    280.016     -0.016      0.987    -553.380     544.262
+C(completion_year)[T.1978]                                                             -1.6278    280.005     -0.006      0.995    -550.427     547.171
+C(completion_year)[T.1979]                                                             -2.0582    280.005     -0.007      0.994    -550.857     546.741
+C(completion_year)[T.1980]                                                             -2.3985    280.005     -0.009      0.993    -551.199     546.402
+C(completion_year)[T.1981]                                                             -1.3147    280.006     -0.005      0.996    -550.117     547.488
+C(completion_year)[T.1982]                                                              0.4247    280.012      0.002      0.999    -548.388     549.238
+C(completion_year)[T.1983]                                                              6.7900    280.008      0.024      0.981    -542.016     555.596
+C(completion_year)[T.1984]                                                              6.9811    280.005      0.025      0.980    -541.819     555.781
+C(completion_year)[T.1985]                                                              0.8875    280.006      0.003      0.997    -547.915     549.690
+C(completion_year)[T.1986]                                                             -3.0198    280.005     -0.011      0.991    -551.819     545.779
+C(completion_year)[T.1987]                                                             -3.1711    280.005     -0.011      0.991    -551.971     545.629
+C(completion_year)[T.1988]                                                              3.4354    280.006      0.012      0.990    -545.366     552.237
+C(completion_year)[T.1989]                                                              9.8282    280.006      0.035      0.972    -538.974     558.630
+C(completion_year)[T.1990]                                                             10.9540    280.006      0.039      0.969    -537.847     559.755
+C(completion_year)[T.1991]                                                             10.7198    280.009      0.038      0.969    -538.088     559.527
+C(completion_year)[T.1992]                                                             11.5212    280.006      0.041      0.967    -537.281     560.324
+C(completion_year)[T.1993]                                                              9.7095    280.008      0.035      0.972    -539.095     558.514
+C(completion_year)[T.1994]                                                              4.6318    280.103      0.017      0.987    -544.360     553.623
+C(completion_year)[T.1995]                                                             12.8046    280.005      0.046      0.964    -535.995     561.604
+C(completion_year)[T.1996]                                                             10.2408    280.010      0.037      0.971    -538.568     559.049
+C(completion_year)[T.1997]                                                              5.6165    280.007      0.020      0.984    -543.187     554.420
+C(completion_year)[T.1998]                                                              5.3323    280.005      0.019      0.985    -543.467     554.132
+C(completion_year)[T.1999]                                                              5.9585    280.005      0.021      0.983    -542.841     554.758
+C(completion_year)[T.2000]                                                              1.0652    280.015      0.004      0.997    -547.754     549.885
+C(completion_year)[T.2001]                                                             -2.2626    280.006     -0.008      0.994    -551.064     546.539
+C(completion_year)[T.2002]                                                             -4.7211    280.005     -0.017      0.987    -553.520     544.078
+C(completion_year)[T.2003]                                                             -4.6520    280.005     -0.017      0.987    -553.451     544.147
+C(completion_year)[T.2004]                                                             -4.0636    280.005     -0.015      0.988    -552.864     544.737
+C(completion_year)[T.2005]                                                             -1.7707    280.010     -0.006      0.995    -550.581     547.040
+C(completion_year)[T.2006]                                                             -3.6156    280.005     -0.013      0.990    -552.415     545.184
+C(completion_year)[T.2007]                                                             -2.7554    280.010     -0.010      0.992    -551.565     546.054
+C(completion_year)[T.2008]                                                             -3.2008    280.005     -0.011      0.991    -552.001     545.600
+C(completion_year)[T.2009]                                                             -5.2866    280.012     -0.019      0.985    -554.099     543.526
+C(completion_year)[T.2010]                                                             -0.1161    280.005     -0.000      1.000    -548.915     548.683
+C(completion_year)[T.2011]                                                              0.6967    280.007      0.002      0.998    -548.107     549.501
+C(completion_year)[T.2012]                                                             -1.0498    280.005     -0.004      0.997    -549.849     547.750
+C(completion_year)[T.2013]                                                             -0.6757    280.005     -0.002      0.998    -549.475     548.124
+C(completion_year)[T.2014]                                                             -3.7185    280.016     -0.013      0.989    -552.540     545.103
+C(completion_year)[T.2015]                                                             -2.0863    280.004     -0.007      0.994    -550.885     546.712
+C(completion_year)[T.2016]                                                             -2.0981    280.005     -0.007      0.994    -550.898     546.701
+C(completion_year)[T.2017]                                                             -1.8769    280.004     -0.007      0.995    -550.675     546.922
+C(completion_year)[T.2018]                                                             -1.4028    280.004     -0.005      0.996    -550.201     547.396
+C(completion_year)[T.2019]                                                             -1.9257    280.005     -0.007      0.995    -550.725     546.873
+C(completion_year)[T.2020]                                                             -1.7513    280.005     -0.006      0.995    -550.551     547.048
+C(completion_year)[T.2021]                                                             -0.8906    280.004     -0.003      0.997    -549.689     547.908
+C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]                                 -50.6437     39.983     -1.267      0.205    -129.008      27.721
+C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]                                 -47.0535     49.773     -0.945      0.344    -144.607      50.500
+C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]                                 -27.0966    307.323     -0.088      0.930    -629.438     575.245
+C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]                                  24.1879    133.613      0.181      0.856    -237.689     286.065
+C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]                               50.1804      5.284      9.498      0.000      39.825      60.536
+C(town)[T.BEDOK]                                                                       -2.0569      0.585     -3.515      0.000      -3.204      -0.910
+C(town)[T.BISHAN]                                                                      -2.1209      1.024     -2.071      0.038      -4.128      -0.114
+C(town)[T.BUKIT BATOK]                                                                 -0.6373      0.924     -0.690      0.490      -2.448       1.173
+C(town)[T.BUKIT MERAH]                                                                 -1.1055      0.811     -1.363      0.173      -2.696       0.485
+C(town)[T.BUKIT PANJANG]                                                               -0.7001      0.675     -1.037      0.300      -2.023       0.623
+C(town)[T.BUKIT TIMAH]                                                                  0.9692      1.225      0.791      0.429      -1.431       3.370
+C(town)[T.CENTRAL AREA]                                                                -4.7149      1.158     -4.071      0.000      -6.985      -2.445
+C(town)[T.CHOA CHU KANG]                                                               -0.5023      0.701     -0.717      0.474      -1.876       0.872
+C(town)[T.CLEMENTI]                                                                    -1.5137      0.510     -2.966      0.003      -2.514      -0.513
+C(town)[T.GEYLANG]                                                                     -3.1494      0.851     -3.699      0.000      -4.818      -1.481
+C(town)[T.HOUGANG]                                                                     -1.7019      0.597     -2.849      0.004      -2.873      -0.531
+C(town)[T.JURONG EAST]                                                                 -1.1075      0.806     -1.374      0.169      -2.687       0.472
+C(town)[T.JURONG WEST]                                                                 -0.9135      0.725     -1.261      0.207      -2.334       0.507
+C(town)[T.KALLANG/WHAMPOA]                                                             -1.2035      1.249     -0.963      0.335      -3.652       1.245
+C(town)[T.LIM CHU KANG]                                                                -9.0036      0.772    -11.664      0.000     -10.516      -7.491
+C(town)[T.MARINE PARADE]                                                                0.7063      1.210      0.584      0.559      -1.665       3.078
+C(town)[T.PASIR RIS]                                                                   -1.7359      1.280     -1.356      0.175      -4.245       0.773
+C(town)[T.PUNGGOL]                                                                     -1.0575      0.605     -1.749      0.080      -2.243       0.128
+C(town)[T.QUEENSTOWN]                                                                  -2.9813      0.781     -3.818      0.000      -4.512      -1.451
+C(town)[T.SEMBAWANG]                                                                   -1.6381      0.717     -2.285      0.022      -3.043      -0.233
+C(town)[T.SENGKANG]                                                                    -1.6324      0.648     -2.520      0.012      -2.902      -0.363
+C(town)[T.SERANGOON]                                                                   -3.7528      0.801     -4.687      0.000      -5.322      -2.184
+C(town)[T.TAMPINES]                                                                    -0.2978      0.694     -0.429      0.668      -1.658       1.063
+C(town)[T.TOA PAYOH]                                                                   -1.2701      1.074     -1.182      0.237      -3.376       0.836
+C(town)[T.WOODLANDS]                                                                   -0.6997      1.007     -0.695      0.487      -2.673       1.274
+C(town)[T.YISHUN]                                                                      -2.0424      0.823     -2.481      0.013      -3.656      -0.429
+C(completion_year)[T.1967]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     3.198e-14   2.34e-12      0.014      0.989   -4.55e-12    4.62e-12
+C(completion_year)[T.1968]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]      2.28e-14    8.7e-13      0.026      0.979   -1.68e-12    1.73e-12
+C(completion_year)[T.1969]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]      -37.7884     67.791     -0.557      0.577    -170.656      95.080
+C(completion_year)[T.1970]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -1.783e-14   1.72e-12     -0.010      0.992    -3.4e-12    3.36e-12
+C(completion_year)[T.1971]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -1.315e-13   7.01e-12     -0.019      0.985   -1.39e-11    1.36e-11
+C(completion_year)[T.1972]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -4.379e-14   2.42e-12     -0.018      0.986   -4.78e-12    4.69e-12
+C(completion_year)[T.1973]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -3.709e-15   4.43e-12     -0.001      0.999   -8.68e-12    8.67e-12
+C(completion_year)[T.1974]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     7.386e-14   1.86e-12      0.040      0.968   -3.57e-12    3.72e-12
+C(completion_year)[T.1975]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]       -3.4214     72.347     -0.047      0.962    -145.220     138.377
+C(completion_year)[T.1976]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -1.609e-14   2.96e-12     -0.005      0.996   -5.82e-12    5.79e-12
+C(completion_year)[T.1977]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]       -9.4340     88.058     -0.107      0.915    -182.024     163.156
+C(completion_year)[T.1978]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     9.269e-14   1.98e-12      0.047      0.963   -3.79e-12    3.98e-12
+C(completion_year)[T.1979]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     4.054e-14   3.03e-12      0.013      0.989    -5.9e-12    5.98e-12
+C(completion_year)[T.1980]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -6.611e-14   2.61e-12     -0.025      0.980   -5.17e-12    5.04e-12
+C(completion_year)[T.1981]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     3.713e-14   1.33e-12      0.028      0.978   -2.56e-12    2.63e-12
+C(completion_year)[T.1982]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -1.972e-14   1.47e-12     -0.013      0.989   -2.91e-12    2.87e-12
+C(completion_year)[T.1983]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -1.697e-13   1.76e-12     -0.096      0.923   -3.62e-12    3.28e-12
+C(completion_year)[T.1984]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     9.654e-14   2.79e-12      0.035      0.972   -5.38e-12    5.57e-12
+C(completion_year)[T.1985]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     1.053e-13   2.41e-12      0.044      0.965   -4.63e-12    4.84e-12
+C(completion_year)[T.1986]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -1.882e-13   1.88e-12     -0.100      0.920   -3.88e-12    3.51e-12
+C(completion_year)[T.1987]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     -7.01e-14   1.74e-12     -0.040      0.968   -3.48e-12    3.34e-12
+C(completion_year)[T.1988]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     1.425e-14   4.65e-12      0.003      0.998    -9.1e-12    9.13e-12
+C(completion_year)[T.1989]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -7.704e-14   2.25e-12     -0.034      0.973   -4.49e-12    4.34e-12
+C(completion_year)[T.1990]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     7.111e-15   1.81e-12      0.004      0.997   -3.55e-12    3.56e-12
+C(completion_year)[T.1991]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     6.933e-15   2.78e-12      0.002      0.998   -5.45e-12    5.46e-12
+C(completion_year)[T.1992]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     6.562e-14   4.48e-12      0.015      0.988   -8.72e-12    8.85e-12
+C(completion_year)[T.1993]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -7.032e-14   1.77e-12     -0.040      0.968   -3.54e-12     3.4e-12
+C(completion_year)[T.1994]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     3.117e-14   4.59e-12      0.007      0.995   -8.96e-12    9.02e-12
+C(completion_year)[T.1995]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     3.461e-14   6.86e-12      0.005      0.996   -1.34e-11    1.35e-11
+C(completion_year)[T.1996]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -8.685e-14   1.48e-12     -0.059      0.953   -2.98e-12    2.81e-12
+C(completion_year)[T.1997]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     1.027e-13   1.66e-12      0.062      0.951   -3.16e-12    3.37e-12
+C(completion_year)[T.1998]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     4.734e-15   3.42e-12      0.001      0.999    -6.7e-12    6.71e-12
+C(completion_year)[T.1999]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -1.482e-15   3.31e-12     -0.000      1.000   -6.49e-12    6.49e-12
+C(completion_year)[T.2000]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -3.945e-14   7.13e-12     -0.006      0.996    -1.4e-11    1.39e-11
+C(completion_year)[T.2001]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     -1.43e-14   2.81e-12     -0.005      0.996   -5.53e-12     5.5e-12
+C(completion_year)[T.2002]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -2.154e-14   1.68e-12     -0.013      0.990   -3.32e-12    3.28e-12
+C(completion_year)[T.2003]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     6.058e-14   1.38e-12      0.044      0.965   -2.64e-12    2.76e-12
+C(completion_year)[T.2004]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -4.896e-14    2.6e-12     -0.019      0.985   -5.15e-12    5.06e-12
+C(completion_year)[T.2005]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -2.569e-14   6.25e-13     -0.041      0.967   -1.25e-12     1.2e-12
+C(completion_year)[T.2006]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -3.738e-14   3.86e-12     -0.010      0.992   -7.59e-12    7.52e-12
+C(completion_year)[T.2007]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     7.097e-15   3.11e-12      0.002      0.998   -6.09e-12    6.11e-12
+C(completion_year)[T.2008]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     1.051e-14   3.07e-12      0.003      0.997      -6e-12    6.03e-12
+C(completion_year)[T.2009]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     3.723e-14   3.38e-12      0.011      0.991   -6.59e-12    6.66e-12
+C(completion_year)[T.2010]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -3.098e-15   1.78e-12     -0.002      0.999   -3.49e-12    3.49e-12
+C(completion_year)[T.2011]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -2.316e-14    1.6e-12     -0.014      0.988   -3.16e-12    3.11e-12
+C(completion_year)[T.2012]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     2.199e-14   2.67e-12      0.008      0.993   -5.21e-12    5.26e-12
+C(completion_year)[T.2013]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     3.791e-14   1.35e-12      0.028      0.978   -2.61e-12    2.69e-12
+C(completion_year)[T.2014]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     4.523e-14   9.67e-12      0.005      0.996   -1.89e-11     1.9e-11
+C(completion_year)[T.2015]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     3.311e-15   5.74e-12      0.001      1.000   -1.12e-11    1.12e-11
+C(completion_year)[T.2016]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -5.845e-14   1.99e-12     -0.029      0.977   -3.96e-12    3.85e-12
+C(completion_year)[T.2017]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -7.314e-14   5.48e-12     -0.013      0.989   -1.08e-11    1.07e-11
+C(completion_year)[T.2018]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     5.477e-14   6.21e-12      0.009      0.993   -1.21e-11    1.22e-11
+C(completion_year)[T.2019]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]    -1.949e-14    6.8e-12     -0.003      0.998   -1.33e-11    1.33e-11
+C(completion_year)[T.2020]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     1.731e-14   1.08e-11      0.002      0.999   -2.12e-11    2.13e-11
+C(completion_year)[T.2021]:C(flat_type, Treatment(reference='4 ROOM'))[T.1 ROOM]     5.489e-14   4.85e-12      0.011      0.991   -9.46e-12    9.57e-12
+C(completion_year)[T.1967]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]      -30.8175     50.430     -0.611      0.541    -129.658      68.023
+C(completion_year)[T.1968]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]      -23.2557     50.524     -0.460      0.645    -122.281      75.769
+C(completion_year)[T.1969]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]      -25.6914     49.839     -0.515      0.606    -123.373      71.991
+C(completion_year)[T.1970]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       14.2271     51.495      0.276      0.782     -86.702     115.156
+C(completion_year)[T.1971]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       -0.3710     53.483     -0.007      0.994    -105.197     104.454
+C(completion_year)[T.1972]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        5.4275     68.808      0.079      0.937    -129.434     140.289
+C(completion_year)[T.1973]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        7.6520     50.082      0.153      0.879     -90.506     105.810
+C(completion_year)[T.1974]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        2.4771     52.944      0.047      0.963    -101.291     106.245
+C(completion_year)[T.1975]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        3.1765     95.721      0.033      0.974    -184.434     190.787
+C(completion_year)[T.1976]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        6.3535     96.580      0.066      0.948    -182.940     195.647
+C(completion_year)[T.1977]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        1.1297     49.917      0.023      0.982     -96.706      98.966
+C(completion_year)[T.1978]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       -1.5492     49.788     -0.031      0.975     -99.132      96.033
+C(completion_year)[T.1979]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       -1.0221     49.789     -0.021      0.984     -98.606      96.562
+C(completion_year)[T.1980]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       -2.1845    248.455     -0.009      0.993    -489.147     484.777
+C(completion_year)[T.1981]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       -2.0648    414.699     -0.005      0.996    -814.859     810.730
+C(completion_year)[T.1982]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       10.2768    785.323      0.013      0.990   -1528.929    1549.482
+C(completion_year)[T.1983]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       -5.1305     49.815     -0.103      0.918    -102.766      92.505
+C(completion_year)[T.1984]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       -9.8644   1432.379     -0.007      0.995   -2817.275    2797.546
+C(completion_year)[T.1985]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       -2.4137    258.321     -0.009      0.993    -508.713     503.886
+C(completion_year)[T.1986]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        1.1132     49.781      0.022      0.982     -96.456      98.682
+C(completion_year)[T.1987]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]     5.467e-14   9.14e-13      0.060      0.952   -1.74e-12    1.85e-12
+C(completion_year)[T.1988]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]    -1.558e-14    1.4e-11     -0.001      0.999   -2.74e-11    2.74e-11
+C(completion_year)[T.1989]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]    -1.498e-14   3.11e-12     -0.005      0.996   -6.11e-12    6.08e-12
+C(completion_year)[T.1990]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]    -7.574e-14   1.18e-11     -0.006      0.995   -2.32e-11    2.31e-11
+C(completion_year)[T.1991]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]    -3.571e-14   7.62e-12     -0.005      0.996    -1.5e-11    1.49e-11
+C(completion_year)[T.1992]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]    -4.407e-14    7.3e-12     -0.006      0.995   -1.43e-11    1.43e-11
+C(completion_year)[T.1993]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]     1.193e-14   4.25e-12      0.003      0.998   -8.32e-12    8.35e-12
+C(completion_year)[T.1994]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        3.8315    151.175      0.025      0.980    -292.467     300.130
+C(completion_year)[T.1995]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]      2.64e-15   4.44e-12      0.001      1.000    -8.7e-12     8.7e-12
+C(completion_year)[T.1996]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]     2.659e-14   6.78e-12      0.004      0.997   -1.33e-11    1.33e-11
+C(completion_year)[T.1997]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]     3.575e-14    9.9e-13      0.036      0.971    -1.9e-12    1.98e-12
+C(completion_year)[T.1998]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]     2.191e-14   7.68e-12      0.003      0.998    -1.5e-11    1.51e-11
+C(completion_year)[T.1999]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]    -7.258e-14   5.87e-12     -0.012      0.990   -1.16e-11    1.14e-11
+C(completion_year)[T.2000]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       -7.6059     56.903     -0.134      0.894    -119.133     103.921
+C(completion_year)[T.2001]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]     5.681e-14   1.35e-12      0.042      0.967    -2.6e-12    2.71e-12
+C(completion_year)[T.2002]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]     5.708e-14    2.9e-12      0.020      0.984   -5.62e-12    5.74e-12
+C(completion_year)[T.2003]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]    -4.793e-14   4.43e-12     -0.011      0.991   -8.74e-12    8.64e-12
+C(completion_year)[T.2004]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]     -2.35e-14   8.62e-12     -0.003      0.998   -1.69e-11    1.69e-11
+C(completion_year)[T.2005]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]     2.736e-14   7.31e-13      0.037      0.970   -1.41e-12    1.46e-12
+C(completion_year)[T.2006]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]     4.249e-14   4.05e-12      0.010      0.992   -7.89e-12    7.98e-12
+C(completion_year)[T.2007]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        0.1706    200.553      0.001      0.999    -392.906     393.247
+C(completion_year)[T.2008]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        7.8565     49.862      0.158      0.875     -89.871     105.584
+C(completion_year)[T.2009]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]     3.985e-15    6.7e-12      0.001      1.000   -1.31e-11    1.31e-11
+C(completion_year)[T.2010]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]     7.861e-14   1.29e-11      0.006      0.995   -2.52e-11    2.53e-11
+C(completion_year)[T.2011]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       -4.7590     49.907     -0.095      0.924    -102.574      93.056
+C(completion_year)[T.2012]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        1.7406     49.782      0.035      0.972     -95.830      99.311
+C(completion_year)[T.2013]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        1.3041     49.779      0.026      0.979     -96.260      98.868
+C(completion_year)[T.2014]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        2.1104     49.842      0.042      0.966     -95.577      99.798
+C(completion_year)[T.2015]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        1.4362     49.775      0.029      0.977     -96.120      98.992
+C(completion_year)[T.2016]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        2.0041     49.777      0.040      0.968     -95.558      99.566
+C(completion_year)[T.2017]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]        0.8955     49.776      0.018      0.986     -96.663      98.454
+C(completion_year)[T.2018]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       -0.9549     49.775     -0.019      0.985     -98.513      96.603
+C(completion_year)[T.2019]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       -0.5245     49.777     -0.011      0.992     -98.086      97.037
+C(completion_year)[T.2020]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       -0.5447     49.779     -0.011      0.991     -98.110      97.020
+C(completion_year)[T.2021]:C(flat_type, Treatment(reference='4 ROOM'))[T.2 ROOM]       -1.4826     49.776     -0.030      0.976     -99.041      96.076
+C(completion_year)[T.1967]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]      -35.2335    307.431     -0.115      0.909    -637.788     567.321
+C(completion_year)[T.1968]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]      -24.0120    307.517     -0.078      0.938    -626.734     578.710
+C(completion_year)[T.1969]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]      -30.2171    307.335     -0.098      0.922    -632.583     572.149
+C(completion_year)[T.1970]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       12.0416    307.612      0.039      0.969    -590.866     614.950
+C(completion_year)[T.1971]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -4.8330    307.955     -0.016      0.987    -608.413     598.747
+C(completion_year)[T.1972]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       17.5147    307.444      0.057      0.955    -585.065     620.094
+C(completion_year)[T.1973]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        5.3140    307.369      0.017      0.986    -597.118     607.746
+C(completion_year)[T.1974]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        5.3448    307.327      0.017      0.986    -597.006     607.695
+C(completion_year)[T.1975]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        6.9618    307.326      0.023      0.982    -595.386     609.310
+C(completion_year)[T.1976]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        7.6285    307.326      0.025      0.980    -594.720     609.977
+C(completion_year)[T.1977]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        6.3018    307.336      0.021      0.984    -596.065     608.669
+C(completion_year)[T.1978]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        4.0150    307.324      0.013      0.990    -598.330     606.360
+C(completion_year)[T.1979]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        4.8854    307.323      0.016      0.987    -597.457     607.228
+C(completion_year)[T.1980]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        5.4127    307.324      0.018      0.986    -596.930     607.756
+C(completion_year)[T.1981]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        3.1742    307.326      0.010      0.992    -599.173     605.521
+C(completion_year)[T.1982]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        2.6174    307.332      0.009      0.993    -599.742     604.977
+C(completion_year)[T.1983]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -4.2837    307.328     -0.014      0.989    -606.635     598.068
+C(completion_year)[T.1984]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -2.3480    307.325     -0.008      0.994    -604.693     599.997
+C(completion_year)[T.1985]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        0.7848    307.325      0.003      0.998    -601.561     603.130
+C(completion_year)[T.1986]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        2.4296    307.324      0.008      0.994    -599.914     604.773
+C(completion_year)[T.1987]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        4.7940    307.326      0.016      0.988    -597.554     607.142
+C(completion_year)[T.1988]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -0.6847    307.329     -0.002      0.998    -603.038     601.669
+C(completion_year)[T.1989]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -5.1201    307.327     -0.017      0.987    -607.470     597.230
+C(completion_year)[T.1990]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -5.8244    307.326     -0.019      0.985    -608.173     596.524
+C(completion_year)[T.1991]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]    -1.111e-14   4.37e-13     -0.025      0.980   -8.67e-13    8.45e-13
+C(completion_year)[T.1992]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]      -13.6139   2042.414     -0.007      0.995   -4016.671    3989.444
+C(completion_year)[T.1993]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -3.9967    307.354     -0.013      0.990    -606.399     598.406
+C(completion_year)[T.1994]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -0.3146    307.491     -0.001      0.999    -602.985     602.356
+C(completion_year)[T.1995]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]      -11.7877    387.170     -0.030      0.976    -770.627     747.051
+C(completion_year)[T.1996]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]    -6.534e-15   5.22e-13     -0.013      0.990   -1.03e-12    1.02e-12
+C(completion_year)[T.1997]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]    -8.064e-15   2.22e-13     -0.036      0.971   -4.42e-13    4.26e-13
+C(completion_year)[T.1998]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -5.0588    307.346     -0.016      0.987    -607.445     597.328
+C(completion_year)[T.1999]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]      -10.9748    308.373     -0.036      0.972    -615.375     593.425
+C(completion_year)[T.2000]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -2.6762    310.208     -0.009      0.993    -610.673     605.320
+C(completion_year)[T.2001]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]      -9.5e-15   2.84e-13     -0.033      0.973   -5.66e-13    5.47e-13
+C(completion_year)[T.2002]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -2.7134    312.828     -0.009      0.993    -615.844     610.417
+C(completion_year)[T.2003]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -1.9984    307.325     -0.007      0.995    -604.344     600.347
+C(completion_year)[T.2004]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -1.2728    514.676     -0.002      0.998   -1010.020    1007.474
+C(completion_year)[T.2005]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]    -2.106e-14   2.73e-13     -0.077      0.939   -5.57e-13    5.15e-13
+C(completion_year)[T.2006]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -1.7751    484.584     -0.004      0.997    -951.542     947.992
+C(completion_year)[T.2007]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        4.7530    307.793      0.015      0.988    -598.510     608.016
+C(completion_year)[T.2008]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -3.0489    307.327     -0.010      0.992    -605.398     599.301
+C(completion_year)[T.2009]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]       -2.1478    327.151     -0.007      0.995    -643.353     639.057
+C(completion_year)[T.2010]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        0.7116    307.326      0.002      0.998    -601.636     603.059
+C(completion_year)[T.2011]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        1.4968    307.327      0.005      0.996    -600.852     603.846
+C(completion_year)[T.2012]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        2.2248    307.323      0.007      0.994    -600.118     604.568
+C(completion_year)[T.2013]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        1.7865    307.325      0.006      0.995    -600.559     604.132
+C(completion_year)[T.2014]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        2.5734    307.335      0.008      0.993    -599.792     604.939
+C(completion_year)[T.2015]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        1.7701    307.323      0.006      0.995    -600.572     604.112
+C(completion_year)[T.2016]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        2.3183    307.323      0.008      0.994    -600.025     604.661
+C(completion_year)[T.2017]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        2.3226    307.323      0.008      0.994    -600.019     604.664
+C(completion_year)[T.2018]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        2.0491    307.323      0.007      0.995    -600.293     604.391
+C(completion_year)[T.2019]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        2.1526    307.323      0.007      0.994    -600.190     604.495
+C(completion_year)[T.2020]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        2.3646    307.324      0.008      0.994    -599.978     604.708
+C(completion_year)[T.2021]:C(flat_type, Treatment(reference='4 ROOM'))[T.3 ROOM]        1.5960    307.323      0.005      0.996    -600.747     603.939
+C(completion_year)[T.1967]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]      -18.9626    338.161     -0.056      0.955    -681.745     643.820
+C(completion_year)[T.1968]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]      -10.1418   7324.826     -0.001      0.999   -1.44e+04    1.43e+04
+C(completion_year)[T.1969]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -5.3826    135.493     -0.040      0.968    -270.945     260.180
+C(completion_year)[T.1970]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       30.4396    134.277      0.227      0.821    -232.739     293.619
+C(completion_year)[T.1971]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       15.7112    520.595      0.030      0.976   -1004.637    1036.059
+C(completion_year)[T.1972]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       32.4304    133.729      0.243      0.808    -229.673     294.533
+C(completion_year)[T.1973]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       24.8907    133.861      0.186      0.852    -237.472     287.253
+C(completion_year)[T.1974]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]        7.3956    133.632      0.055      0.956    -254.519     269.310
+C(completion_year)[T.1975]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       10.5088    133.618      0.079      0.937    -251.378     272.396
+C(completion_year)[T.1976]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]        9.2660    133.623      0.069      0.945    -252.630     271.162
+C(completion_year)[T.1977]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]        6.1621    133.639      0.046      0.963    -255.766     268.090
+C(completion_year)[T.1978]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]        3.6427    133.615      0.027      0.978    -258.238     265.524
+C(completion_year)[T.1979]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]        1.4349    133.623      0.011      0.991    -260.462     263.332
+C(completion_year)[T.1980]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]        4.1429    133.633      0.031      0.975    -257.773     266.059
+C(completion_year)[T.1981]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]        2.3525    133.620      0.018      0.986    -259.539     264.244
+C(completion_year)[T.1982]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]        2.7327    133.638      0.020      0.984    -259.194     264.659
+C(completion_year)[T.1983]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]        2.4351    133.638      0.018      0.985    -259.490     264.360
+C(completion_year)[T.1984]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]        6.9738    133.624      0.052      0.958    -254.924     268.872
+C(completion_year)[T.1985]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]        7.2773    133.627      0.054      0.957    -254.627     269.182
+C(completion_year)[T.1986]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]        7.6539    133.616      0.057      0.954    -254.229     269.537
+C(completion_year)[T.1987]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]        7.0141    133.616      0.052      0.958    -254.869     268.897
+C(completion_year)[T.1988]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]        0.8127    133.619      0.006      0.995    -261.076     262.701
+C(completion_year)[T.1989]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -5.3606    133.619     -0.040      0.968    -267.249     256.528
+C(completion_year)[T.1990]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -6.5743    133.621     -0.049      0.961    -268.467     255.319
+C(completion_year)[T.1991]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -6.9521    133.627     -0.052      0.959    -268.856     254.952
+C(completion_year)[T.1992]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -3.5557    133.631     -0.027      0.979    -265.468     258.356
+C(completion_year)[T.1993]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -1.6911    133.623     -0.013      0.990    -263.588     260.206
+C(completion_year)[T.1994]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]        4.8182    133.825      0.036      0.971    -257.473     267.110
+C(completion_year)[T.1995]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -3.6795    133.618     -0.028      0.978    -265.566     258.207
+C(completion_year)[T.1996]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -2.6417    133.630     -0.020      0.984    -264.552     259.268
+C(completion_year)[T.1997]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -3.6772    133.619     -0.028      0.978    -265.566     258.211
+C(completion_year)[T.1998]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -2.5980    133.614     -0.019      0.984    -264.477     259.281
+C(completion_year)[T.1999]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -3.9899    133.615     -0.030      0.976    -265.870     257.890
+C(completion_year)[T.2000]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -4.8459    133.647     -0.036      0.971    -266.789     257.097
+C(completion_year)[T.2001]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -4.9624    133.617     -0.037      0.970    -266.847     256.922
+C(completion_year)[T.2002]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -3.5396    133.615     -0.026      0.979    -265.419     258.340
+C(completion_year)[T.2003]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -3.4234    133.614     -0.026      0.980    -265.303     258.456
+C(completion_year)[T.2004]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -3.4005    133.617     -0.025      0.980    -265.286     258.485
+C(completion_year)[T.2005]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -5.1096    133.634     -0.038      0.969    -267.028     256.809
+C(completion_year)[T.2006]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -3.7885    133.617     -0.028      0.977    -265.673     258.096
+C(completion_year)[T.2007]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -0.9635    134.009     -0.007      0.994    -263.616     261.689
+C(completion_year)[T.2008]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -5.5776    133.619     -0.042      0.967    -267.466     256.311
+C(completion_year)[T.2009]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -3.1450    133.629     -0.024      0.981    -265.054     258.763
+C(completion_year)[T.2010]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -5.4350    133.616     -0.041      0.968    -267.317     256.447
+C(completion_year)[T.2011]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -6.6072    133.634     -0.049      0.961    -268.526     255.311
+C(completion_year)[T.2012]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -0.9960    133.671     -0.007      0.994    -262.986     260.994
+C(completion_year)[T.2013]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -3.2337    133.617     -0.024      0.981    -265.119     258.651
+C(completion_year)[T.2014]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -5.0995    133.652     -0.038      0.970    -267.053     256.854
+C(completion_year)[T.2015]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -4.0998    133.614     -0.031      0.976    -265.978     257.778
+C(completion_year)[T.2016]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -3.9937    133.615     -0.030      0.976    -265.875     257.887
+C(completion_year)[T.2017]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -4.1446    133.614     -0.031      0.975    -266.024     257.735
+C(completion_year)[T.2018]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -3.9416    133.614     -0.029      0.976    -265.819     257.936
+C(completion_year)[T.2019]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -3.8414    133.619     -0.029      0.977    -265.729     258.046
+C(completion_year)[T.2020]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -3.7045    133.618     -0.028      0.978    -265.591     258.182
+C(completion_year)[T.2021]:C(flat_type, Treatment(reference='4 ROOM'))[T.5 ROOM]       -4.8472    133.615     -0.036      0.971    -266.727     257.033
+C(completion_year)[T.1967]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.1968]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.1969]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.1970]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.1971]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.1972]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.1973]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.1974]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.1975]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.1976]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    38.7653    148.493      0.261      0.794    -252.275     329.805
+C(completion_year)[T.1977]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    19.6405      6.506      3.019      0.003       6.890      32.391
+C(completion_year)[T.1978]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    19.3383      6.530      2.961      0.003       6.540      32.137
+C(completion_year)[T.1979]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    21.5336      5.540      3.887      0.000      10.675      32.392
+C(completion_year)[T.1980]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    20.1568      6.280      3.209      0.001       7.847      32.466
+C(completion_year)[T.1981]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    17.1991      5.780      2.976      0.003       5.870      28.528
+C(completion_year)[T.1982]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    10.1658      6.159      1.651      0.099      -1.905      22.236
+C(completion_year)[T.1983]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]     4.4626      6.895      0.647      0.518      -9.052      17.978
+C(completion_year)[T.1984]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    -1.5242      5.393     -0.283      0.777     -12.095       9.046
+C(completion_year)[T.1985]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]     3.8141      5.436      0.702      0.483      -6.841      14.469
+C(completion_year)[T.1986]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]     6.5681      5.339      1.230      0.219      -3.895      17.031
+C(completion_year)[T.1987]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]     5.3884      5.396      0.999      0.318      -5.187      15.964
+C(completion_year)[T.1988]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    -2.0283      5.368     -0.378      0.706     -12.549       8.492
+C(completion_year)[T.1989]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    -7.3935      5.431     -1.361      0.173     -18.037       3.250
+C(completion_year)[T.1990]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    -1.6314     10.253     -0.159      0.874     -21.726      18.463
+C(completion_year)[T.1991]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    -7.6475      5.515     -1.387      0.166     -18.457       3.161
+C(completion_year)[T.1992]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    -6.4694      5.873     -1.101      0.271     -17.981       5.042
+C(completion_year)[T.1993]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    -6.9473      5.497     -1.264      0.206     -17.721       3.826
+C(completion_year)[T.1994]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    13.9067     19.445      0.715      0.475     -24.205      52.018
+C(completion_year)[T.1995]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    -1.8934      9.597     -0.197      0.844     -20.702      16.916
+C(completion_year)[T.1996]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    -9.6303      5.564     -1.731      0.083     -20.535       1.275
+C(completion_year)[T.1997]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    -8.2155      5.445     -1.509      0.131     -18.888       2.457
+C(completion_year)[T.1998]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    -7.0719      5.332     -1.326      0.185     -17.522       3.378
+C(completion_year)[T.1999]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]    -9.9317      5.374     -1.848      0.065     -20.465       0.602
+C(completion_year)[T.2000]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]   -12.0255      6.218     -1.934      0.053     -24.212       0.161
+C(completion_year)[T.2001]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]   -10.5224      5.442     -1.934      0.053     -21.188       0.144
+C(completion_year)[T.2002]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]   -12.5025      5.352     -2.336      0.019     -22.992      -2.013
+C(completion_year)[T.2003]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]   -12.6282      5.539     -2.280      0.023     -23.485      -1.771
+C(completion_year)[T.2004]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]   -12.6958     28.831     -0.440      0.660     -69.203      43.812
+C(completion_year)[T.2005]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2006]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2007]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2008]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2009]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2010]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2011]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2012]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2013]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2014]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2015]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2016]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2017]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2018]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2019]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2020]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+C(completion_year)[T.2021]:C(flat_type, Treatment(reference='4 ROOM'))[T.EXECUTIVE]          0          0        nan        nan           0           0
+==============================================================================
+Omnibus:                      637.942   Durbin-Watson:                   2.131
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):            25423.442
+Skew:                           1.005   Prob(JB):                         0.00
+Kurtosis:                      21.602   Cond. No.                     1.97e+16
+==============================================================================
+
+Notes:
+[1] Standard Errors are heteroscedasticity robust (HC3)
+[2] The smallest eigenvalue is 3.14e-27. This might indicate that there are
+strong multicollinearity problems or that the design matrix is singular.

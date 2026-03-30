@@ -1,0 +1,46 @@
+{
+  "reference_town": "ANG MO KIO",
+  "reference_flat_type": "4 ROOM",
+  "top_flat_types": [
+    "4 ROOM",
+    "5 ROOM",
+    "3 ROOM"
+  ],
+  "target_coef_log_points": -0.23732096816612497,
+  "target_effect_pct": -21.126191243237813,
+  "target_pvalue": 0.0,
+  "target_ci_low": -0.24051693200187818,
+  "target_ci_high": -0.23412500433037176,
+  "target_effect_pct_ci_low": -21.37786669656735,
+  "target_effect_pct_ci_high": -20.8737101575609,
+  "n_recent": 206696,
+  "interaction_effects": [
+    {
+      "flat_type": "4 ROOM",
+      "coefficient": -0.3038052841442879,
+      "ci_low": -0.3092096810155011,
+      "ci_high": -0.29840088727307473,
+      "effect_pct": -26.199544635076755,
+      "effect_pct_ci_low": -26.597315760474217,
+      "effect_pct_ci_high": -25.799617977223775
+    },
+    {
+      "flat_type": "5 ROOM",
+      "coefficient": -0.3578033919491155,
+      "ci_low": -0.36535017190299124,
+      "ci_high": -0.3502566119952397,
+      "effect_pct": -30.078946808664696,
+      "effect_pct_ci_low": -30.60463947279546,
+      "effect_pct_ci_high": -29.54927184982401
+    },
+    {
+      "flat_type": "3 ROOM",
+      "coefficient": -0.12176387064278388,
+      "ci_low": -0.12586616869860592,
+      "ci_high": -0.11766157258696183,
+      "effect_pct": -11.46425973034938,
+      "effect_pct_ci_low": -11.826715765873718,
+      "effect_pct_ci_high": -11.10031373810143
+    }
+  ]
+}

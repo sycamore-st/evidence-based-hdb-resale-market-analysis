@@ -1,0 +1,15 @@
+{
+  "color": {
+    "bg": "#F6EFE5",
+    "surface": "#FCF7F1",
+    "surfaceAlt": "#F0E6D8",
+    "primary": "#CF864B",
+    "primaryDark": "#8A5A34",
+    "secondary": "#7F93A6",
+    "secondarySoft": "#C7D3DC",
+    "accent": "#D8B55B",
+    "border": "#C9B59E",
+    "text": "#111827",
+    "textMuted": "#6B7280"
+  }
+}
