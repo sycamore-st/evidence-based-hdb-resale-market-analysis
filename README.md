@@ -2,6 +2,11 @@
 
 This repository packages the code, curated outputs, and reviewer-facing notes for a quantitative strategy case interview built on Singapore HDB resale data.
 
+## Deliverables
+
+- [Evidence-Based HDB Resale Market Analysis.pptx](deck/Evidence-Based%20HDB%20Resale%20Market%20Analysis.pptx)
+- [HDB Resale Market Analysis Tableau.twbx](deck/HDB%20Resale%20Market%20Analysis%20Tableau.twbx)
+
 The work is organized into three sections:
 
 - Section 1: buyer-facing dashboard data products
@@ -24,6 +29,7 @@ This packaged copy is meant to be readable without rerunning the full workflow, 
 .
 ├── deck/
 │   ├── Evidence-Based HDB Resale Market Analysis.pptx
+│   ├── HDB Resale Market Analysis Tableau.twbx
 │   └── theme_tokens.json
 ├── docs/
 │   ├── README.md
