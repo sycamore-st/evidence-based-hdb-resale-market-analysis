@@ -90,6 +90,12 @@ Candidate models in the saved run:
 - Linear Regression
 - XGBoost
 
+Train-test split method:
+
+- the main evaluation in [section2_question_b.py](/Users/claire/PycharmProjects/evidence-based-hdb-resale-market-analysis/src/analysis/section2/section2_question_b.py) uses a temporal holdout created by `make_temporal_split(...)`
+- that means the model is trained on earlier transactions and validated on later holdout months, which is more appropriate for a pricing task with time drift
+- the file also contains an optional notebook-style random `75/25` split benchmark, but that is secondary and only runs when `run_random_split_validation=True`
+
 Saved comparison:
 
 - [S2Qb_model_comparison.csv](/outputs/section2/results/S2Qb_model_comparison.csv)

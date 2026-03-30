@@ -97,7 +97,13 @@ Candidate models:
 - Random Forest
 - XGBoost
 
-The model is trained on historical transactions and evaluated on holdout data. The best official model in the saved run is `xgboost`.
+Train-test split method:
+
+- the workflow first runs a training-window sensitivity check using earlier years for training and `2014` as the common holdout year
+- the main model comparison then uses the selected `recent_3y` window, so training is restricted to transactions up to `2013-12-31` within the most recent three-year window and evaluation is done on `2014`
+- the same temporal split is used for the extended model benchmark, so both the official and extended comparisons are aligned on the same out-of-time holdout
+
+The best official model in the saved run is `xgboost`.
 
 Saved model comparison:
 

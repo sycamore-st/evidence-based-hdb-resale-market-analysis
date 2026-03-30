@@ -9,12 +9,12 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from xgboost import XGBRegressor
 
 from src.analysis.common.plotly_standard import apply_standard_theme, load_plotly_theme
 from src.analysis.section2.S2_config import (
+    QUESTION_A_MAIN_TRAINING_WINDOW,
     DEFAULT_XGBOOST_TUNING_ITERATIONS,
     MAX_REGRESSION_SAMPLE,
     QUESTION_A_DIAGNOSTIC_FEATURES,
@@ -39,12 +39,8 @@ from src.analysis.section2.S2_helpers import (
     _normalize_subject,
     _price_preprocessor,
     _recover_direct_resale_price,
-    _recover_resale_price,
-    _regression_metric_bundle,
     _sample_if_needed,
-    _subject_floor_area_for_recovery,
     _subject_frame,
-    _with_log_price_target,
     _with_log_resale_target,
 )
 from src.common.config import SECTION2_OUTPUT_RESULTS
@@ -402,6 +398,7 @@ def _apply_question_a_imputation_scenario(
     for row in frame.to_dict("records"):
         reference = _build_question_a_imputation_reference(reference_frame, row)
         scenario_row = row.copy()
+        scenario_row["recovery_floor_area_sqm"] = row.get("floor_area_sqm")
         for feature, value in reference["values"][method].items():
             scenario_row[feature] = value
         scenario_rows.append(pd.Series(scenario_row))
@@ -425,7 +422,7 @@ def _apply_question_a_imputation_scenario(
 def build_question_a_frame(frame: pd.DataFrame) -> pd.DataFrame:
     sample = _prepare_question_a_diagnostic_frame(frame)
     official = sample[QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price", "transaction_year"]].copy()
-    official = _with_log_price_target(official)
+    official = _with_log_resale_target(official)
     return official
 
 
@@ -433,8 +430,65 @@ def _build_question_a_model_frame(frame: pd.DataFrame) -> pd.DataFrame:
     sample = _prepare_question_a_diagnostic_frame(frame)
     official = sample[QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price", "transaction_month",
                                                       "transaction_year"]].copy()
-    official = _with_log_price_target(official)
+    official = _with_log_resale_target(official)
     return official
+
+
+def _question_a_training_window_year_count(window_label: str) -> int | None:
+    for label, year_count in QUESTION_A_TRAINING_WINDOWS:
+        if label == window_label:
+            return year_count
+    raise ValueError(f"Unknown Question A training window: {window_label}")
+
+
+def _build_question_a_temporal_split(
+        frame: pd.DataFrame,
+        *,
+        window_label: str = QUESTION_A_MAIN_TRAINING_WINDOW,
+) -> dict[str, object]:
+    enriched = _augment_regression_features(frame)
+    sample = enriched.loc[
+        enriched["transaction_year"] <= 2014,
+        QUESTION_A_DIAGNOSTIC_FEATURES + ["resale_price", "transaction_month", "transaction_year"],
+    ].copy()
+    sample["flat_age_bucket"] = sample["flat_age"].map(_question_a_age_bucket)
+    sample = sample.dropna(subset=["flat_type", "town", "flat_age", "floor_area_sqm", "resale_price"]).copy()
+    sample = _with_log_resale_target(sample)
+
+    train_pool = sample.loc[sample["transaction_year"] < 2014].copy()
+    test_frame = sample.loc[sample["transaction_year"] == 2014].copy()
+    if train_pool.empty or test_frame.empty:
+        raise ValueError("Question A temporal split requires pre-2014 training data and 2014 holdout data.")
+
+    year_count = _question_a_training_window_year_count(window_label)
+    if year_count is None:
+        train_frame = train_pool.copy()
+    else:
+        max_year = int(train_pool["transaction_year"].max())
+        start_year = max_year - year_count + 1
+        train_frame = train_pool.loc[train_pool["transaction_year"] >= start_year].copy()
+    if train_frame.empty:
+        raise ValueError(f"Question A temporal split produced an empty training frame for window {window_label}.")
+
+    train_frame["holdout_row_id"] = np.arange(len(train_frame), dtype=int)
+    test_frame["holdout_row_id"] = np.arange(len(test_frame), dtype=int)
+    official_train_frame = _with_log_resale_target(
+        train_frame[
+            QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price", "transaction_month", "transaction_year"]
+        ].copy()
+    )
+    official_test_frame = _with_log_resale_target(
+        test_frame[
+            QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price", "transaction_month", "transaction_year"]
+        ].copy()
+    )
+    return {
+        "window_label": window_label,
+        "train_frame": train_frame,
+        "test_frame": test_frame,
+        "official_train_frame": official_train_frame,
+        "official_test_frame": official_test_frame,
+    }
 
 
 def _evaluate_question_a_training_windows(
@@ -449,7 +503,7 @@ def _evaluate_question_a_training_windows(
         QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price", "transaction_month", "transaction_year"],
     ].copy()
     sample = sample.dropna(subset=["flat_type", "town", "flat_age", "floor_area_sqm", "resale_price"]).copy()
-    sample = _with_log_price_target(sample)
+    sample = _with_log_resale_target(sample)
     train_pool = sample.loc[sample["transaction_year"] < 2014].copy()
     holdout = sample.loc[sample["transaction_year"] == 2014].copy()
     if train_pool.empty or holdout.empty:
@@ -472,7 +526,7 @@ def _evaluate_question_a_training_windows(
         if window_train.empty or not window_years:
             continue
 
-        fit = _fit_regression_models(
+        fit = _fit_direct_price_regression_models(
             window_train,
             holdout,
             features=QUESTION_A_OFFICIAL_FEATURES,
@@ -511,34 +565,22 @@ def predict_simplified_price(
         frame = _load_frame()
     LOGGER.info("Question A start")
     diagnostic_sample = _prepare_question_a_diagnostic_frame(frame)
+    temporal_split = _build_question_a_temporal_split(frame, window_label=QUESTION_A_MAIN_TRAINING_WINDOW)
     controlled_variation_summary = _build_question_a_controlled_variation_summary(diagnostic_sample)
     imputation_correlation = _build_question_a_imputation_correlation(diagnostic_sample)
     floor_area_by_flat_type = _build_question_a_floor_area_by_flat_type_summary(diagnostic_sample)
     feature_handling_table = _build_question_a_feature_handling_table()
     LOGGER.info("Question A diagnostic sample prepared with %d rows", len(diagnostic_sample))
-    train_frame, test_frame = train_test_split(
-        diagnostic_sample,
-        test_size=0.25,
-        random_state=RANDOM_STATE,
-    )
-    train_frame = train_frame.copy()
-    test_frame = test_frame.copy()
-    train_frame["holdout_row_id"] = np.arange(len(train_frame), dtype=int)
-    test_frame["holdout_row_id"] = np.arange(len(test_frame), dtype=int)
-    official_train_frame = _with_log_price_target(
-        train_frame[QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price", "transaction_month",
-                                                    "transaction_year"]].copy()
-    )
-    official_test_frame = _with_log_price_target(
-        test_frame[QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price", "transaction_month",
-                                                   "transaction_year"]].copy()
-    )
+    train_frame = temporal_split["train_frame"].copy()
+    test_frame = temporal_split["test_frame"].copy()
+    official_train_frame = temporal_split["official_train_frame"].copy()
+    official_test_frame = temporal_split["official_test_frame"].copy()
     split = {
         "train_frame": official_train_frame.copy(),
         "test_frame": official_test_frame.copy(),
-        "holdout_months": [],
+        "holdout_months": sorted(pd.to_datetime(official_test_frame["transaction_month"]).unique().tolist()),
     }
-    official_fit = _fit_regression_models(
+    official_fit = _fit_direct_price_regression_models(
         split["train_frame"],
         split["test_frame"],
         features=QUESTION_A_OFFICIAL_FEATURES,
@@ -560,10 +602,7 @@ def predict_simplified_price(
         float(official_best_metrics["r2"]),
     )
     eval_log_predictions = official_fit["best_pipeline"].predict(split["test_frame"][QUESTION_A_OFFICIAL_FEATURES])
-    eval_predictions = _recover_resale_price(
-        eval_log_predictions,
-        split["test_frame"]["floor_area_sqm"].astype(float).to_numpy(),
-    )
+    eval_predictions = _recover_direct_resale_price(eval_log_predictions)
     eval_predictions_frame = split["test_frame"][
         [column for column in ["transaction_month", "town", "flat_type", "flat_age", "resale_price"] if
          column in split["test_frame"].columns]
@@ -577,16 +616,14 @@ def predict_simplified_price(
             ("model", _estimator_for_refit(official_fit["best_estimator"])),
         ]
     )
-    official_training_sample = _with_log_price_target(
-        diagnostic_sample[QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price"]].copy()
+    official_training_sample = _with_log_resale_target(
+        train_frame[QUESTION_A_OFFICIAL_FEATURES + ["resale_price"]].copy()
     )
     official_pipeline.fit(official_training_sample[QUESTION_A_OFFICIAL_FEATURES],
-                          official_training_sample["log_price_per_sqm"])
-    subject_floor_area = _subject_floor_area_for_recovery(subject, official_training_sample)
+                          official_training_sample["log_resale_price"])
     official_prediction = float(
-        _recover_resale_price(
+        _recover_direct_resale_price(
             official_pipeline.predict(_subject_frame(subject, QUESTION_A_OFFICIAL_FEATURES)),
-            np.array([subject_floor_area]),
         )[0]
     )
 
@@ -619,12 +656,13 @@ def predict_simplified_price(
         imputation_reference_frames.append(reference_summary)
         for metric in diagnostic_fit["candidate_metrics"]:
             model_name = str(metric["name"])
+            candidate_estimator = _build_question_a_candidates()[model_name]
             scenario_pipeline = Pipeline(
                 [
                     ("preprocessor", _price_preprocessor(["town", "flat_type"],
                                                          ["year", "flat_age", "floor_area_sqm", "min_floor_level",
                                                           "max_floor_level"])),
-                    ("model", _estimator_for_refit(_build_question_a_candidates()[model_name])),
+                    ("model", _estimator_for_refit(candidate_estimator)),
                 ]
             )
             scenario_pipeline.fit(train_frame[QUESTION_A_DIAGNOSTIC_FEATURES], train_frame["log_resale_price"])
@@ -666,7 +704,7 @@ def predict_simplified_price(
             ("model", _estimator_for_refit(diagnostic_fit["best_estimator"])),
         ]
     )
-    diagnostic_pipeline.fit(diagnostic_sample[QUESTION_A_DIAGNOSTIC_FEATURES], diagnostic_sample["log_resale_price"])
+    diagnostic_pipeline.fit(train_frame[QUESTION_A_DIAGNOSTIC_FEATURES], train_frame["log_resale_price"])
     normalized_subject = _normalize_subject(subject)
     normalized_subject.setdefault("year", 2014.0)
     normalized_subject["flat_age_bucket"] = _question_a_age_bucket(normalized_subject.get("flat_age"))
@@ -679,7 +717,7 @@ def predict_simplified_price(
             scenario_subject[feature] = value
         predicted_price = float(
             _recover_direct_resale_price(
-                diagnostic_pipeline.predict(_subject_frame(scenario_subject, QUESTION_A_DIAGNOSTIC_FEATURES))
+                diagnostic_pipeline.predict(_subject_frame(scenario_subject, QUESTION_A_DIAGNOSTIC_FEATURES)),
             )[0]
         )
         prediction_lookup[method] = predicted_price
@@ -768,7 +806,6 @@ def predict_simplified_price(
         "predicted_price": official_prediction,
         "official_predicted_price": official_prediction,
         "diagnostic_best_model": diagnostic_fit["best_model"],
-        "recovery_floor_area_sqm": subject_floor_area,
         "backtest_error_range_pct": {
             "low": backtest_error_low,
             "high": backtest_error_high,
@@ -792,8 +829,8 @@ def predict_simplified_price(
         "imputation_feature_correlation": imputation_correlation,
         "floor_area_by_flat_type_summary": floor_area_by_flat_type,
         "feature_handling_table": feature_handling_table,
-        "split_holdout_months": [],
-        "split_method": "random_holdout_2014_only",
+        "split_holdout_months": [month.strftime("%Y-%m") for month in split["holdout_months"]],
+        "split_method": f"temporal_holdout_train_before_2014_eval_2014_{QUESTION_A_MAIN_TRAINING_WINDOW}",
         "model_pipeline": official_pipeline,
         "diagnostic_model_pipeline": diagnostic_pipeline,
         "eval_predictions_frame": eval_predictions_frame,
@@ -828,6 +865,9 @@ def build_question_a_figures(result: dict[str, object]) -> dict[str, go.Figure]:
     ) -> go.Figure:
         official_prepared = _prepare_model_metrics(official_metrics)
         extended_prepared = _prepare_model_metrics(extended_metrics)
+        model_order = official_prepared["display_name"].tolist()
+        official_mape_lookup = dict(zip(official_prepared["display_name"], official_prepared["mape"]))
+        extended_mape_lookup = dict(zip(extended_prepared["display_name"], extended_prepared["mape"]))
         fig_tradeoff = go.Figure()
         fig_tradeoff.add_bar(
             x=official_prepared["display_name"],
@@ -865,11 +905,9 @@ def build_question_a_figures(result: dict[str, object]) -> dict[str, go.Figure]:
             x=official_prepared["display_name"],
             y=official_prepared["mape"],
             name="Main MAPE",
-            mode="lines+markers+text",
+            mode="lines+markers",
             line={"color": "#4F6E8A", "width": 3},
             marker={"color": "#4F6E8A", "size": 10},
-            text=official_prepared["mape_display"],
-            textposition="top center",
             cliponaxis=False,
             yaxis="y2",
             hovertemplate="Main model: %{x}<br>MAPE: %{y:.2%}<extra></extra>",
@@ -878,11 +916,9 @@ def build_question_a_figures(result: dict[str, object]) -> dict[str, go.Figure]:
             x=extended_prepared["display_name"],
             y=extended_prepared["mape"],
             name="Extended MAPE",
-            mode="lines+markers+text",
+            mode="lines+markers",
             line={"color": "#587553", "width": 3, "dash": "dot"},
             marker={"color": "#587553", "size": 10},
-            text=extended_prepared["mape_display"],
-            textposition="bottom center",
             cliponaxis=False,
             yaxis="y2",
             hovertemplate="Extended backtest: %{x}<br>MAPE: %{y:.2%}<extra></extra>",
@@ -897,6 +933,13 @@ def build_question_a_figures(result: dict[str, object]) -> dict[str, go.Figure]:
             float(official_prepared["total_seconds"].max()) if not official_prepared.empty else 0.0,
             float(extended_prepared["total_seconds"].max()) if not extended_prepared.empty else 0.0,
         )
+        mape_values = [
+            float(value)
+            for value in list(official_prepared["mape"]) + list(extended_prepared["mape"])
+            if pd.notna(value)
+        ]
+        mape_max = max(mape_values) if mape_values else 0.15
+        mape_axis_max = max(0.10, round((mape_max + 0.015) / 0.02) * 0.02)
         fig_tradeoff.update_layout(
             bargap=0.36,
             barmode="group",
@@ -910,7 +953,7 @@ def build_question_a_figures(result: dict[str, object]) -> dict[str, go.Figure]:
                 "side": "right",
                 "title": "MAPE",
                 "tickformat": ".0%",
-                "range": [0, 0.15],
+                "range": [0, mape_axis_max],
                 "autorange": False,
                 "showgrid": False,
                 "linecolor": "#000000",
@@ -918,6 +961,33 @@ def build_question_a_figures(result: dict[str, object]) -> dict[str, go.Figure]:
                 "title_font": {"color": "#000000", "size": 17},
             },
         )
+        for display_name in model_order:
+            official_mape = official_mape_lookup.get(display_name)
+            extended_mape = extended_mape_lookup.get(display_name)
+            if official_mape is not None:
+                fig_tradeoff.add_annotation(
+                    x=display_name,
+                    y=float(official_mape),
+                    yref="y2",
+                    text=f"{float(official_mape):.2%}",
+                    showarrow=False,
+                    xshift=26,
+                    yshift=-14,
+                    font={"size": 15, "color": "#000000"},
+                    bgcolor="rgba(255,255,255,0.72)",
+                )
+            if extended_mape is not None:
+                fig_tradeoff.add_annotation(
+                    x=display_name,
+                    y=float(extended_mape),
+                    yref="y2",
+                    text=f"{float(extended_mape):.2%}",
+                    showarrow=False,
+                    xshift=-26,
+                    yshift=14,
+                    font={"size": 15, "color": "#000000"},
+                    bgcolor="rgba(255,255,255,0.72)",
+                )
         return fig_tradeoff
 
     controlled_variation = result["controlled_variation_summary"].copy()

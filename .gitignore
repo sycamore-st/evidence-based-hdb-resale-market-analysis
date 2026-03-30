@@ -11,6 +11,7 @@ __pycache__/
 #*.png
 #*.txt
 *.geojson
+evidence_based_hdb_resale_market_analysis.egg-info/
 
 data/raw/
 data/processed/

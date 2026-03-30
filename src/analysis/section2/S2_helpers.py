@@ -844,6 +844,14 @@ def _subject_floor_area_for_recovery(subject: dict[str, object], frame: pd.DataF
 def evaluate_predictions(actual: np.ndarray | pd.Series, predicted: np.ndarray | pd.Series) -> dict[str, float | int]:
     actual_array = np.asarray(actual, dtype=float)
     predicted_array = np.asarray(predicted, dtype=float)
+    valid_mask = np.isfinite(actual_array) & np.isfinite(predicted_array)
+    if not np.all(valid_mask):
+        dropped = int((~valid_mask).sum())
+        LOGGER.warning("Dropping %d rows with non-finite values before scoring predictions.", dropped)
+    actual_array = actual_array[valid_mask]
+    predicted_array = predicted_array[valid_mask]
+    if len(actual_array) == 0:
+        raise ValueError("No valid prediction rows remain after removing NaN/inf values.")
     return {
         "mae": float(mean_absolute_error(actual_array, predicted_array)),
         "mape": float(mean_absolute_percentage_error(actual_array, predicted_array)),
@@ -858,8 +866,13 @@ def _regression_metric_bundle(test_frame: pd.DataFrame, log_predictions: np.ndar
         if "time_rebase_factor_1990" in test_frame.columns
         else None
     )
+    recovery_floor_area = (
+        test_frame["recovery_floor_area_sqm"].astype(float).to_numpy()
+        if "recovery_floor_area_sqm" in test_frame.columns
+        else test_frame["floor_area_sqm"].astype(float).to_numpy()
+    )
     predicted_price_per_sqm = _recover_price_per_sqm(log_predictions, time_rebase_factor=time_rebase_factor)
-    predicted_resale_price = predicted_price_per_sqm * test_frame["floor_area_sqm"].astype(float).to_numpy()
+    predicted_resale_price = predicted_price_per_sqm * recovery_floor_area
     actual_resale_price = test_frame["resale_price"].astype(float).to_numpy()
     metrics = evaluate_predictions(actual_resale_price, predicted_resale_price)
     return {
