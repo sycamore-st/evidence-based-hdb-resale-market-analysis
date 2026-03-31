@@ -34,6 +34,24 @@ def _question_a_lines(result: dict[str, object], suffix: str) -> list[str]:
     best_observed = observed.sort_values("mape", ascending=True).iloc[0]
     best_imputation = imputed.loc[imputed["name"].eq(result["diagnostic_best_model"])].sort_values("mape").iloc[0]
     prediction_range = result["recommended_prediction_range"]
+    official_mape = float(best_official["mape"])
+    observed_mape = float(best_observed["mape"])
+    official_rmse = float(best_official["rmse"])
+    observed_rmse = float(best_observed["rmse"])
+    rmse_change_pct = (observed_rmse - official_rmse) / official_rmse if official_rmse else 0.0
+    mape_change_pct = (observed_mape - official_mape) / official_mape if official_mape else 0.0
+    if observed_mape <= official_mape:
+        diagnostic_line = (
+            f"- When the richer diagnostic model can see hidden drivers such as size and floor level, "
+            f"MAPE improves to **{observed_mape:.2%}** and RMSE improves to **{_format_sgd(observed_rmse)}**."
+        )
+    else:
+        diagnostic_line = (
+            f"- When the richer diagnostic model can see hidden drivers such as size and floor level, "
+            f"RMSE improves to **{_format_sgd(observed_rmse)}** (about **{abs(rmse_change_pct):.1%}** better), "
+            f"but MAPE worsens to **{observed_mape:.2%}** (about **{abs(mape_change_pct):.1%}** worse), "
+            "so added features help absolute dollar fit more than proportional accuracy."
+        )
     return [
         "# S2Qa PPT Summary",
         "",
@@ -48,13 +66,13 @@ def _question_a_lines(result: dict[str, object], suffix: str) -> list[str]:
         "This approach lets us stay faithful to the case prompt while still telling management an honest story: a clean headline estimate is useful, but omitted flat characteristics can widen the realistic pricing range materially.",
         "",
         "## Results",
-        f"- The best official model is **{result['best_model']}**, delivering **{best_official['mape']:.2%} MAPE** and **{_format_sgd(float(best_official['mae']))}** average absolute error on the holdout period.",
-        f"- When the richer diagnostic model can see the hidden drivers, error improves slightly to **{best_observed['mape']:.2%} MAPE**, which confirms that size and floor level still matter.",
-        f"- Once those hidden drivers are imputed rather than observed, the best practical scenario rises to **{best_imputation['mape']:.2%} MAPE**, so uncertainty increases even when the model remains directionally useful.",
+        f"- The best official model is **{result['best_model']}**, delivering **{best_official['mape']:.2%} MAPE**, **{_format_sgd(float(best_official['rmse']))} RMSE**, and **{_format_sgd(float(best_official['mae']))}** average absolute error on the 2014 holdout.",
+        diagnostic_line,
+        f"- Once those hidden drivers are imputed rather than observed, even the best group-based proxy setting rises to **{best_imputation['mape']:.2%} MAPE**, so imputation should be framed as uncertainty control rather than a free accuracy gain.",
         f"- The most credible presentation range is therefore **{_format_sgd(float(prediction_range['low']))} to {_format_sgd(float(prediction_range['high']))}**, with a midpoint of **{_format_sgd(float(prediction_range['mid']))}**.",
         "",
         "## Interpretation",
-        "The story for management is not that we can name one perfectly precise price. It is that we can produce a solid baseline estimate from the allowed fields, and we can clearly explain why the answer should be presented as a range rather than as a single exact number.",
+        "The story for management is not that extra features automatically make every metric better. In this rerun, richer hidden features improve RMSE, but they do not improve MAPE and they slightly worsen MAE. The answer should still be presented as a range rather than as a single exact number.",
         "",
     ]
 

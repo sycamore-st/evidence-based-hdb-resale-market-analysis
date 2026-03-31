@@ -101,6 +101,10 @@ def _build_question_a_candidates() -> dict[str, object]:
     }
 
 
+def _build_question_a_xgboost_only_candidate() -> dict[str, object]:
+    return {"xgboost": _build_question_a_candidates()["xgboost"]}
+
+
 def _question_a_age_bucket(value: object, *, width: int = 5) -> float:
     if value is None or pd.isna(value):
         return np.nan
@@ -202,7 +206,7 @@ def _build_question_a_feature_handling_table() -> pd.DataFrame:
             "extended_training": "Yes",
             "extended_eval": "Imputed",
             "type": "Numeric",
-            "preprocessing": "Median imputer in pipeline; avg/p25/p75/mode/null in backtest",
+            "preprocessing": "Median imputer in pipeline; baseline/p25/p75/mode/null in backtest",
             "note": "Hidden feature",
         },
         {
@@ -211,7 +215,7 @@ def _build_question_a_feature_handling_table() -> pd.DataFrame:
             "extended_training": "Yes",
             "extended_eval": "Imputed",
             "type": "Numeric",
-            "preprocessing": "Median imputer in pipeline; avg/p25/p75/mode/null in backtest",
+            "preprocessing": "Median imputer in pipeline; baseline/p25/p75/mode/null in backtest",
             "note": "Hidden feature",
         },
         {
@@ -220,16 +224,16 @@ def _build_question_a_feature_handling_table() -> pd.DataFrame:
             "extended_training": "Yes",
             "extended_eval": "Imputed",
             "type": "Numeric",
-            "preprocessing": "Median imputer in pipeline; avg/p25/p75/mode/null in backtest",
+            "preprocessing": "Median imputer in pipeline; baseline/p25/p75/mode/null in backtest",
             "note": "Hidden feature",
         },
         {
-            "feature": "Training target: price_per_sqm",
+            "feature": "Training target: resale_price",
             "main_model": "Yes",
             "extended_training": "No",
             "extended_eval": "No",
             "type": "Target",
-            "preprocessing": "Time rebased, then log transformed",
+            "preprocessing": "Log transformed",
             "note": "Main model path",
         },
         {
@@ -370,8 +374,11 @@ def _build_question_a_imputation_reference(
             series = pd.to_numeric(selected[feature], errors="coerce").dropna()
             if series.empty:
                 values[feature] = np.nan
-            elif method == "avg":
-                values[feature] = float(series.mean())
+            elif method == "baseline":
+                if feature == "floor_area_sqm":
+                    values[feature] = float(series.median())
+                else:
+                    values[feature] = _most_frequent_numeric(series)
             elif method == "p25":
                 values[feature] = float(series.quantile(0.25))
             elif method == "p75":
@@ -532,7 +539,7 @@ def _evaluate_question_a_training_windows(
             features=QUESTION_A_OFFICIAL_FEATURES,
             categorical=["flat_type", "town"],
             numeric=["flat_age"],
-            candidates=_build_question_a_candidates(),
+            candidates=_build_question_a_xgboost_only_candidate(),
             tune_xgboost=tune_xgboost,
             xgboost_tuning_iterations=xgboost_tuning_iterations,
         )
@@ -778,7 +785,7 @@ def predict_simplified_price(
         [prediction_lookup.get("p75", np.nan), prediction_lookup.get("most_frequent", np.nan)], dtype=float)
     recommended_low = float(np.nanmin(recommended_low_candidates)) if np.isfinite(
         recommended_low_candidates).any() else np.nan
-    recommended_mid = float(prediction_lookup.get("avg", np.nan))
+    recommended_mid = float(prediction_lookup.get("baseline", np.nan))
     recommended_high = float(np.nanmax(recommended_high_candidates)) if np.isfinite(
         recommended_high_candidates).any() else np.nan
     uncertainty_summary = (
@@ -988,6 +995,115 @@ def build_question_a_figures(result: dict[str, object]) -> dict[str, go.Figure]:
                     font={"size": 15, "color": "#000000"},
                     bgcolor="rgba(255,255,255,0.72)",
                 )
+        return fig_tradeoff
+
+    def _build_imputation_tradeoff_figure(imputed_metrics: pd.DataFrame) -> go.Figure:
+        prepared = imputed_metrics.copy()
+        prepared["model_display"] = prepared["name"].map(
+            lambda value: QUESTION_A_MODEL_LABELS.get(str(value), str(value).replace("_", " ").title())
+        )
+        imputation_label_map = {
+            "baseline": "Baseline\n(Median size,\nmost common floor band)",
+            "p25": "P25",
+            "p75": "P75",
+            "most_frequent": "Most Frequent",
+            "null": "Null",
+            "avg": "Average",
+        }
+        prepared["imputation_display"] = prepared["imputation_method"].fillna("null").map(
+            lambda value: imputation_label_map.get(str(value), str(value).replace("_", " ").title())
+        )
+        prepared["mape_display"] = prepared["mape"].map(lambda value: f"{float(value):.1%}")
+        prepared["rmse_display"] = prepared["rmse"].map(_compact_currency)
+        prepared = prepared.sort_values(["mape", "rmse", "model_display"]).reset_index(drop=True)
+        best_model_name = str(prepared.iloc[0]["name"])
+        best_model_display = QUESTION_A_MODEL_LABELS.get(best_model_name, best_model_name.replace("_", " ").title())
+        focus = prepared.loc[prepared["name"].eq(best_model_name)].copy()
+        focus["imputation_order"] = pd.Categorical(
+            focus["imputation_method"].fillna("null"),
+            categories=list(QUESTION_A_IMPUTATION_METHODS),
+            ordered=True,
+        )
+        focus = focus.sort_values("imputation_order").reset_index(drop=True)
+
+        fig_tradeoff = go.Figure()
+        fig_tradeoff.add_bar(
+            x=focus["imputation_display"],
+            y=focus["rmse"],
+            name="RMSE",
+            marker_color=theme.alpha(theme.blue, 0.58),
+            marker_line={"color": theme.blue, "width": 1.2},
+            text=focus["rmse_display"],
+            textposition="outside",
+            cliponaxis=False,
+            customdata=focus[["mape", "mae", "r2"]].to_numpy(),
+            hovertemplate=(
+                "Imputation: %{x}<br>RMSE: SGD %{y:,.0f}<br>MAPE: %{customdata[0]:.2%}"
+                "<br>MAE: SGD %{customdata[1]:,.0f}<br>R2: %{customdata[2]:.3f}<extra></extra>"
+            ),
+        )
+        fig_tradeoff.add_scatter(
+            x=focus["imputation_display"],
+            y=focus["mape"],
+            name="MAPE",
+            mode="lines+markers",
+            line={"color": theme.orange, "width": 3},
+            marker={"color": theme.orange, "size": 10},
+            cliponaxis=False,
+            yaxis="y2",
+            hovertemplate="Imputation: %{x}<br>MAPE: %{y:.2%}<extra></extra>",
+        )
+        apply_standard_theme(
+            fig_tradeoff,
+            title=f"Question A Imputation Tradeoff ({best_model_display})",
+            xaxis_title="Imputation Method",
+            yaxis_title="RMSE (SGD)",
+        )
+        rmse_max = float(focus["rmse"].max()) if not focus.empty else 0.0
+        mape_max = float(focus["mape"].max()) if not focus.empty else 0.15
+        fig_tradeoff.update_layout(
+            bargap=0.34,
+            showlegend=True,
+            yaxis={
+                "title": "RMSE (SGD)",
+                "range": [0, max(rmse_max * 1.18, rmse_max + 5000)],
+            },
+            yaxis2={
+                "overlaying": "y",
+                "side": "right",
+                "title": "MAPE",
+                "tickformat": ".0%",
+                "range": [0, max(0.20, round((mape_max + 0.03) / 0.05) * 0.05)],
+                "autorange": False,
+                "showgrid": False,
+                "linecolor": "#000000",
+                "tickfont": {"color": "#000000", "size": 16},
+                "title_font": {"color": "#000000", "size": 17},
+            },
+            annotations=[
+                {
+                    "xref": "paper",
+                    "yref": "paper",
+                    "x": 0.01,
+                    "y": 1.13,
+                    "text": "Best imputation performance for the selected diagnostic model; baseline uses median size plus the most common floor band within the selected group.",
+                    "showarrow": False,
+                    "xanchor": "left",
+                    "font": {"size": 14, "color": "#000000"},
+                }
+            ],
+        )
+        for row in focus.itertuples():
+            fig_tradeoff.add_annotation(
+                x=row.imputation_display,
+                y=float(row.mape),
+                yref="y2",
+                text=f"{float(row.mape):.1%}",
+                showarrow=False,
+                yshift=14,
+                font={"size": 15, "color": "#000000"},
+                bgcolor="rgba(255,255,255,0.72)",
+            )
         return fig_tradeoff
 
     controlled_variation = result["controlled_variation_summary"].copy()
@@ -1279,7 +1395,7 @@ def build_question_a_figures(result: dict[str, object]) -> dict[str, go.Figure]:
                     "yref": "paper",
                     "x": 0.00,
                     "y": -0.29,
-                    "text": "<b>Numeric handling:</b> pipeline uses median imputation; hidden fields use avg / p25 / p75 / mode / null scenarios in backtest",
+                    "text": "<b>Numeric handling:</b> pipeline uses median imputation; hidden fields use baseline / p25 / p75 / mode / null scenarios in backtest",
                     "showarrow": False,
                     "xanchor": "left",
                     "font": {"size": 14, "color": "#000000"},
@@ -1289,7 +1405,7 @@ def build_question_a_figures(result: dict[str, object]) -> dict[str, go.Figure]:
                     "yref": "paper",
                     "x": 0.00,
                     "y": -0.38,
-                    "text": "<b>Targets:</b> main model uses time-rebased log price per sqm; extended backtest uses log resale price",
+                    "text": "<b>Targets:</b> both main and extended paths train on log resale price",
                     "showarrow": False,
                     "xanchor": "left",
                     "font": {"size": 14, "color": "#000000"},
@@ -1376,11 +1492,11 @@ def build_question_a_figures(result: dict[str, object]) -> dict[str, go.Figure]:
                 {"x": 0.135, "y": 0.92, "xref": "paper", "yref": "paper", "text": "<b>Main Model</b>", "showarrow": False, "font": {"size": 16, "color": "#000000"}},
                 {"x": 0.135, "y": 0.74, "xref": "paper", "yref": "paper", "text": "Inputs<br>town, flat_type,<br>flat_age", "showarrow": False, "font": {"size": 14, "color": "#000000"}},
                 {"x": 0.40, "y": 0.74, "xref": "paper", "yref": "paper", "text": "Preprocess<br>categorical: one-hot<br>numeric: median impute", "showarrow": False, "font": {"size": 14, "color": "#000000"}},
-                {"x": 0.67, "y": 0.74, "xref": "paper", "yref": "paper", "text": "Train target<br>log price_per_sqm", "showarrow": False, "font": {"size": 14, "color": "#000000"}},
+                {"x": 0.67, "y": 0.74, "xref": "paper", "yref": "paper", "text": "Train target<br>log resale_price", "showarrow": False, "font": {"size": 14, "color": "#000000"}},
                 {"x": 0.895, "y": 0.74, "xref": "paper", "yref": "paper", "text": "Report output<br>resale_price", "showarrow": False, "font": {"size": 14, "color": "#000000"}},
                 {"x": 0.135, "y": 0.44, "xref": "paper", "yref": "paper", "text": "<b>Extended Backtest</b>", "showarrow": False, "font": {"size": 16, "color": "#000000"}},
                 {"x": 0.135, "y": 0.26, "xref": "paper", "yref": "paper", "text": "Inputs<br>3 visible features +<br>size and floor", "showarrow": False, "font": {"size": 14, "color": "#000000"}},
-                {"x": 0.40, "y": 0.26, "xref": "paper", "yref": "paper", "text": "Imputation test<br>avg / p25 / p75 /<br>mode / null", "showarrow": False, "font": {"size": 14, "color": "#000000"}},
+                {"x": 0.40, "y": 0.26, "xref": "paper", "yref": "paper", "text": "Imputation test<br>baseline / p25 / p75 /<br>mode / null", "showarrow": False, "font": {"size": 14, "color": "#000000"}},
                 {"x": 0.67, "y": 0.26, "xref": "paper", "yref": "paper", "text": "Train target<br>log resale_price", "showarrow": False, "font": {"size": 14, "color": "#000000"}},
             ],
         )
@@ -1461,6 +1577,10 @@ def build_question_a_figures(result: dict[str, object]) -> dict[str, go.Figure]:
             ]
         )
         figures["S2QaF9_range_backtest"] = fig_range_backtest
+
+    imputed_metrics = pd.DataFrame(result.get("candidate_metrics_imputed", [])).copy()
+    if not imputed_metrics.empty and {"name", "imputation_method", "mape", "rmse", "mae", "r2"}.issubset(imputed_metrics.columns):
+        figures["S2QaF10_imputation_tradeoff"] = _build_imputation_tradeoff_figure(imputed_metrics)
 
     eval_predictions = result["eval_predictions_frame"].copy()
     if not eval_predictions.empty:

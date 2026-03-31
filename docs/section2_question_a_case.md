@@ -111,9 +111,10 @@ Saved model comparison:
 
 Key official holdout results:
 
-- XGBoost RMSE: about `37,539`
-- XGBoost MAPE: about `6.01%`
-- XGBoost R²: about `0.910`
+- XGBoost RMSE: about `51,425`
+- XGBoost MAPE: about `8.44%`
+- XGBoost MAE: about `37,408`
+- XGBoost R²: about `0.826`
 
 Supporting chart:
 
@@ -137,48 +138,75 @@ Saved comparison:
 
 Key diagnostic result:
 
-- XGBoost RMSE improves from about `37.5k` to about `34.4k`
-- MAPE improves from about `6.01%` to about `5.39%`
+- XGBoost RMSE improves from about `51.4k` to about `47.2k`
+- that is about `8.2%` lower RMSE
+- but MAPE worsens from about `8.44%` to about `9.05%`
+- that is about `0.61` percentage points worse, or roughly `7.2%` worse in relative terms
+- MAE also moves slightly worse, from about `37.4k` to about `38.2k`
 
 Interpretation:
 
 - the hidden fields are genuinely informative
-- the official three-field model is good, but it leaves measurable accuracy on the table
+- they improve absolute dollar fit
+- but they do not improve percentage accuracy in this rerun, and the MAE result is also slightly weaker
+- so the official three-field model remains the cleaner benchmark if MAPE is the primary decision metric
 
 ### 3.3 Imputation and uncertainty study
 
-The code then hides those extra fields again and replaces them with simple proxies such as:
+The code then hides those extra fields again and replaces them with group-based proxies such as:
 
-- group average
+- baseline: median size plus the most common floor band
 - group `p25`
 - group `p75`
-- most frequent value
-- null baseline
+- group most frequent value
+- null stress test
+
+This is the realistic proxy-enhanced benchmark:
+
+- train the richer model on rows where the hidden fields are observed
+- evaluate it on `2014` holdout rows where the hidden fields are replaced by imputed values
+
+So this section is the right place to judge whether proxy recovery actually helps at prediction time.
 
 Saved outputs:
 
 - [S2Qa_imputed_model_comparison.csv](/outputs/section2/results/S2Qa_imputed_model_comparison.csv)
 - [S2Qa_imputation_reference.csv](/outputs/section2/results/S2Qa_imputation_reference.csv)
 - [S2Qa_imputation_range_backtest_summary.csv](/outputs/section2/results/S2Qa_imputation_range_backtest_summary.csv)
+- [S2QaF10_imputation_tradeoff.svg](/outputs/section2/charts/S2QaF10_imputation_tradeoff.svg)
 
-The best imputed diagnostic setting is still XGBoost with average imputation:
+The imputation study still matters, but it should now be read mainly as an uncertainty exercise rather than a guaranteed accuracy improvement over the official model.
 
-- RMSE about `45.4k`
-- MAPE about `6.84%`
+The baseline proxy is still group-based rather than global:
+
+- `floor_area_sqm` uses the group median
+- `min_floor_level` and `max_floor_level` use the most common floor band in the group
+- the reference group is selected hierarchically from combinations of `town`, `flat_type`, and `flat_age_bucket`
 
 The null-imputation cases perform much worse, which confirms that sensible proxy recovery matters.
 
+In the currently saved imputation output, the best imputed combination is:
+
+- Linear Regression with `most_frequent` imputation
+- MAPE: about `14.66%`
+- RMSE: about `101.5k`
+
+That is still materially worse than the official three-field XGBoost benchmark, which means proxy-filled hidden features do not currently improve the practical prediction task.
+
 The range backtest is especially important:
 
-- coverage rate: about `29.2%`
-- average width: about `28.6k`
-- median width: about `23.3k`
+- coverage rate: about `50.46%`
+- average width: about `167.5k`
+- median width: about `163.5k`
 
 Supporting chart:
 
+- [S2QaF10_imputation_tradeoff.svg](/outputs/section2/charts/S2QaF10_imputation_tradeoff.svg)
 - [S2QaF9_range_backtest.svg](/outputs/section2/charts/S2QaF9_range_backtest.svg)
 
-This range study shows that a narrow p25-to-p75 interval should not be interpreted as a calibrated 95% confidence band. It is better read as a practical diagnostic band around the midpoint.
+The imputation tradeoff chart shows that imputed hidden features are noisy enough to overturn the ranking seen in the observed diagnostic benchmark: simple models can become more stable than XGBoost once proxy quality deteriorates.
+
+The range study shows that a narrow p25-to-p75 interval should not be interpreted as a calibrated 95% confidence band. It is better read as a practical diagnostic band around the midpoint.
 
 ### 3.4 Training-window sensitivity
 
@@ -195,10 +223,13 @@ This is a robustness check on temporal stability rather than a different busines
 
 The most defensible interpretation of Question A is:
 
-- a three-field model can produce a reasonably strong first-pass estimate
-- XGBoost is clearly the best official model in this saved run
-- but hidden variables like floor area and storey still matter enough that the answer should be communicated as an estimate with uncertainty, not as a precise point truth
+- a three-field model can still produce a reasonably strong first-pass estimate
+- XGBoost remains the best official model in this rerun
+- observed hidden features improve RMSE, so they help the model reduce large dollar misses
+- but they worsen MAPE and slightly worsen MAE, so they do not improve the proportional accuracy of the estimate
+- once those hidden fields are replaced by imputed proxies, the proxy-enhanced benchmark is clearly worse than the official model
+- the safest business framing is still a point estimate plus an uncertainty range, not a claim of precise valuation
 
 So the business conclusion is:
 
-> Yes, the target flat’s price can be estimated reasonably well using only the allowed fields, but the quality of the estimate is limited by missing structural information. The right communication is a midpoint plus an uncertainty range, not a single overconfident number.
+> Yes, the target flat’s price can be estimated reasonably well using only the allowed fields. True hidden structural features help RMSE, but proxy-filled versions of those features do not improve the practical holdout benchmark. The right communication is still a midpoint plus an uncertainty range, not a single overconfident number.

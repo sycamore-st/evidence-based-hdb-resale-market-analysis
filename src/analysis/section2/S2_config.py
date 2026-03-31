@@ -117,5 +117,5 @@ QUESTION_A_DIAGNOSTIC_FEATURES = [
     "max_floor_level",
 ]
 QUESTION_A_IMPUTATION_FEATURES = ["floor_area_sqm", "min_floor_level", "max_floor_level"]
-QUESTION_A_IMPUTATION_METHODS = ("avg", "p25", "p75", "most_frequent", "null")
+QUESTION_A_IMPUTATION_METHODS = ("baseline", "p25", "p75", "most_frequent", "null")
 QUESTION_A_IMPUTATION_MIN_GROUP_SIZE = 5
