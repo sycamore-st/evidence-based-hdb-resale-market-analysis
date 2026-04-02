@@ -1,0 +1,11 @@
+{
+  "dataset_version": "web-2026-03",
+  "generated_at": "2026-04-01T07:14:34Z",
+  "source_coverage_end": "2026-03",
+  "section": "policy",
+  "record_count": 12,
+  "notes": [
+    "Policy artifacts summarize Section 3 findings into card and chart payloads.",
+    "The current payloads are built from tracked analysis outputs already present in the repository."
+  ]
+}

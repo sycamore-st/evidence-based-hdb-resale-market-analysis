@@ -17,6 +17,8 @@ The work is organized into three sections:
 
 - reproducible Python pipeline and analysis code under `src/`
 - reviewer-facing notes under `docs/`
+- frontend application scaffold under `apps/web/`
+- published web artifacts under `artifacts/web/`
 - selected outputs under `outputs/`
 - slide-deck support artifacts under `deck/`
 - local data caches under `data/`, which are intentionally ignored in git
@@ -26,7 +28,20 @@ This packaged copy is meant to be readable without rerunning the full workflow, 
 ## Repository Structure
 
 ```text
-.
+. 
+├── apps/
+│   └── web/
+│       ├── app/
+│       ├── components/
+│       ├── lib/
+│       └── public/
+├── artifacts/
+│   └── web/
+│       ├── model/
+│       ├── overview/
+│       └── policy/
+├── configs/
+│   └── design_tokens.json
 ├── deck/
 │   ├── Evidence-Based HDB Resale Market Analysis.pptx
 │   ├── HDB Resale Market Analysis Tableau.twbx
@@ -67,6 +82,7 @@ Folder-level guides:
 - [Pipeline Guide](src/pipeline/README.md)
 - [Analysis Guide](src/analysis/README.md)
 - [Supporting Docs](docs/README.md)
+- [Frontend Architecture](docs/frontend_architecture.md)
 
 ## Environment Setup
 
@@ -98,6 +114,43 @@ Run the end-to-end analysis workflow:
 ./.venv/bin/python -m src.analysis.run_all
 ```
 
+Publish frontend-ready dashboard artifacts:
+
+```bash
+./.venv/bin/python -m src.pipeline.publish_web_artifacts
+```
+
+Validate the published web artifact contract:
+
+```bash
+./.venv/bin/python -m src.pipeline.validate_web_artifacts
+```
+
+Run the frontend locally from the monorepo app:
+
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+Or run it from the repo root:
+
+```bash
+make web-install
+make web-dev
+```
+
+Dashboard 1 layout presets can be switched by URL:
+
+- `http://localhost:3000/section1/dashboard-1?layout=editorial`
+- `http://localhost:3000/section1/dashboard-1?layout=balanced`
+- `http://localhost:3000/section1/dashboard-1?layout=chart-heavy`
+
+Dashboard 1 layout sandbox (live controls + URL-synced knobs):
+
+- `http://localhost:3000/section1/dashboard-1/sandbox`
+
 ## Tracked Outputs Vs Local Caches
 
 Tracked in git:
@@ -118,4 +171,5 @@ Not tracked in git:
 
 - Tableau dashboards are still assembled manually in Tableau Desktop from the exported Section 1 files in `outputs/section1/results/`.
 - The PowerPoint in `deck/` is a rebuildable support artifact for the final presentation workflow.
+- The frontend reads prepared files from `artifacts/web/` and does not depend on raw pipeline intermediates.
 - Some outputs are intentionally pretracked so a reviewer can inspect the work without rerunning the full pipeline.

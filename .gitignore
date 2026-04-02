@@ -1,6 +1,10 @@
 .DS_Store
 .idea/
 .venv/
+node_modules/
+apps/web/node_modules/
+apps/web/.next/
+apps/web/out/
 __pycache__/
 *.pyc
 *.pyo

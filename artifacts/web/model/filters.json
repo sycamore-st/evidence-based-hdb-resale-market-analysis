@@ -1,0 +1,32 @@
+{
+  "dataset_version": "web-2026-03",
+  "generated_at": "2026-04-01T07:14:34Z",
+  "source_coverage_end": "2026-03",
+  "filters": [
+    {
+      "id": "best_model",
+      "label": "Published model",
+      "options": [
+        "logistic_regression"
+      ]
+    },
+    {
+      "id": "flat_type",
+      "label": "Flat type",
+      "options": [
+        "2 ROOM",
+        "3 ROOM",
+        "4 ROOM",
+        "5 ROOM",
+        "EXECUTIVE"
+      ]
+    },
+    {
+      "id": "reference_town",
+      "label": "Reference town",
+      "options": [
+        "ANG MO KIO"
+      ]
+    }
+  ]
+}

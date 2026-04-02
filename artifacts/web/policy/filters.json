@@ -1,0 +1,35 @@
+{
+  "dataset_version": "web-2026-03",
+  "generated_at": "2026-04-01T07:14:34Z",
+  "source_coverage_end": "2026-03",
+  "filters": [
+    {
+      "id": "target_town",
+      "label": "Target town",
+      "options": [
+        "YISHUN"
+      ]
+    },
+    {
+      "id": "candidate_towns",
+      "label": "Candidate towns",
+      "options": [
+        "JURONG WEST",
+        "WOODLANDS",
+        "CHOA CHU KANG",
+        "JURONG EAST",
+        "BUKIT PANJANG",
+        "YISHUN"
+      ]
+    },
+    {
+      "id": "flat_type",
+      "label": "Highlighted flat types",
+      "options": [
+        "4 ROOM",
+        "5 ROOM",
+        "3 ROOM"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "dataset_version": "web-2026-03",
+  "generated_at": "2026-04-01T07:14:34Z",
+  "source_coverage_end": "2026-03",
+  "series": [
+    {
+      "id": "gap-vs-peer-median",
+      "label": "Gap vs peer median by age band",
+      "points": [
+        {
+          "x": "0-9",
+          "y": 234.0
+        },
+        {
+          "x": "10-19",
+          "y": -1078.0
+        },
+        {
+          "x": "20-29",
+          "y": 886.0
+        },
+        {
+          "x": "0-9",
+          "y": -591.0
+        },
+        {
+          "x": "10-19",
+          "y": -708.0
+        },
+        {
+          "x": "20-29",
+          "y": -1166.0
+        }
+      ]
+    },
+    {
+      "id": "adjusted-floor-area",
+      "label": "Adjusted floor area by completion year",
+      "points": [
+        {
+          "x": "1969",
+          "y": 29.1
+        },
+        {
+          "x": "1975",
+          "y": 31.2
+        },
+        {
+          "x": "1977",
+          "y": 30.1
+        },
+        {
+          "x": "1967",
+          "y": 47.3
+        },
+        {
+          "x": "1968",
+          "y": 46.0
+        },
+        {
+          "x": "1969",
+          "y": 44.8
+        }
+      ]
+    }
+  ]
+}

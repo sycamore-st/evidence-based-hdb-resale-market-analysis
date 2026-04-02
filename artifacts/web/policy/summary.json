@@ -1,0 +1,38 @@
+{
+  "dataset_version": "web-2026-03",
+  "generated_at": "2026-04-01T07:14:34Z",
+  "source_coverage_end": "2026-03",
+  "headline": "Yishun is better framed as a value town than as the outright cheapest town in Singapore.",
+  "description": "Condensed policy evidence translated into frontend-friendly cards and chart-ready data.",
+  "cards": [
+    {
+      "id": "yishun-effect",
+      "label": "Adjusted Yishun effect",
+      "value": "-21.2%",
+      "context": "Estimated controlled price-per-sqm effect relative to the reference town."
+    },
+    {
+      "id": "yishun-rank",
+      "label": "Adjusted town rank",
+      "value": "8",
+      "context": "Rank after controlling for flat type, age, and year."
+    },
+    {
+      "id": "completion-slope",
+      "label": "Within-type floor-area slope",
+      "value": "-0.8 sqm/year",
+      "context": "Average within-flat-type completion-year slope from the policy analysis."
+    },
+    {
+      "id": "top-flat-types",
+      "label": "Primary flat types",
+      "value": "4 ROOM, 5 ROOM, 3 ROOM",
+      "context": "Most important flat types highlighted in the current policy narrative."
+    }
+  ],
+  "insights": [
+    "Yishun is better framed as a value town than as the outright cheapest town in Singapore.",
+    "Newer completions tend to be smaller in larger flat types, but the pattern is not universal across all flat categories.",
+    "The dashboard contract keeps explanatory text alongside quantitative metrics for static-site publishing."
+  ]
+}

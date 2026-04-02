@@ -1,0 +1,37 @@
+{
+  "dataset_version": "web-2026-03",
+  "generated_at": "2026-04-01T07:14:34Z",
+  "source_coverage_end": "2026-03",
+  "headline": "Singapore HDB resale market snapshot",
+  "description": "A light-weight overview surface built from prepared dashboard artifacts.",
+  "cards": [
+    {
+      "id": "median-price",
+      "label": "Latest median resale price",
+      "value": "SGD 545,000",
+      "context": "Sample artifact for local frontend bootstrapping."
+    },
+    {
+      "id": "transaction-count",
+      "label": "Latest monthly transactions",
+      "value": "2,180",
+      "context": "Replace with real pipeline outputs when processed data is available."
+    },
+    {
+      "id": "town-count",
+      "label": "Town coverage",
+      "value": "26",
+      "context": "Intended contract shape for filter population."
+    },
+    {
+      "id": "flat-types",
+      "label": "Flat types",
+      "value": "7",
+      "context": "Published as stable frontend metadata."
+    }
+  ],
+  "insights": [
+    "Overview data is designed to be served from static JSON payloads.",
+    "Heavy processing stays in Python so the web UI stays fast and stable."
+  ]
+}

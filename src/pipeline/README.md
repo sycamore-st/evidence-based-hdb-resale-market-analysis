@@ -16,6 +16,18 @@ Run the building-centric Section 1 asset build:
 ./.venv/bin/python -m src.pipeline.build_building_tableau_assets
 ```
 
+Publish frontend-ready artifacts:
+
+```bash
+./.venv/bin/python -m src.pipeline.publish_web_artifacts
+```
+
+Validate the frontend artifact contract:
+
+```bash
+./.venv/bin/python -m src.pipeline.validate_web_artifacts
+```
+
 Use `build_resale_analysis_dataset.py` when you need the main processed resale dataset for Section 2, Section 3, or the full-project run.
 
 Use `build_building_tableau_assets.py` when you need the building geometry, POI, and optimizer exports used by the Tableau workflow.
@@ -30,6 +42,9 @@ Use `build_building_tableau_assets.py` when you need the building geometry, POI,
 - `map_entities.py`: town, planning-area, and building mapping logic
 - `calculate_building_poi.py`: building-level POI aggregation helpers used by the building pipeline
 - `pipeline_common.py`: shared pipeline logging, checkpoint, and path helpers
+- `web_artifacts.py`: builders for frontend-facing summaries, filters, metadata, and chart payloads
+- `publish_web_artifacts.py`: writes stable dashboard artifacts into `artifacts/web/`
+- `validate_web_artifacts.py`: schema and completeness checks for the published web contract
 
 ## Main Inputs
 
@@ -47,6 +62,9 @@ Use `build_building_tableau_assets.py` when you need the building geometry, POI,
 - `outputs/section1/results/final/hdb_existing_buildings.geojson`
 - `outputs/section1/results/diagnostics/building_optimizer_raw.csv`
 - `outputs/section1/results/diagnostics/building_transaction_match_summary.csv`
+- `artifacts/web/overview/*.json`
+- `artifacts/web/policy/*.json`
+- `artifacts/web/model/*.json`
 
 ## Practical Run Order
 

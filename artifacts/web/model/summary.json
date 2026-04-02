@@ -1,0 +1,38 @@
+{
+  "dataset_version": "web-2026-03",
+  "generated_at": "2026-04-01T07:14:34Z",
+  "source_coverage_end": "2026-03",
+  "headline": "Model diagnostics and interpretable outputs",
+  "description": "Prepared model summaries for the dashboard layer, published independently from notebooks and slide builds.",
+  "cards": [
+    {
+      "id": "classifier-accuracy",
+      "label": "Flat-type classifier accuracy",
+      "value": "98.4%",
+      "context": "Best model: logistic_regression."
+    },
+    {
+      "id": "weighted-f1",
+      "label": "Weighted F1",
+      "value": "98.5%",
+      "context": "Holdout classification quality across the observed flat types."
+    },
+    {
+      "id": "pricing-delta",
+      "label": "Recovered-type RMSE delta",
+      "value": "SGD 331",
+      "context": "Incremental pricing error after recovering missing flat types."
+    },
+    {
+      "id": "yishun-effect",
+      "label": "Controlled Yishun effect",
+      "value": "-21.1%",
+      "context": "Relative to ANG MO KIO in the town-effect regression."
+    }
+  ],
+  "insights": [
+    "Classifier diagnostics are published in a compact, frontend-safe format.",
+    "Econometric headline numbers can coexist with machine-learning diagnostics in one dashboard surface.",
+    "Live model training is intentionally out of scope for the first web version."
+  ]
+}

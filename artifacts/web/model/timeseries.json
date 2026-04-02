@@ -1,0 +1,51 @@
+{
+  "dataset_version": "web-2026-03",
+  "generated_at": "2026-04-01T07:14:34Z",
+  "source_coverage_end": "2026-03",
+  "series": [
+    {
+      "id": "per-class-accuracy",
+      "label": "Per-class accuracy",
+      "points": [
+        {
+          "x": "2 ROOM",
+          "y": 80.0
+        },
+        {
+          "x": "3 ROOM",
+          "y": 96.7
+        },
+        {
+          "x": "4 ROOM",
+          "y": 99.4
+        },
+        {
+          "x": "5 ROOM",
+          "y": 100.0
+        },
+        {
+          "x": "EXECUTIVE",
+          "y": 96.9
+        }
+      ]
+    },
+    {
+      "id": "interaction-effect",
+      "label": "Interaction effect by flat type",
+      "points": [
+        {
+          "x": "4 ROOM",
+          "y": -26.2
+        },
+        {
+          "x": "5 ROOM",
+          "y": -30.1
+        },
+        {
+          "x": "3 ROOM",
+          "y": -11.5
+        }
+      ]
+    }
+  ]
+}

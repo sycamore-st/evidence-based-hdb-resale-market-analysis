@@ -27,6 +27,11 @@ dependencies = [
   "xgboost>=3.2",
 ]
 
+[project.optional-dependencies]
+web = [
+  "jsonschema>=4.25",
+]
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 

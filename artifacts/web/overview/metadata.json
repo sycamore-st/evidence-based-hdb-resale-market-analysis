@@ -1,0 +1,11 @@
+{
+  "dataset_version": "web-2026-03",
+  "generated_at": "2026-04-01T07:14:34Z",
+  "source_coverage_end": "2026-03",
+  "section": "overview",
+  "record_count": 6,
+  "notes": [
+    "Fallback sample overview artifacts are committed so the frontend can boot without local processed data.",
+    "Run `python -m src.pipeline.publish_web_artifacts` after rebuilding the pipeline to replace the sample data."
+  ]
+}
