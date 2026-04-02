@@ -456,7 +456,7 @@ a {
 
 .dashboard1-header h1 {
   margin: 0;
-  font-size: clamp(3rem, 6vw, 5.5rem);
+  font-size: clamp(3rem, 5vw, 4rem);
   line-height: 0.94;
   letter-spacing: -0.05em;
 }
@@ -676,7 +676,7 @@ a {
 .dashboard1-hover-card {
   position: absolute;
   z-index: 20;
-  width: 340px;
+  width: 392px;
   padding: 0.65rem 0.7rem;
   border: 1px solid rgba(87, 78, 65, 0.16);
   background: rgba(255, 253, 249, 0.96);
@@ -708,7 +708,7 @@ a {
 
 .dashboard1-hover-mini-row {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr) 86px;
+  grid-template-columns: 88px minmax(0, 1fr) 96px;
   column-gap: 0.26rem;
   row-gap: 0.45rem;
   align-items: center;

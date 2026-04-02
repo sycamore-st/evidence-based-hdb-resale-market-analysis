@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import dynamic from "next/dynamic"
-import { memo, useMemo, useRef, useState, useTransition } from "react"
+import { memo, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import type { CSSProperties } from "react"
 
 import type { DashboardOneData, DashboardOneRow, MapShape } from "@/lib/section1-dashboard1"
@@ -166,6 +166,21 @@ function StackedBarsPlot({
   const shellRef = useRef<HTMLDivElement | null>(null)
   const [hoverState, setHoverState] = useState<{ x: number; left: number; top: number } | null>(null)
   const years = Array.from(new Set(series.flatMap((entry) => entry.points.map((point) => point.year)))).sort((a, b) => a - b)
+  const plotKey = useMemo(
+    () =>
+      JSON.stringify(
+        series.map((entry) => ({
+          name: entry.name,
+          years: entry.points.map((point) => point.year),
+        })),
+      ),
+    [series],
+  )
+
+  useEffect(() => {
+    setHoverState(null)
+  }, [plotKey])
+
   const hoverBreakdown = useMemo(() => {
     if (!hoverState) {
       return null
@@ -206,12 +221,13 @@ function StackedBarsPlot({
   }))
 
   return (
-    <div className="dashboard1-chart-shell" ref={shellRef}>
+    <div className="dashboard1-chart-shell" ref={shellRef} onMouseLeave={() => setHoverState(null)}>
       <div className="dashboard1-chart-header">
         <h3>Transactions over time</h3>
         <span>Stacked by flat type</span>
       </div>
       <Plot
+        key={plotKey}
         data={traces}
         layout={{
           autosize: true,

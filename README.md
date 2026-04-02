@@ -83,6 +83,7 @@ Folder-level guides:
 - [Analysis Guide](src/analysis/README.md)
 - [Supporting Docs](docs/README.md)
 - [Frontend Architecture](docs/frontend_architecture.md)
+- [Web App Run Guide](apps/web/README.md)
 
 ## Environment Setup
 
@@ -133,6 +134,16 @@ cd apps/web
 npm install
 npm run dev
 ```
+
+From any terminal location, you can also use the absolute app path:
+
+```bash
+cd /Users/claire/PycharmProjects/evidence-based-hdb-resale-market-analysis/apps/web
+npm install
+npm run dev
+```
+
+If you see `env: node: No such file or directory`, install or enable Node.js first, then rerun the commands above. See [apps/web/README.md](apps/web/README.md) for the frontend run guide, key routes, troubleshooting, and the recommended `npm run typecheck` verification step.
 
 Or run it from the repo root:
 
