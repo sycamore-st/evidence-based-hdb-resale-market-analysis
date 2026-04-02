@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import dynamic from "next/dynamic"
-import { memo, useMemo, useState, useTransition } from "react"
+import { memo, useMemo, useRef, useState, useTransition } from "react"
 import type { CSSProperties } from "react"
 
 import type { DashboardOneData, DashboardOneRow, MapShape } from "@/lib/section1-dashboard1"
@@ -163,7 +163,33 @@ function StackedBarsPlot({
     strokeColor: string
   }>
 }) {
+  const shellRef = useRef<HTMLDivElement | null>(null)
+  const [hoverState, setHoverState] = useState<{ x: number; left: number; top: number } | null>(null)
   const years = Array.from(new Set(series.flatMap((entry) => entry.points.map((point) => point.year)))).sort((a, b) => a - b)
+  const hoverBreakdown = useMemo(() => {
+    if (!hoverState) {
+      return null
+    }
+    const items = series
+      .map((entry) => ({
+        name: entry.name,
+        fillColor: entry.fillColor,
+        strokeColor: entry.strokeColor,
+        value: entry.points.find((point) => point.year === hoverState.x)?.transactions ?? 0,
+      }))
+      .filter((item) => item.value > 0)
+      .sort((left, right) => right.value - left.value)
+    if (items.length === 0) {
+      return null
+    }
+    const total = items.reduce((sum, item) => sum + item.value, 0)
+    const itemsWithShare = items.map((item) => ({
+      ...item,
+      share: total > 0 ? (item.value / total) * 100 : 0,
+    }))
+    return { year: hoverState.x, left: hoverState.left, top: hoverState.top, items: itemsWithShare, total }
+  }, [hoverState, series])
+
   const traces = series.map((entry) => ({
     type: "bar" as const,
     name: entry.name,
@@ -176,11 +202,11 @@ function StackedBarsPlot({
         width: 1.2,
       },
     },
-    hovertemplate: `%{fullData.name}<br>%{x}: %{y:,} transactions<extra></extra>`,
+    hoverinfo: "none" as const,
   }))
 
   return (
-    <div className="dashboard1-chart-shell">
+    <div className="dashboard1-chart-shell" ref={shellRef}>
       <div className="dashboard1-chart-header">
         <h3>Transactions over time</h3>
         <span>Stacked by flat type</span>
@@ -194,6 +220,7 @@ function StackedBarsPlot({
           margin: { l: 68, r: 24, t: 8, b: 48 },
           paper_bgcolor: "rgba(0,0,0,0)",
           plot_bgcolor: "rgba(0,0,0,0)",
+          hovermode: "x",
           font: { family: '"Avenir Next", "Segoe UI", sans-serif', color: "rgba(38,35,31,0.78)", size: 12 },
           xaxis: {
             tickmode: "linear",
@@ -209,11 +236,6 @@ function StackedBarsPlot({
             zeroline: false,
             title: { text: "Transactions count" },
           },
-          hoverlabel: {
-            bgcolor: "#fffdf9",
-            bordercolor: "rgba(87,78,65,0.18)",
-            font: { color: "#26231f" },
-          },
         }}
         config={{
           displayModeBar: false,
@@ -222,7 +244,59 @@ function StackedBarsPlot({
         className="dashboard1-plot dashboard1-plot-bar"
         useResizeHandler
         style={{ width: "100%", height: "100%" }}
+        onHover={(rawEvent) => {
+          const event = rawEvent as {
+            points?: Array<{ x?: number | string }>
+            event?: { clientX?: number; clientY?: number }
+          }
+          const pointX = event.points?.[0]?.x
+          const year = typeof pointX === "number" ? pointX : Number(pointX)
+          if (!Number.isFinite(year) || !shellRef.current) {
+            return
+          }
+          const box = shellRef.current.getBoundingClientRect()
+          const clientX = event.event?.clientX ?? box.left + box.width * 0.66
+          const clientY = event.event?.clientY ?? box.top + 70
+          const left = Math.max(12, Math.min(box.width - 276, clientX - box.left + 14))
+          const top = Math.max(12, Math.min(box.height - 232, clientY - box.top - 16))
+          setHoverState({ x: year, left, top })
+        }}
+        onUnhover={() => {
+          setHoverState(null)
+        }}
       />
+      {hoverBreakdown ? (
+        <div
+          className="dashboard1-hover-card"
+          style={{ left: `${hoverBreakdown.left}px`, top: `${hoverBreakdown.top}px` }}
+        >
+          <div className="dashboard1-hover-card-head">
+            <strong>{hoverBreakdown.year}</strong>
+            <span>{hoverBreakdown.total.toLocaleString()} total</span>
+          </div>
+          <div className="dashboard1-hover-mini-bars">
+            {hoverBreakdown.items.map((item) => (
+              <div key={`${hoverBreakdown.year}-${item.name}`} className="dashboard1-hover-mini-row">
+                <div className="dashboard1-hover-mini-label">{item.name}</div>
+                <div className="dashboard1-hover-mini-track">
+                  <span
+                    className="dashboard1-hover-mini-fill"
+                    style={{
+                      width: `${Math.max(3, item.share)}%`,
+                      background: item.fillColor,
+                      border: `1px solid ${item.strokeColor}`,
+                      boxSizing: "border-box",
+                    }}
+                  />
+                </div>
+                <div className="dashboard1-hover-mini-value">
+                  {item.value.toLocaleString()} ({item.share.toFixed(1)}%)
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

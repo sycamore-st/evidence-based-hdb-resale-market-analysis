@@ -11,6 +11,8 @@ type PlotProps = {
   className?: string
   style?: CSSProperties
   useResizeHandler?: boolean
+  onHover?: (event: unknown) => void
+  onUnhover?: (event: unknown) => void
 }
 
 const Plot = createPlotlyComponent(Plotly as never) as ComponentType<PlotProps>
