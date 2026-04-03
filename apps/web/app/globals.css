@@ -378,15 +378,8 @@ a {
   background: linear-gradient(180deg, rgba(126, 200, 227, 0.22), rgba(255, 255, 255, 0.92));
 }
 
+/* Dashboard 1 page shell. */
 .dashboard1-page {
-  --d1-map-max-width: 440px;
-  --d1-layout-gap: 21px;
-  --d1-panel-padding: 16px;
-  --d1-left-col-min: 340px;
-  --d1-left-col-fr: 0.59fr;
-  --d1-right-col-fr: 1.46fr;
-  --d1-bar-height: 440px;
-  --d1-line-height: 350px;
   min-height: 100vh;
   padding: 2rem;
   background: linear-gradient(180deg, #f7f1e6, #f2ecdf);
@@ -394,6 +387,7 @@ a {
   font-family: Georgia, "Iowan Old Style", serif;
 }
 
+/* Dashboard 1 shared full-width wrappers. */
 .dashboard1-header,
 .dashboard1-controls,
 .dashboard1-layout {
@@ -402,7 +396,10 @@ a {
   width: 100%;
 }
 
-.dashboard1-header {
+/* Shared Section 1 dashboard header layout. */
+.dashboard1-header,
+.dashboard2-header,
+.dashboard3-header {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
@@ -410,7 +407,10 @@ a {
   margin-bottom: 1.5rem;
 }
 
-.dashboard1-header-actions {
+/* Shared Section 1 dashboard header actions. */
+.dashboard1-header-actions,
+.dashboard2-header-actions,
+.dashboard3-header-actions {
   display: grid;
   gap: 0.6rem;
   justify-items: end;
@@ -444,8 +444,11 @@ a {
   border-color: rgba(84, 111, 99, 0.3);
 }
 
+/* Shared Section 1 dashboard title labels. */
 .dashboard1-kicker,
-.dashboard1-panel-label {
+.dashboard1-panel-label,
+.dashboard2-kicker,
+.dashboard3-kicker {
   margin: 0 0 0.55rem;
   font-family: "Avenir Next", "Segoe UI", sans-serif;
   font-size: 0.78rem;
@@ -454,14 +457,20 @@ a {
   color: rgba(38, 35, 31, 0.58);
 }
 
-.dashboard1-header h1 {
+/* Shared Section 1 dashboard page titles. */
+.dashboard1-header h1,
+.dashboard2-header h1,
+.dashboard3-header h1 {
   margin: 0;
-  font-size: clamp(3rem, 5vw, 4rem);
+  font-size: clamp(1rem, 5vw, 3rem);
   line-height: 0.94;
   letter-spacing: -0.05em;
 }
 
+/* Shared Section 1 dashboard supporting text. */
 .dashboard1-header p:last-child,
+.dashboard2-header p:last-child,
+.dashboard3-header p:last-child,
 .dashboard1-control span,
 .dashboard1-control small,
 .dashboard1-panel-header span,
@@ -472,14 +481,23 @@ a {
   color: rgba(38, 35, 31, 0.7);
 }
 
-.dashboard1-link {
-  padding: 0.75rem 1rem;
-  border-radius: 999px;
-  border: 1px solid rgba(87, 78, 65, 0.14);
-  background: rgba(255, 252, 247, 0.72);
-  font-family: "Avenir Next", "Segoe UI", sans-serif;
+.dashboard1-panel-header span {
+  font-size: 0.82rem;
 }
 
+/* Shared Section 1 dashboard utility links. */
+.dashboard1-link,
+.dashboard2-link,
+.dashboard3-link {
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(87, 78, 65, 0.15);
+  background: rgba(255, 252, 247, 0.65);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.82rem;
+}
+
+/* Dashboard 1 control strip. */
 .dashboard1-controls {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -499,6 +517,8 @@ a {
   padding: 1rem;
   display: grid;
   gap: 0.55rem;
+  min-height: 82px;
+  max-height: 120px;
 }
 
 .dashboard1-control span {
@@ -516,32 +536,59 @@ a {
   background: #fffdf9;
   padding: 0.7rem 0.85rem;
   font: inherit;
+  font-size: small;
 }
 
 .dashboard1-control button:disabled {
   opacity: 0.45;
 }
 
+/* Scope card keeps the current scope text and reset button side by side. */
+.dashboard1-control.dashboard1-control-scope {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "label button"
+    "value button";
+  column-gap: 0.75rem;
+  align-items: center;
+}
+
+.dashboard1-control.dashboard1-control-scope span {
+  grid-area: label;
+}
+
+.dashboard1-control.dashboard1-control-scope strong {
+  grid-area: value;
+}
+
+.dashboard1-control.dashboard1-control-scope button {
+  grid-area: button;
+  align-self: center;
+}
+
+/* Dashboard 1 main layout grid and preset variations. */
 .dashboard1-layout {
   display: grid;
-  grid-template-columns: minmax(var(--d1-left-col-min), var(--d1-left-col-fr)) minmax(0, var(--d1-right-col-fr));
+  grid-template-columns: minmax(340px, 0.59fr) minmax(0, 1.46fr);
   grid-template-areas:
     "map legend"
     "map bars"
     "map lines";
-  gap: var(--d1-layout-gap);
+  gap: 21px;
   align-items: start;
 }
 
 .dashboard1-map-panel {
   grid-area: map;
-  padding: var(--d1-panel-padding);
-  max-width: var(--d1-map-max-width);
+  padding: 16px;
+  max-width: 440px;
 }
 
 .dashboard1-panel-legend {
   grid-area: legend;
-  padding: var(--d1-panel-padding);
+  padding: 16px;
+  min-height: 0;
+  max-width: 440px;
 }
 
 .dashboard1-panel-bars {
@@ -560,10 +607,15 @@ a {
 }
 
 .dashboard1-layout-balanced {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-template-areas:
-    "map bars"
-    "map lines"
-    "legend lines";
+    "map bars bars bars"
+    "legend lines lines lines";
+}
+
+.dashboard1-layout-balanced .dashboard1-map-panel,
+.dashboard1-layout-balanced .dashboard1-panel-legend {
+  max-width: none;
 }
 
 .dashboard1-layout-chart-heavy {
@@ -582,10 +634,10 @@ a {
 }
 
 .dashboard1-layout-balanced.dashboard1-layout-map-right {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-template-areas:
-    "bars map"
-    "lines map"
-    "lines legend";
+    "bars bars bars map"
+    "lines lines lines legend";
 }
 
 .dashboard1-layout-chart-heavy.dashboard1-layout-map-right {
@@ -595,6 +647,7 @@ a {
     "lines legend";
 }
 
+/* Dashboard 1 shared panel headers. */
 .dashboard1-panel-header,
 .dashboard1-chart-header {
   display: flex;
@@ -604,13 +657,7 @@ a {
   margin-bottom: 1rem;
 }
 
-.dashboard1-panel-header h2,
-.dashboard1-chart-header h3 {
-  margin: 0;
-  font-size: 1.7rem;
-  letter-spacing: -0.04em;
-}
-
+/* Dashboard 1 map card. */
 .dashboard1-map-shell {
   display: grid;
   gap: 0.85rem;
@@ -627,6 +674,10 @@ a {
   margin-bottom: 0.35rem;
 }
 
+.dashboard1-map-legend {
+  font-size: small;
+}
+
 .dashboard1-map-legend-bar {
   height: 18px;
   background: linear-gradient(90deg, #eef2ef, #8ea792);
@@ -639,9 +690,11 @@ a {
   margin-top: 0.35rem;
 }
 
+/* Dashboard 1 flat-type legend card. */
 .dashboard1-legend-list {
   display: grid;
   gap: 0.25rem;
+  font-size: small;
 }
 
 .dashboard1-legend-row {
@@ -656,27 +709,31 @@ a {
   height: 14px;
 }
 
+/* Dashboard 1 shared chart shell. */
 .dashboard1-chart-shell {
   position: relative;
-  padding: var(--d1-panel-padding);
+  padding: 16px;
 }
 
 .dashboard1-plot {
   width: 100%;
 }
 
+/* Dashboard 1 bar chart height. */
 .dashboard1-plot-bar {
-  height: var(--d1-bar-height) !important;
+  height: 440px !important;
 }
 
+/* Dashboard 1 line chart height. */
 .dashboard1-plot-line {
-  height: var(--d1-line-height) !important;
+  height: 350px !important;
 }
 
+/* Dashboard 1 stacked bar hover card. */
 .dashboard1-hover-card {
   position: absolute;
   z-index: 20;
-  width: 392px;
+  width: 320px;
   padding: 0.65rem 0.7rem;
   border: 1px solid rgba(87, 78, 65, 0.16);
   background: rgba(255, 253, 249, 0.96);
@@ -742,84 +799,902 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
-.dashboard1-sandbox-wrap {
-  display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
+/* Dashboard 2 page shell. */
+.dashboard2-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #f1ecdf, #e9e2d4);
+  padding: 2rem;
+  background: linear-gradient(180deg, #f7f1e6, #f2ecdf);
+  color: #26231f;
+  font-family: Georgia, "Iowan Old Style", serif;
 }
 
-.dashboard1-sandbox-panel {
-  position: sticky;
-  top: 0;
-  align-self: start;
-  height: 100vh;
-  overflow: auto;
-  padding: 1rem;
-  border-right: 1px solid rgba(87, 78, 65, 0.16);
-  background: rgba(255, 252, 247, 0.9);
-  font-family: "Avenir Next", "Segoe UI", sans-serif;
-}
-
-.dashboard1-sandbox-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.8rem;
-  margin-bottom: 1rem;
-}
-
-.dashboard1-sandbox-header p {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-.dashboard1-sandbox-header a {
-  font-size: 0.82rem;
-  color: #4f6057;
-}
-
-.dashboard1-sandbox-panel label {
-  display: grid;
-  gap: 0.4rem;
-  margin-bottom: 0.75rem;
-}
-
-.dashboard1-sandbox-panel label span {
-  font-size: 0.82rem;
-  color: rgba(38, 35, 31, 0.76);
-}
-
-.dashboard1-sandbox-panel input,
-.dashboard1-sandbox-panel select {
+/* Dashboard 2 header and top controls. */
+.dashboard2-header,
+.dashboard2-controls,
+.dashboard2-layout {
+  max-width: none;
+  margin: 0 auto;
   width: 100%;
 }
 
-.dashboard1-sandbox-snippet {
-  margin-top: 1rem;
-  padding-top: 0.8rem;
-  border-top: 1px solid rgba(87, 78, 65, 0.15);
+.dashboard2-header p:last-child,
+.dashboard2-control span,
+.dashboard2-control small,
+.dashboard2-metric-head span,
+.dashboard2-row-labels span,
+.dashboard2-town-cell,
+.dashboard2-flat-cell,
+.dashboard2-axis span,
+.dashboard2-guide-card,
+.dashboard2-guide-labels span {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  color: #26231f;
 }
 
-.dashboard1-sandbox-snippet p {
-  margin: 0 0 0.5rem;
+.dashboard2-controls {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.dashboard2-control,
+.dashboard2-guide-card {
+  border: 1px solid rgba(87, 78, 65, 0.12);
+  background: rgba(255, 252, 247, 0.78);
+}
+
+.dashboard2-table-card {
+  background: transparent;
+}
+
+.dashboard2-control {
+  padding: 1rem;
+  display: grid;
+  gap: 0.55rem;
+  min-height: 96px;
+  position: relative;
+}
+
+.dashboard2-control span {
+  font-size: 0.88rem;
+}
+
+.dashboard2-control strong {
+  font-size: 1.2rem;
+  letter-spacing: -0.03em;
+}
+
+.dashboard2-control select {
+  border: 1px solid rgba(87, 78, 65, 0.16);
+  background: #fffdf9;
+  padding: 0.7rem 0.85rem;
+  font: inherit;
+  font-size: small;
+}
+
+.dashboard2-control-towns {
+  align-content: start;
+}
+
+.dashboard2-multiselect-button {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+  border: 1px solid rgba(87, 78, 65, 0.16);
+  background: #fffdf9;
+  padding: 0.7rem 0.85rem;
+  font: inherit;
+  text-align: left;
+}
+
+.dashboard2-multiselect-button strong {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.dashboard2-multiselect-button span {
+  font-size: 0.78rem;
+  color: rgba(38, 35, 31, 0.62);
+}
+
+.dashboard2-multiselect-menu {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  top: calc(100% - 0.45rem);
+  z-index: 12;
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid rgba(87, 78, 65, 0.16);
+  background: rgba(255, 253, 249, 0.98);
+  box-shadow: 0 10px 28px rgba(26, 23, 19, 0.12);
+  padding: 0.55rem;
+}
+
+.dashboard2-multiselect-option {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.35rem 0.25rem;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
   font-size: 0.82rem;
+  color: #26231f;
+}
+
+/* Shared Section 1 panel and guide titles. */
+.dashboard1-panel-header h2,
+.dashboard1-chart-header h3,
+.dashboard2-guide-section h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: -0.04em;
+  font-family: Georgia, "Iowan Old Style", serif;
+}
+
+/* Dashboard 2 main split layout: comparison table plus narrative guide. */
+.dashboard2-layout {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.dashboard2-table-card {
+  grid-column: 1 / span 3;
+  padding: 1rem 1rem 0;
+}
+
+.dashboard2-table-head {
+  display: grid;
+  grid-template-columns: 130px 110px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(87, 78, 65, 0.12);
+}
+
+.dashboard2-row-labels {
+  grid-column: 1 / span 2;
+  display: grid;
+  grid-template-columns: 130px 110px;
+  align-items: end;
+}
+
+.dashboard2-row-labels span,
+.dashboard2-metric-head span {
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.dashboard2-metric-head {
+  padding: 0 0.75rem;
+}
+
+.dashboard2-axis {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.45rem;
+}
+
+.dashboard2-axis span {
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.dashboard2-table-body {
+  max-height: 64vh;
+  overflow: auto;
+}
+
+.dashboard2-town-group {
+  border-bottom: 1px solid rgba(87, 78, 65, 0.1);
+}
+
+.dashboard2-town-group:last-child {
+  border-bottom: none;
+}
+
+.dashboard2-table-row {
+  display: grid;
+  grid-template-columns: 130px 110px minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  min-height: 44px;
+}
+
+.dashboard2-town-cell,
+.dashboard2-flat-cell {
+  padding-right: 0.75rem;
+  font-size: 0.84rem;
+}
+
+.dashboard2-town-cell {
+  font-weight: 600;
+}
+
+.dashboard2-metric-cell {
+  padding: 0.15rem 0.75rem;
+}
+
+/* Dashboard 2 range glyph used for both floor area and price panels. */
+.dashboard2-range {
+  position: relative;
+  height: 18px;
+}
+
+.dashboard2-range-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgba(87, 78, 65, 0.08);
+  transform: translateY(-50%);
+}
+
+.dashboard2-range-line {
+  position: absolute;
+  top: 50%;
+  height: 9px;
+  border-radius: 999px;
+  transform: translateY(-50%);
+  border: none;
+}
+
+.dashboard2-range-area .dashboard2-range-line {
+  background: rgba(111, 143, 130, 0.28);
+}
+
+.dashboard2-range-price .dashboard2-range-line {
+  background: rgba(201, 169, 110, 0.3);
+}
+
+.dashboard2-range-dot {
+  position: absolute;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.dashboard2-range-dot-min,
+.dashboard2-range-dot-max {
+  background: transparent;
+  border: 2px solid #bdd3df;
+}
+
+.dashboard2-range-dot-median {
+  background: transparent;
+  border: 2px solid #4f6673;
+  z-index: 2;
+}
+
+/* Dashboard 2 explanation sidebar and legend guide. */
+.dashboard2-guide-card {
+  grid-column: 4;
+  padding: 1.2rem;
+  display: grid;
+  gap: 1.5rem;
+  position: sticky;
+  top: 2rem;
+}
+
+.dashboard2-guide-section {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.dashboard2-guide-section h2 {
+  line-height: 1;
+}
+
+.dashboard2-guide-section p,
+.dashboard2-guide-list {
+  margin: 0;
+}
+
+.dashboard2-guide-list {
+  padding-left: 1rem;
+  display: grid;
+  gap: 0.9rem;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  color: rgba(38, 35, 31, 0.78);
+}
+
+.dashboard2-guide-legend {
+  display: grid;
+  gap: 0.4rem;
+  justify-items: center;
+}
+
+.dashboard2-guide-swatch {
+  position: relative;
+  width: 138px;
+  height: 14px;
+}
+
+.dashboard2-guide-swatch::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 50%;
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(201, 169, 110, 0.3);
+  transform: translateY(-50%);
+}
+
+.dashboard2-guide-swatch .dashboard2-range-dot-median {
+  left: 50%;
+}
+
+.dashboard2-guide-labels {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.dashboard2-guide-labels span {
+  font-size: 0.8rem;
+}
+
+.dashboard2-hover-card {
+  position: absolute;
+  z-index: 20;
+  width: 236px;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid rgba(87, 78, 65, 0.16);
+  background: rgba(255, 253, 249, 0.96);
+  box-shadow: 0 10px 28px rgba(26, 23, 19, 0.12);
+  pointer-events: none;
+}
+
+.dashboard2-hover-card-head {
+  display: grid;
+  gap: 0.12rem;
+  margin-bottom: 0.35rem;
+}
+
+.dashboard2-hover-card-head strong {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.9rem;
+  color: #26231f;
+}
+
+.dashboard2-hover-card-head span {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.76rem;
   color: rgba(38, 35, 31, 0.68);
 }
 
-.dashboard1-sandbox-snippet pre {
-  margin: 0;
-  padding: 0.75rem;
-  background: #fffdf8;
-  border: 1px solid rgba(87, 78, 65, 0.15);
-  font-size: 0.73rem;
-  white-space: pre-wrap;
+.dashboard2-hover-card-body {
+  display: grid;
+  gap: 0.2rem;
 }
 
-.dashboard1-sandbox-canvas {
-  min-width: 0;
+.dashboard2-hover-card-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: baseline;
+}
+
+.dashboard2-hover-card-row span,
+.dashboard2-hover-card-row strong {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard2-hover-card-row span {
+  font-size: 0.74rem;
+  color: rgba(38, 35, 31, 0.68);
+}
+
+.dashboard2-hover-card-row strong {
+  font-size: 0.76rem;
+  color: #26231f;
+}
+
+@media (max-width: 1180px) {
+  .dashboard2-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard2-guide-card {
+    position: static;
+  }
+}
+
+@media (max-width: 960px) {
+  .dashboard2-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard2-table-head,
+  .dashboard2-table-row {
+    grid-template-columns: 112px 96px minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .dashboard2-row-labels {
+    grid-template-columns: 112px 96px;
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard2-page {
+    padding: 1rem;
+  }
+
+  .dashboard2-header {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .dashboard2-header-actions {
+    justify-items: start;
+  }
+
+  .dashboard2-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard2-table-card {
+    overflow-x: auto;
+  }
+
+  .dashboard2-table-head,
+  .dashboard2-table-body {
+    min-width: 840px;
+  }
+}
+
+/* Dashboard 3 page shell. */
+.dashboard3-page {
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(180deg, #f7f1e6, #f2ecdf);
+  color: #26231f;
+  font-family: Georgia, "Iowan Old Style", serif;
+  position: relative;
+}
+
+/* Dashboard 3 layout and control rail. */
+.dashboard3-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(0, 3fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.dashboard3-filters,
+.dashboard3-selector-card,
+.dashboard3-review-card,
+.dashboard3-trends-card,
+.dashboard3-summary-card {
+  border: 1px solid rgba(87, 78, 65, 0.12);
+  background: rgba(255, 252, 247, 0.78);
+}
+
+.dashboard3-filters,
+.dashboard3-selector-card,
+.dashboard3-review-card,
+.dashboard3-trends-card,
+.dashboard3-summary-card,
+.dashboard3-control span,
+.dashboard3-control small,
+.dashboard3-panel-header span,
+.dashboard3-building-meta span,
+.dashboard3-building-meta small,
+.dashboard3-poi-legend,
+.dashboard3-flat-legend,
+.dashboard3-shortlist-item span,
+.dashboard3-loading {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+}
+
+.dashboard3-filters {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  padding: 1rem;
+  display: grid;
+  gap: 0.85rem;
+  position: sticky;
+  top: 2rem;
+}
+
+.dashboard3-step-label {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #26231f;
+}
+
+.dashboard3-control {
+  display: grid;
+  gap: 0.45rem;
+  position: relative;
+}
+
+.dashboard3-control span {
+  font-size: 0.82rem;
+  color: rgba(38, 35, 31, 0.78);
+}
+
+.dashboard3-control select,
+.dashboard3-multiselect-button {
+  border: 1px solid rgba(87, 78, 65, 0.16);
+  background: #fffdf9;
+  padding: 0.7rem 0.8rem;
+  font: inherit;
+  font-size: 0.92rem;
+  color: #26231f;
+}
+
+.dashboard3-control-multiselect {
+  align-content: start;
+}
+
+.dashboard3-multiselect-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: left;
+}
+
+.dashboard3-multiselect-button strong {
+  font-size: 0.96rem;
+  font-weight: 500;
+}
+
+.dashboard3-multiselect-button span {
+  font-size: 0.78rem;
+  color: rgba(38, 35, 31, 0.62);
+}
+
+.dashboard3-multiselect-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% - 0.2rem);
+  z-index: 14;
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid rgba(87, 78, 65, 0.16);
+  background: rgba(255, 253, 249, 0.98);
+  box-shadow: 0 10px 28px rgba(26, 23, 19, 0.12);
+  padding: 0.55rem;
+}
+
+.dashboard3-multiselect-option {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.3rem 0.2rem;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.82rem;
+  color: #26231f;
+}
+
+.dashboard3-summary-card {
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.dashboard3-summary-card span {
+  font-size: 0.8rem;
+  color: rgba(38, 35, 31, 0.7);
+}
+
+.dashboard3-summary-card strong {
+  font-size: 1.6rem;
+  letter-spacing: -0.04em;
+}
+
+.dashboard3-summary-card small {
+  color: rgba(38, 35, 31, 0.72);
+  line-height: 1.35;
+}
+
+.dashboard3-selector-card {
+  grid-column: 2;
+  grid-row: 1;
+  padding: 1rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.dashboard3-trends-card {
+  grid-column: 2;
+  grid-row: 2;
+  padding: 1rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.dashboard3-panel-header {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.dashboard3-panel-header span {
+  font-size: 0.82rem;
+  color: rgba(38, 35, 31, 0.74);
+}
+
+.dashboard3-panel-header strong,
+.dashboard3-review-panel h2,
+.dashboard3-trend-panel h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: -0.04em;
+  font-family: Georgia, "Iowan Old Style", serif;
+  color: #26231f;
+}
+
+.dashboard3-map {
+  width: 100%;
+  height: 34rem;
+  display: block;
+  border: 1px solid rgba(87, 78, 65, 0.1);
+  background: rgba(255, 253, 249, 0.82);
+}
+
+.dashboard3-map-label {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.82rem;
+  color: rgba(38, 35, 31, 0.76);
+  margin-top: -0.25rem;
+}
+
+.dashboard3-map-local {
+  height: 16rem;
+}
+
+.dashboard3-map-compact {
+  height: 16rem;
+}
+
+.dashboard3-map-empty {
+  border: 1px solid rgba(87, 78, 65, 0.1);
+  min-height: 16rem;
+  display: grid;
+  place-items: center;
+  color: rgba(38, 35, 31, 0.62);
+  background: rgba(255, 253, 249, 0.72);
+}
+
+.dashboard3-map-building {
+  cursor: pointer;
+  transition: fill 160ms ease, stroke 160ms ease;
+}
+
+.dashboard3-shortlist {
+  display: grid;
+  gap: 0.45rem;
+  max-height: 13rem;
+  overflow: auto;
+}
+
+.dashboard3-shortlist-item {
+  border: 1px solid rgba(87, 78, 65, 0.12);
+  background: rgba(255, 253, 249, 0.7);
+  padding: 0.7rem 0.8rem;
+  display: grid;
+  gap: 0.15rem;
+  text-align: left;
+}
+
+.dashboard3-shortlist-item strong {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.92rem;
+  color: #26231f;
+}
+
+.dashboard3-shortlist-item span {
+  font-size: 0.76rem;
+  color: rgba(38, 35, 31, 0.7);
+}
+
+.dashboard3-shortlist-item-active {
+  border-color: rgba(86, 120, 165, 0.45);
+  background: rgba(86, 120, 165, 0.08);
+}
+
+.dashboard3-poi {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.dashboard3-poi-bus-stop {
+  fill: rgba(204, 93, 76, 0.88);
+}
+
+.dashboard3-poi-mrt {
+  fill: rgba(74, 110, 158, 0.9);
+}
+
+.dashboard3-poi-school {
+  fill: rgba(122, 164, 138, 0.92);
+}
+
+.dashboard3-poi-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.76rem;
+  color: rgba(38, 35, 31, 0.72);
+}
+
+.dashboard3-map-footer {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.dashboard3-building-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.dashboard3-building-meta-inline {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.dashboard3-building-meta div {
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(87, 78, 65, 0.12);
+  display: grid;
+  gap: 0.15rem;
+}
+
+.dashboard3-building-meta span {
+  font-size: 0.76rem;
+  color: rgba(38, 35, 31, 0.7);
+}
+
+.dashboard3-building-meta strong {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.92rem;
+  color: #26231f;
+}
+
+.dashboard3-building-meta small {
+  font-size: 0.76rem;
+  color: rgba(38, 35, 31, 0.66);
+}
+
+.dashboard3-trends-wrap {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.dashboard3-trend-panel {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.dashboard3-bars {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16px, 1fr));
+  gap: 0.2rem;
+  align-items: end;
+  min-height: 7rem;
+}
+
+.dashboard3-bars-year {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: center;
+}
+
+.dashboard3-bars-year span {
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.7rem;
+  color: rgba(38, 35, 31, 0.7);
+}
+
+.dashboard3-bars-stack {
+  width: 100%;
+  height: 6rem;
+  position: relative;
+}
+
+.dashboard3-bars-segment {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border: 1px solid;
+}
+
+.dashboard3-lines {
+  width: 100%;
+  height: 11rem;
+}
+
+.dashboard3-flat-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.dashboard3-flat-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: rgba(38, 35, 31, 0.74);
+}
+
+.dashboard3-flat-legend i {
+  width: 12px;
+  height: 12px;
+  border: 1px solid;
+  display: inline-block;
+}
+
+.dashboard3-loading {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(87, 78, 65, 0.16);
+  background: rgba(255, 253, 249, 0.94);
+  box-shadow: 0 10px 28px rgba(26, 23, 19, 0.12);
+  font-size: 0.82rem;
+  color: #26231f;
+}
+
+@media (max-width: 1260px) {
+  .dashboard3-filters {
+    grid-row: auto;
+  }
+
+  .dashboard3-selector-card,
+  .dashboard3-trends-card {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 960px) {
+  .dashboard3-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard3-filters,
+  .dashboard3-selector-card,
+  .dashboard3-trends-card {
+    grid-column: auto;
+    grid-row: auto;
+    position: static;
+  }
+
+  .dashboard3-building-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard3-page {
+    padding: 1rem;
+  }
+
+  .dashboard3-header,
+  .dashboard3-header-actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard3-map {
+    height: 26rem;
+  }
 }
 
 .mock-editorial,

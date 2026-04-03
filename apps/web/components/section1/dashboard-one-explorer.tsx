@@ -6,12 +6,13 @@ import { memo, useEffect, useMemo, useRef, useState, useTransition } from "react
 import type { CSSProperties } from "react"
 
 import type { DashboardOneData, DashboardOneRow, MapShape } from "@/lib/section1-dashboard1"
-import type { DashboardOneMapSide, DashboardOneRightPanel } from "@/lib/section1-dashboard1-sandbox"
 
 const Plot = dynamic(() => import("@/components/charts/plotly-chart"), { ssr: false })
 
 export type DashboardOneLayoutPreset = "editorial" | "balanced" | "chart-heavy"
 export type DashboardOneStyleVars = Partial<Record<`--${string}`, string>>
+export type DashboardOneMapSide = "left" | "right"
+export type DashboardOneRightPanel = "legend" | "bars" | "lines"
 
 const FLAT_COLORS: Record<string, string> = {
   "1 ROOM": "#8f9eaa",
@@ -329,6 +330,7 @@ function PriceLinesPlot({
   }>
 }) {
   const years = Array.from(new Set(series.flatMap((entry) => entry.points.map((point) => point.year)))).sort((a, b) => a - b)
+
   const traces = series.map((entry) => ({
     type: "scatter" as const,
     mode: "lines+markers",
@@ -344,7 +346,7 @@ function PriceLinesPlot({
       color: entry.strokeColor,
       size: 6,
     },
-    hovertemplate: `%{fullData.name}<br>%{x}: SGD %{y:,.0f}<extra></extra>`,
+    hovertemplate: `${entry.name}: %{y:$,.0f}<extra></extra>`,
   }))
 
   return (
@@ -361,13 +363,25 @@ function PriceLinesPlot({
           margin: { l: 84, r: 30, t: 8, b: 48 },
           paper_bgcolor: "rgba(0,0,0,0)",
           plot_bgcolor: "rgba(0,0,0,0)",
+          hovermode: "x unified",
           font: { family: '"Avenir Next", "Segoe UI", sans-serif', color: "rgba(38,35,31,0.78)", size: 12 },
+          hoverlabel: {
+            bgcolor: "rgba(255, 253, 249, 0.98)",
+            bordercolor: "rgba(87, 78, 65, 0.16)",
+            font: { family: '"Avenir Next", "Segoe UI", sans-serif', color: "#26231f", size: 12 },
+          },
           xaxis: {
             tickmode: "linear",
             dtick: 4,
             gridcolor: "rgba(87,78,65,0.08)",
             zeroline: false,
             title: { text: "Year of transaction year" },
+            showspikes: true,
+            spikemode: "across",
+            spikesnap: "cursor",
+            spikedash: "dot",
+            spikethickness: 1.2,
+            spikecolor: "rgba(87, 78, 65, 0.45)",
           },
           yaxis: {
             rangemode: "tozero",
@@ -376,11 +390,6 @@ function PriceLinesPlot({
             gridcolor: "rgba(87,78,65,0.12)",
             zeroline: false,
             title: { text: "Median median price" },
-          },
-          hoverlabel: {
-            bgcolor: "#fffdf9",
-            bordercolor: "rgba(87,78,65,0.18)",
-            font: { color: "#26231f" },
           },
         }}
         config={{
@@ -519,9 +528,6 @@ export function DashboardOneExplorer({
           </div>
           <Link href="/" className="dashboard1-link">
             Back to index
-          </Link>
-          <Link href="/section1/dashboard-1/sandbox" className="dashboard1-link">
-            Open sandbox
           </Link>
         </div>
       </header>

@@ -158,10 +158,6 @@ Dashboard 1 layout presets can be switched by URL:
 - `http://localhost:3000/section1/dashboard-1?layout=balanced`
 - `http://localhost:3000/section1/dashboard-1?layout=chart-heavy`
 
-Dashboard 1 layout sandbox (live controls + URL-synced knobs):
-
-- `http://localhost:3000/section1/dashboard-1/sandbox`
-
 ## Tracked Outputs Vs Local Caches
 
 Tracked in git:

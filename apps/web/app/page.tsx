@@ -2,11 +2,11 @@ export default function HomePage() {
   return (
     <main className="compare-page">
       <section className="compare-hero">
-        <p className="compare-kicker">Homepage studies</p>
-        <h1>Choose the visual direction before we redesign the real dashboard.</h1>
+        <p className="compare-kicker">Section 1 dashboards</p>
+        <h1>Open the working web ports for the HDB resale dashboard set.</h1>
         <p>
-          These are three actual homepage mockups inside `apps/web`, built to compare tone, layout, and credibility in
-          the browser.
+          These pages move the original Tableau dashboard workflows into the browser while keeping the light editorial
+          style used for Dashboard 1.
         </p>
       </section>
 
@@ -17,22 +17,16 @@ export default function HomePage() {
           <span>First browser version of the actual country/town dashboard using the original screenshots.</span>
         </a>
 
-        <a className="compare-card compare-card-editorial" href="/mockups/editorial">
-          <p>Style A</p>
-          <h2>Editorial Light</h2>
-          <span>Best for narrative policy storytelling and a research-publication feel.</span>
+        <a className="compare-card compare-card-minimal" href="/section1/dashboard-2">
+          <p>Working page</p>
+          <h2>Dashboard 2 Port</h2>
+          <span>Budget-to-space comparison table ported to the web with the same editorial light styling.</span>
         </a>
 
-        <a className="compare-card compare-card-minimal" href="/mockups/minimal">
-          <p>Style B</p>
-          <h2>Data Product Minimal</h2>
-          <span>Best for a serious, credible analytics product. This is still my recommended direction.</span>
-        </a>
-
-        <a className="compare-card compare-card-premium" href="/mockups/premium">
-          <p>Style C</p>
-          <h2>Premium Glass Light</h2>
-          <span>Best if you want something more distinctive and demo-forward.</span>
+        <a className="compare-card compare-card-minimal" href="/section1/dashboard-3">
+          <p>Working page</p>
+          <h2>Dashboard 3 Port</h2>
+          <span>Budget-and-location shortlist with town-sharded JSON loading instead of the heavy Tableau workbook.</span>
         </a>
       </section>
     </main>

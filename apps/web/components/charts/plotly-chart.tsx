@@ -1,7 +1,7 @@
 "use client"
 
 import createPlotlyComponent from "react-plotly.js/factory"
-import Plotly from "plotly.js-basic-dist-min"
+import Plotly from "plotly.js/dist/plotly.min"
 import type { ComponentType, CSSProperties } from "react"
 
 type PlotProps = {
@@ -13,6 +13,7 @@ type PlotProps = {
   useResizeHandler?: boolean
   onHover?: (event: unknown) => void
   onUnhover?: (event: unknown) => void
+  onClick?: (event: unknown) => void
 }
 
 const Plot = createPlotlyComponent(Plotly as never) as ComponentType<PlotProps>
