@@ -329,7 +329,7 @@ export function buildDashboardThreeTownPayload(query: DashboardThreeQuery): Dash
     existing.flatTypes.add(row.flat_type)
   }
 
-  const candidates = Array.from(grouped.entries())
+  const allCandidates = Array.from(grouped.entries())
     .map(([buildingKey, value]) => {
       const row = value.representative
       return {
@@ -358,12 +358,13 @@ export function buildDashboardThreeTownPayload(query: DashboardThreeQuery): Dash
       } satisfies DashboardThreeCandidate
     })
     .sort(sortCandidates)
-    .slice(0, 120)
 
   const selectedBuilding =
-    candidates.find((candidate) => candidate.buildingKey === query.buildingKey) ??
-    candidates[0] ??
+    allCandidates.find((candidate) => candidate.buildingKey === query.buildingKey) ??
+    allCandidates[0] ??
     null
+
+  const candidates = allCandidates.slice(0, 120)
 
   const historyRows = selectedBuilding
     ? bundle.buildings

@@ -239,91 +239,74 @@ function SelectorMap({
   onSelect: (buildingKey: string) => void
 }) {
   const data = useMemo(() => {
-    const fallbackCenter = { lon: 103.8198, lat: 1.3521 }
-    const townCenter =
-      selectedBuilding
-        ? { lon: selectedBuilding.longitude, lat: selectedBuilding.latitude }
-        : candidates.length > 0
-          ? {
-              lon: candidates.reduce((sum, item) => sum + item.longitude, 0) / candidates.length,
-              lat: candidates.reduce((sum, item) => sum + item.latitude, 0) / candidates.length,
-            }
-          : fallbackCenter
-    const deltaLon = 0.015
-    const deltaLat = 0.01
-
+    const eligibleKeys = new Set(candidates.map((candidate) => candidate.buildingKey))
     const townGeojson = {
       type: "FeatureCollection",
-      features: [
-        {
-          type: "Feature" as const,
-          properties: {
-            id: "town-center-test",
-            block: selectedBuilding?.block ?? "Town center",
-          },
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [townCenter.lon - deltaLon, townCenter.lat - deltaLat],
-              [townCenter.lon + deltaLon, townCenter.lat - deltaLat],
-              [townCenter.lon + deltaLon, townCenter.lat + deltaLat],
-              [townCenter.lon - deltaLon, townCenter.lat + deltaLat],
-              [townCenter.lon - deltaLon, townCenter.lat - deltaLat],
-            ]],
-          },
+      features: geometry.features.map((feature) => ({
+        type: "Feature" as const,
+        properties: {
+          id: feature.properties["Building Key"],
+          block: feature.properties.Block,
         },
-      ],
+        geometry: feature.geometry,
+      })),
     }
     const locations = townGeojson.features.map((feature) => feature.properties.id)
+    const zValues = locations.map((location) => {
+      if (location === selectedBuildingKey && eligibleKeys.has(location)) return 2
+      if (eligibleKeys.has(location)) return 1
+      return 0
+    })
 
     return [
       {
         type: "choroplethmap",
         geojson: townGeojson,
         locations,
-        z: locations.map(() => 1),
-        zmin: 1,
-        zmax: 1,
+        z: zValues,
+        zmin: 0,
+        zmax: 2,
         featureidkey: "properties.id",
         colorscale: [
-          [0, "rgba(220, 145, 71, 0.68)"],
-          [1, "rgba(220, 145, 71, 0.68)"],
+          [0, "rgba(255, 255, 255, 0)"],
+          [0.333, "rgba(255, 255, 255, 0)"],
+          [0.334, "rgba(220, 145, 71, 0.28)"],
+          [0.666, "rgba(220, 145, 71, 0.28)"],
+          [0.667, "rgba(154, 95, 43, 0.88)"],
+          [1, "rgba(154, 95, 43, 0.88)"],
         ],
         marker: {
           line: {
             color: "#9a5f2b",
-            width: 2.5,
+            width: 0.9,
           },
         },
         showscale: false,
+        customdata: locations,
         text: townGeojson.features.map((feature) => `Block ${feature.properties.block}`),
         hovertemplate: "%{text}<extra></extra>",
       },
     ]
-  }, [candidates, selectedBuilding])
+  }, [candidates, geometry.features, selectedBuildingKey])
 
   const layout = useMemo(() => {
-    const center =
-      selectedBuilding
-        ? { lon: selectedBuilding.longitude, lat: selectedBuilding.latitude }
-        : candidates.length > 0
-          ? {
-              lon: candidates.reduce((sum, item) => sum + item.longitude, 0) / candidates.length,
-              lat: candidates.reduce((sum, item) => sum + item.latitude, 0) / candidates.length,
-            }
-          : { lon: 103.8198, lat: 1.3521 }
+    const bounds = boundsFromGeometry(geometry.features)
+    const center = {
+      lon: (bounds.minLon + bounds.maxLon) / 2,
+      lat: (bounds.minLat + bounds.maxLat) / 2,
+    }
     return {
       map: {
         style: "carto-positron",
         center,
-        zoom: 13.8,
+        zoom: estimateMapZoom(bounds),
       },
       margin: { r: 0, t: 0, l: 0, b: 0 },
       height: 540,
       paper_bgcolor: "rgba(0,0,0,0)",
       plot_bgcolor: "rgba(0,0,0,0)",
     }
-  }, [candidates, selectedBuilding])
+  }, [geometry.features])
 
   return (
     <Plot
@@ -332,6 +315,14 @@ function SelectorMap({
       style={{ width: "100%", height: "34rem" }}
       data={data}
       layout={layout}
+      onClick={(event) => {
+        const points = (event as { points?: Array<{ customdata?: string; location?: string }> }).points
+        const point = points?.[0]
+        const buildingKey = point?.customdata ?? point?.location
+        if (typeof buildingKey === "string" && buildingKey.length > 0) {
+          onSelect(buildingKey)
+        }
+      }}
       config={{
         displayModeBar: true,
         displaylogo: false,
