@@ -1453,6 +1453,10 @@ a {
   margin-top: -0.25rem;
 }
 
+.dashboard3-building-picker {
+  max-width: 34rem;
+}
+
 .dashboard3-map-local {
   height: 16rem;
 }
@@ -1531,6 +1535,42 @@ a {
   gap: 0.75rem;
   font-size: 0.76rem;
   color: rgba(38, 35, 31, 0.72);
+  align-items: center;
+}
+
+.dashboard3-poi-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dashboard3-legend-chip {
+  width: 1.15rem;
+  height: 1.15rem;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: #fffdf9;
+}
+
+.dashboard3-legend-bus-stop {
+  background: #d27b61;
+}
+
+.dashboard3-legend-mrt {
+  background: #5c7695;
+}
+
+.dashboard3-legend-school {
+  background: #7f9f86;
+}
+
+.dashboard3-legend-selected {
+  border-radius: 0.2rem;
+  background: rgba(196, 55, 55, 0.72);
 }
 
 .dashboard3-map-footer {

@@ -89,6 +89,40 @@ function estimateMapZoom(bounds: { minLon: number; maxLon: number; minLat: numbe
   return Math.max(11, Math.min(19, zoom))
 }
 
+function boundsFromPoints(points: Array<{ longitude: number; latitude: number }>) {
+  if (points.length === 0) {
+    return { minLon: 103.8, maxLon: 103.9, minLat: 1.28, maxLat: 1.36 }
+  }
+
+  let minLon = Number.POSITIVE_INFINITY
+  let maxLon = Number.NEGATIVE_INFINITY
+  let minLat = Number.POSITIVE_INFINITY
+  let maxLat = Number.NEGATIVE_INFINITY
+
+  for (const point of points) {
+    minLon = Math.min(minLon, point.longitude)
+    maxLon = Math.max(maxLon, point.longitude)
+    minLat = Math.min(minLat, point.latitude)
+    maxLat = Math.max(maxLat, point.latitude)
+  }
+
+  return {
+    minLon: minLon - 0.002,
+    maxLon: maxLon + 0.002,
+    minLat: minLat - 0.002,
+    maxLat: maxLat + 0.002,
+  }
+}
+
+function boundsAroundPoint(longitude: number, latitude: number, lonDelta = 0.0045, latDelta = 0.0035) {
+  return {
+    minLon: longitude - lonDelta,
+    maxLon: longitude + lonDelta,
+    minLat: latitude - latDelta,
+    maxLat: latitude + latDelta,
+  }
+}
+
 function buildSearchParams(filters: {
   slug: string
   year: number
@@ -97,6 +131,7 @@ function buildSearchParams(filters: {
   minFloorArea: number
   maxMrtDistanceKm: number
   minSchoolCount: number
+  nearestSchools: string[]
   buildingKey: string | null
 }) {
   const params = new URLSearchParams()
@@ -108,6 +143,9 @@ function buildSearchParams(filters: {
   params.set("minSchoolCount", String(filters.minSchoolCount))
   for (const flatType of filters.flatTypes) {
     params.append("flatType", flatType)
+  }
+  for (const school of filters.nearestSchools) {
+    params.append("school", school)
   }
   if (filters.buildingKey) {
     params.set("buildingKey", filters.buildingKey)
@@ -229,6 +267,7 @@ function SelectorMap({
   selectedBuildingKey,
   selectedBuilding,
   nearbyAmenities,
+  transactionYear,
   onSelect,
 }: {
   geometry: DashboardThreeTownPayload["geometry"]
@@ -236,10 +275,12 @@ function SelectorMap({
   selectedBuildingKey: string | null
   selectedBuilding: DashboardThreeCandidate | null
   nearbyAmenities: DashboardThreeTownPayload["nearbyAmenities"]
+  transactionYear: number
   onSelect: (buildingKey: string) => void
 }) {
   const data = useMemo(() => {
     const eligibleKeys = new Set(candidates.map((candidate) => candidate.buildingKey))
+    const candidateLookup = new Map(candidates.map((candidate) => [candidate.buildingKey, candidate]))
     const townGeojson = {
       type: "FeatureCollection",
       features: geometry.features.map((feature) => ({
@@ -272,8 +313,8 @@ function SelectorMap({
           [0.333, "rgba(255, 255, 255, 0)"],
           [0.334, "rgba(220, 145, 71, 0.28)"],
           [0.666, "rgba(220, 145, 71, 0.28)"],
-          [0.667, "rgba(154, 95, 43, 0.88)"],
-          [1, "rgba(154, 95, 43, 0.88)"],
+          [0.667, "rgba(196, 55, 55, 0.72)"],
+          [1, "rgba(196, 55, 55, 0.72)"],
         ],
         marker: {
           line: {
@@ -283,14 +324,84 @@ function SelectorMap({
         },
         showscale: false,
         customdata: locations,
-        text: townGeojson.features.map((feature) => `Block ${feature.properties.block}`),
+        text: townGeojson.features.map((feature) => {
+          const candidate = candidateLookup.get(feature.properties.id)
+          const postal = candidate?.postalCode ?? "N/A"
+          return [
+            `Block ${feature.properties.block}`,
+            "Street: unavailable in current web artifact",
+            `Postal code: ${postal}`,
+            `Latest transaction year: ${transactionYear}`,
+            `Latest transaction price: ${candidate ? formatCurrency(candidate.medianPrice) : "N/A"}`,
+          ].join("<br>")
+        }),
         hovertemplate: "%{text}<extra></extra>",
       },
+      ...[
+        {
+          poiType: "Bus Stop",
+          color: "#d27b61",
+          label: "Bus stop",
+          glyph: "B",
+          size: 11,
+          lineColor: "#b25e47",
+        },
+        {
+          poiType: "MRT",
+          color: "#5c7695",
+          label: "MRT",
+          glyph: "M",
+          size: 11,
+          lineColor: "#47627e",
+        },
+        {
+          poiType: "School",
+          color: "#7f9f86",
+          label: "School",
+          glyph: "S",
+          size: 11,
+          lineColor: "#5d7e65",
+        },
+      ]
+        .map((group) => {
+          const points = nearbyAmenities.filter((amenity) => amenity.poiType === group.poiType)
+          if (points.length === 0) return null
+          return {
+            type: "scattermap",
+            mode: "markers+text",
+            lon: points.map((point) => point.longitude),
+            lat: points.map((point) => point.latitude),
+            text: points.map(() => group.glyph),
+            textposition: "middle center",
+            textfont: {
+              color: "#fffdf9",
+              family: '"Avenir Next", "Segoe UI", sans-serif',
+              size: 7,
+            },
+            marker: {
+              size: group.size,
+              color: group.color,
+              symbol: "circle",
+              opacity: 0.96,
+              line: {
+                color: group.lineColor,
+                width: 1.6,
+              },
+            },
+            customdata: points.map((point) => `${group.label}: ${point.poiName}<br>${formatDistance(point.distanceKm)}`),
+            hovertemplate: "%{customdata}<extra></extra>",
+            showlegend: false,
+          }
+        })
+        .filter(Boolean),
     ]
-  }, [candidates, geometry.features, selectedBuildingKey])
+  }, [candidates, geometry.features, nearbyAmenities, selectedBuildingKey, transactionYear])
 
   const layout = useMemo(() => {
-    const bounds = boundsFromGeometry(geometry.features)
+    const bounds =
+      selectedBuilding
+        ? boundsAroundPoint(selectedBuilding.longitude, selectedBuilding.latitude, 0.0026, 0.002)
+        : boundsFromGeometry(geometry.features)
     const center = {
       lon: (bounds.minLon + bounds.maxLon) / 2,
       lat: (bounds.minLat + bounds.maxLat) / 2,
@@ -301,12 +412,21 @@ function SelectorMap({
         center,
         zoom: estimateMapZoom(bounds),
       },
+      hoverlabel: {
+        bgcolor: "rgba(255, 253, 249, 0.94)",
+        bordercolor: "rgba(87, 78, 65, 0.16)",
+        font: {
+          color: "#26231f",
+          family: '"Avenir Next", "Segoe UI", sans-serif',
+          size: 12,
+        },
+      },
       margin: { r: 0, t: 0, l: 0, b: 0 },
       height: 540,
       paper_bgcolor: "rgba(0,0,0,0)",
       plot_bgcolor: "rgba(0,0,0,0)",
     }
-  }, [geometry.features])
+  }, [geometry.features, nearbyAmenities, selectedBuilding])
 
   return (
     <Plot
@@ -348,10 +468,12 @@ export function DashboardThreeExplorer({
   const [minFloorArea, setMinFloorArea] = useState(initialPayload.filters.minFloorArea)
   const [maxMrtDistanceKm, setMaxMrtDistanceKm] = useState(initialPayload.filters.maxMrtDistanceKm)
   const [minSchoolCount, setMinSchoolCount] = useState(initialPayload.filters.minSchoolCount)
+  const [selectedNearestSchools, setSelectedNearestSchools] = useState<string[]>(initialPayload.filters.nearestSchools)
   const [selectedBuildingKey, setSelectedBuildingKey] = useState<string | null>(initialPayload.selectedBuildingKey)
   const [payload, setPayload] = useState(initialPayload)
   const [loading, setLoading] = useState(false)
   const [flatTypeMenuOpen, setFlatTypeMenuOpen] = useState(false)
+  const [schoolMenuOpen, setSchoolMenuOpen] = useState(false)
 
   const town = manifest.towns.find((item) => item.slug === townSlug) ?? manifest.towns[0]
 
@@ -362,6 +484,7 @@ export function DashboardThreeExplorer({
     setMinFloorArea(0)
     setMaxMrtDistanceKm(1.2)
     setMinSchoolCount(0)
+    setSelectedNearestSchools([])
     setSelectedBuildingKey(null)
   }, [townSlug])
 
@@ -375,6 +498,7 @@ export function DashboardThreeExplorer({
       minFloorArea,
       maxMrtDistanceKm,
       minSchoolCount,
+      nearestSchools: selectedNearestSchools,
       buildingKey: selectedBuildingKey,
     })
 
@@ -397,7 +521,7 @@ export function DashboardThreeExplorer({
       })
 
     return () => controller.abort()
-  }, [townSlug, year, budget, selectedFlatTypes, minFloorArea, maxMrtDistanceKm, minSchoolCount, selectedBuildingKey])
+  }, [townSlug, year, budget, selectedFlatTypes, minFloorArea, maxMrtDistanceKm, minSchoolCount, selectedNearestSchools, selectedBuildingKey])
 
   const flatTypeSummary =
     selectedFlatTypes.length === town.filters.flat_types.length
@@ -405,6 +529,12 @@ export function DashboardThreeExplorer({
       : selectedFlatTypes.length === 1
         ? selectedFlatTypes[0]
         : `${selectedFlatTypes.length} flat types`
+  const schoolSummary =
+    selectedNearestSchools.length === 0
+      ? "Any nearby school"
+      : selectedNearestSchools.length === 1
+        ? selectedNearestSchools[0]
+        : `${selectedNearestSchools.length} schools`
 
   return (
     <main className="dashboard3-page">
@@ -512,6 +642,34 @@ export function DashboardThreeExplorer({
             </select>
           </label>
 
+          <div className="dashboard3-control dashboard3-control-multiselect">
+            <span>Nearest school within 1km</span>
+            <button type="button" className="dashboard3-multiselect-button" onClick={() => setSchoolMenuOpen((open) => !open)}>
+              <strong>{schoolSummary}</strong>
+              <span>{schoolMenuOpen ? "Hide" : "Choose"}</span>
+            </button>
+            {schoolMenuOpen ? (
+              <div className="dashboard3-multiselect-menu">
+                {payload.availableNearestSchools.map((school) => (
+                  <label key={school} className="dashboard3-multiselect-option">
+                    <input
+                      type="checkbox"
+                      checked={selectedNearestSchools.includes(school)}
+                      onChange={() =>
+                        setSelectedNearestSchools((current) =>
+                          current.includes(school)
+                            ? current.filter((item) => item !== school)
+                            : [...current, school].sort((left, right) => left.localeCompare(right)),
+                        )
+                      }
+                    />
+                    <span>{school}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
           <label className="dashboard3-control">
             <span>Nearest MRT distance</span>
             <select value={maxMrtDistanceKm} onChange={(event) => setMaxMrtDistanceKm(Number(event.target.value))}>
@@ -535,25 +693,35 @@ export function DashboardThreeExplorer({
             <span>2. Select an HDB building</span>
             <strong>{payload.selectedBuilding ? `${payload.selectedBuilding.block} / ${payload.selectedBuilding.bestFlatType}` : "No shortlist match"}</strong>
           </div>
-          {payload.selectedBuilding ? (
-            <div className="dashboard3-map-label">
-              Selected building: Block {payload.selectedBuilding.block} / {payload.selectedBuilding.bestFlatType}
-            </div>
-          ) : null}
+          <label className="dashboard3-control dashboard3-building-picker">
+            <span>Selected building</span>
+            <select
+              value={payload.selectedBuildingKey ?? ""}
+              onChange={(event) => setSelectedBuildingKey(event.target.value || null)}
+            >
+              {payload.candidates.map((candidate) => (
+                <option key={candidate.buildingKey} value={candidate.buildingKey}>
+                  {`Block ${candidate.block} / ${candidate.bestFlatType} / ${formatCurrency(candidate.medianPrice)}`}
+                </option>
+              ))}
+            </select>
+            <small>Select from the map or this dropdown.</small>
+          </label>
           <SelectorMap
             geometry={payload.geometry}
             candidates={payload.candidates}
             selectedBuildingKey={payload.selectedBuildingKey}
             selectedBuilding={payload.selectedBuilding}
             nearbyAmenities={payload.nearbyAmenities}
+            transactionYear={payload.filters.year}
             onSelect={setSelectedBuildingKey}
           />
           <div className="dashboard3-map-footer">
             <div className="dashboard3-poi-legend">
-              <span>Bus Stop: +</span>
-              <span>MRT: x</span>
-              <span>School: o</span>
-              <span>Selected building: square</span>
+              <span><i className="dashboard3-legend-chip dashboard3-legend-bus-stop">B</i>Bus stop</span>
+              <span><i className="dashboard3-legend-chip dashboard3-legend-mrt">M</i>MRT</span>
+              <span><i className="dashboard3-legend-chip dashboard3-legend-school">S</i>School</span>
+              <span><i className="dashboard3-legend-chip dashboard3-legend-selected" />Selected building</span>
             </div>
             {payload.selectedBuilding ? (
               <div className="dashboard3-building-meta dashboard3-building-meta-inline">
@@ -574,23 +742,6 @@ export function DashboardThreeExplorer({
                 </div>
               </div>
             ) : null}
-            <div className="dashboard3-shortlist">
-              {payload.candidates.slice(0, 8).map((candidate) => (
-                <button
-                  key={candidate.buildingKey}
-                  type="button"
-                  className={`dashboard3-shortlist-item ${payload.selectedBuildingKey === candidate.buildingKey ? "dashboard3-shortlist-item-active" : ""}`}
-                  onClick={() => setSelectedBuildingKey(candidate.buildingKey)}
-                >
-                  <strong>
-                    Block {candidate.block} / {candidate.bestFlatType}
-                  </strong>
-                  <span>
-                    {candidate.medianFloorArea.toFixed(0)} sqm • {formatCurrency(candidate.medianPrice)}
-                  </span>
-                </button>
-              ))}
-            </div>
           </div>
         </section>
 

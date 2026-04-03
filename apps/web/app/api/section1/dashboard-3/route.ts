@@ -23,6 +23,7 @@ export async function GET(request: Request) {
     minFloorArea: parseNumber(url.searchParams.get("minFloorArea"), defaults.minFloorArea),
     maxMrtDistanceKm: parseNumber(url.searchParams.get("maxMrtDistanceKm"), defaults.maxMrtDistanceKm),
     minSchoolCount: parseNumber(url.searchParams.get("minSchoolCount"), defaults.minSchoolCount),
+    nearestSchools: url.searchParams.getAll("school").filter((value) => value.length > 0),
     buildingKey: url.searchParams.get("buildingKey"),
   }
 

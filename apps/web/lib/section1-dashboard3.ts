@@ -145,7 +145,9 @@ export interface DashboardThreeTownPayload {
     minFloorArea: number
     maxMrtDistanceKm: number
     minSchoolCount: number
+    nearestSchools: string[]
   }
+  availableNearestSchools: string[]
   summary: {
     shortlistCount: number
     buildingRowsScanned: number
@@ -171,6 +173,7 @@ export interface DashboardThreeQuery {
   minFloorArea: number
   maxMrtDistanceKm: number
   minSchoolCount: number
+  nearestSchools: string[]
   buildingKey?: string | null
 }
 
@@ -290,6 +293,7 @@ export function defaultDashboardThreeQuery(): DashboardThreeQuery {
     minFloorArea: 0,
     maxMrtDistanceKm: 1.2,
     minSchoolCount: 0,
+    nearestSchools: [],
     buildingKey: null,
   }
 }
@@ -297,6 +301,10 @@ export function defaultDashboardThreeQuery(): DashboardThreeQuery {
 export function buildDashboardThreeTownPayload(query: DashboardThreeQuery): DashboardThreeTownPayload {
   const bundle = loadRawTownBundle(query.slug)
   const activeFlatTypes = query.flatTypes.length > 0 ? query.flatTypes : bundle.town.filters.flat_types
+  const activeNearestSchools = query.nearestSchools.filter((school) => school.length > 0)
+  const availableNearestSchools = Array.from(
+    new Set(bundle.buildings.map((row) => row.nearest_school).filter((school): school is string => Boolean(school))),
+  ).sort((left, right) => left.localeCompare(right))
   const filteredRows = bundle.buildings.filter((row) => {
     if (row.transaction_year !== query.year) return false
     if (row.budget !== query.budget) return false
@@ -304,6 +312,16 @@ export function buildDashboardThreeTownPayload(query: DashboardThreeQuery): Dash
     if (row.median_floor_area < query.minFloorArea) return false
     if ((row.nearest_mrt_distance_km ?? Number.POSITIVE_INFINITY) > query.maxMrtDistanceKm) return false
     if ((row.school_count_within_1km ?? 0) < query.minSchoolCount) return false
+    if (
+      activeNearestSchools.length > 0 &&
+      (
+        !row.nearest_school ||
+        !activeNearestSchools.includes(row.nearest_school) ||
+        (row.nearest_school_distance_km ?? Number.POSITIVE_INFINITY) > 1
+      )
+    ) {
+      return false
+    }
     if (row.building_match_status !== "matched_geometry") return false
     return row.has_building_geometry === "Yes"
   })
@@ -384,22 +402,25 @@ export function buildDashboardThreeTownPayload(query: DashboardThreeQuery): Dash
     : []
 
   const nearbyAmenities = selectedBuilding
-    ? bundle.poiPoints
-        .map((poi) => ({
-          poiType: poi.poi_type,
-          poiName: poi.poi_name,
-          latitude: poi.poi_latitude,
-          longitude: poi.poi_longitude,
-          distanceKm: haversineKm(
-            selectedBuilding.latitude,
-            selectedBuilding.longitude,
-            poi.poi_latitude,
-            poi.poi_longitude,
-          ),
-        }))
-        .filter((poi) => poi.distanceKm <= 1.2)
-        .sort((left, right) => left.distanceKm - right.distanceKm || left.poiName.localeCompare(right.poiName))
-        .slice(0, 40)
+    ? ["Bus Stop", "MRT", "School"].flatMap((poiType) =>
+        bundle.poiPoints
+          .filter((poi) => poi.poi_type === poiType)
+          .map((poi) => ({
+            poiType: poi.poi_type,
+            poiName: poi.poi_name,
+            latitude: poi.poi_latitude,
+            longitude: poi.poi_longitude,
+            distanceKm: haversineKm(
+              selectedBuilding.latitude,
+              selectedBuilding.longitude,
+              poi.poi_latitude,
+              poi.poi_longitude,
+            ),
+          }))
+          .filter((poi) => poi.distanceKm <= 1.2)
+          .sort((left, right) => left.distanceKm - right.distanceKm || left.poiName.localeCompare(right.poiName))
+          .slice(0, poiType === "Bus Stop" ? 18 : 8),
+      )
     : []
 
   const prices = filteredRows.map((row) => row.median_price).filter((value) => Number.isFinite(value))
@@ -414,7 +435,9 @@ export function buildDashboardThreeTownPayload(query: DashboardThreeQuery): Dash
       minFloorArea: query.minFloorArea,
       maxMrtDistanceKm: query.maxMrtDistanceKm,
       minSchoolCount: query.minSchoolCount,
+      nearestSchools: activeNearestSchools,
     },
+    availableNearestSchools,
     summary: {
       shortlistCount: candidates.length,
       buildingRowsScanned: filteredRows.length,
