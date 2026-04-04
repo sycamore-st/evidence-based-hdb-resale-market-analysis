@@ -41,3 +41,4 @@ outputs/section3/charts/*.png
 !.gitkeep
 .claude/
 AGENTS.md
+.wrangler/

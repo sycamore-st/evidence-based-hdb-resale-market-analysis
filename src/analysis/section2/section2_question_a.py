@@ -587,6 +587,7 @@ def predict_simplified_price(
         "test_frame": official_test_frame.copy(),
         "holdout_months": sorted(pd.to_datetime(official_test_frame["transaction_month"]).unique().tolist()),
     }
+
     official_fit = _fit_direct_price_regression_models(
         split["train_frame"],
         split["test_frame"],
@@ -600,6 +601,7 @@ def predict_simplified_price(
     official_best_metrics = next(
         row for row in official_fit["candidate_metrics"] if row["name"] == official_fit["best_model"]
     )
+
     LOGGER.info(
         "Question A official holdout metrics | best_model=%s rmse=%.0f mape=%.2f%% mae=%.0f r2=%.3f",
         official_fit["best_model"],
@@ -1837,6 +1839,7 @@ def run_question_a_workflow(
         xgboost_tuning_iterations: int = DEFAULT_XGBOOST_TUNING_ITERATIONS,
         artifact_suffix: str = "",
 ) -> dict[str, object]:
+
     result = predict_simplified_price(
         {
             "flat_type": TARGET_TRANSACTION["flat_type"],
@@ -1847,6 +1850,7 @@ def run_question_a_workflow(
         tune_xgboost=tune_xgboost,
         xgboost_tuning_iterations=xgboost_tuning_iterations,
     )
+
     question_a_results = [
         ModelResult(
             name=str(metric["name"]),
@@ -1860,14 +1864,23 @@ def run_question_a_workflow(
         )
         for metric in result["candidate_metrics"]
     ]
+    
     pd.DataFrame([asdict(row) for row in question_a_results]).to_csv(
-        REPORTS / f"S2Qa_model_comparison{artifact_suffix}.csv", index=False)
+        REPORTS / f"S2Qa_model_comparison{artifact_suffix}.csv", 
+        index=False
+    )
     pd.DataFrame(result["candidate_metrics_observed"]).to_csv(
-        REPORTS / f"S2Qa_observed_model_comparison{artifact_suffix}.csv", index=False)
-    pd.DataFrame(result["candidate_metrics_imputed"]).to_csv(
-        REPORTS / f"S2Qa_imputed_model_comparison{artifact_suffix}.csv", index=False)
-    result["training_window_sensitivity"].to_csv(REPORTS / f"S2Qa_training_window_sensitivity{artifact_suffix}.csv",
-                                                 index=False)
+        REPORTS / f"S2Qa_observed_model_comparison{artifact_suffix}.csv", 
+        index=False
+    )
+    pd.DataFrame(
+        result["candidate_metrics_imputed"]).to_csv(
+        REPORTS / f"S2Qa_imputed_model_comparison{artifact_suffix}.csv", index=False
+    )
+    result["training_window_sensitivity"].to_csv(
+        REPORTS / f"S2Qa_training_window_sensitivity{artifact_suffix}.csv",
+        index=False
+    )
     result["controlled_variation_summary"].to_csv(
         REPORTS / f"S2Qa_controlled_variation_summary{artifact_suffix}.csv",
         index=False,
@@ -1940,10 +1953,12 @@ def main() -> None:
 
     _configure_logging(args.log_level)
     REPORTS.mkdir(parents=True, exist_ok=True)
+
     if args.reuse_reports:
         LOGGER.info("Rebuilding Question A figures from saved reports only")
         result = _load_question_a_reports_bundle()
         workflow = {"figures": build_question_a_figures(result)}
+
     else:
         frame = _load_frame()
         workflow = run_question_a_workflow(
@@ -1953,6 +1968,7 @@ def main() -> None:
         )
         result = workflow["result"]
         result["eval_predictions_frame"].to_csv(REPORTS / "S2Qa_eval_predictions.csv", index=False)
+
     if not args.skip_plotly:
         _write_plotly_assets(workflow["figures"])
 
