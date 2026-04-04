@@ -1,18 +1,10 @@
 "use client"
 
-import Link from "next/link"
 import { useMemo, useRef, useState } from "react"
 import type { MouseEvent } from "react"
 
+import { formatSectionCurrency, SECTION1_CONTROL_LABELS, SectionDashboardNav } from "@/components/section1/dashboard-shared"
 import type { DashboardTwoData, DashboardTwoMetricRow, DashboardTwoRow } from "@/lib/section1-dashboard2"
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("en-SG", {
-    style: "currency",
-    currency: "SGD",
-    maximumFractionDigits: 0,
-  }).format(value)
-}
 
 function extent(values: number[]) {
   const positive = values.filter((value) => value > 0)
@@ -172,7 +164,7 @@ export function DashboardTwoExplorer({ data }: { data: DashboardTwoData }) {
       .sort((left, right) => order.indexOf(left.metric) - order.indexOf(right.metric))
       .map((item) => ({
         label: item.metric,
-        value: kind === "area" ? `${item.floorArea.toFixed(0)} sqm` : formatCurrency(item.price),
+        value: kind === "area" ? `${item.floorArea.toFixed(0)} sqm` : formatSectionCurrency(item.price),
       }))
 
     setHoverState({
@@ -195,18 +187,13 @@ export function DashboardTwoExplorer({ data }: { data: DashboardTwoData }) {
           </p>
         </div>
         <div className="dashboard2-header-actions">
-          <Link href="/section1/dashboard-1" className="dashboard2-link">
-            Back to Dashboard 1
-          </Link>
-          <Link href="/" className="dashboard2-link">
-            Back to index
-          </Link>
+          <SectionDashboardNav current="dashboard-2" className="dashboard2-header-actions-links" />
         </div>
       </header>
 
       <section className="dashboard2-controls">
         <label className="dashboard2-control">
-          <span>1. Transaction year</span>
+          <span>{`1. ${SECTION1_CONTROL_LABELS.transactionYear}`}</span>
           <select value={selectedYear} onChange={(event) => setSelectedYear(Number(event.target.value))}>
             {data.years.map((year) => (
               <option key={year} value={year}>
@@ -217,18 +204,18 @@ export function DashboardTwoExplorer({ data }: { data: DashboardTwoData }) {
         </label>
 
         <label className="dashboard2-control">
-          <span>2. Budget</span>
+          <span>{`2. ${SECTION1_CONTROL_LABELS.budget}`}</span>
           <select value={selectedBudget} onChange={(event) => setSelectedBudget(Number(event.target.value))}>
             {data.budgets.map((budget) => (
               <option key={budget} value={budget}>
-                {formatCurrency(budget)}
+                {formatSectionCurrency(budget)}
               </option>
             ))}
           </select>
         </label>
 
         <div className="dashboard2-control dashboard2-control-towns">
-          <span>3. Towns</span>
+          <span>{`3. ${SECTION1_CONTROL_LABELS.town}`}</span>
           <button type="button" className="dashboard2-multiselect-button" onClick={() => setTownPickerOpen((open) => !open)}>
             <strong>{townSummary}</strong>
             <span>{townPickerOpen ? "Hide" : "Choose"}</span>
@@ -253,7 +240,7 @@ export function DashboardTwoExplorer({ data }: { data: DashboardTwoData }) {
           <span>Current best space</span>
           <strong>{topRow ? `${topRow.town} / ${topRow.flatType}` : "No data"}</strong>
           <small>
-            {topRow ? `${topRow.medianFloorArea.toFixed(0)} sqm median area at ${formatCurrency(topRow.medianPrice)}` : "No combinations for this selection."}
+            {topRow ? `${topRow.medianFloorArea.toFixed(0)} sqm median area at ${formatSectionCurrency(topRow.medianPrice)}` : "No combinations for this selection."}
           </small>
         </div>
       </section>
@@ -277,7 +264,7 @@ export function DashboardTwoExplorer({ data }: { data: DashboardTwoData }) {
               <span>Median Price</span>
               <div className="dashboard2-axis">
                 {priceTicks.map((tick) => (
-                  <span key={`price-${tick}`}>{tick === 0 ? "$0" : formatCurrency(tick)}</span>
+                  <span key={`price-${tick}`}>{tick === 0 ? "$0" : formatSectionCurrency(tick)}</span>
                 ))}
               </div>
             </div>

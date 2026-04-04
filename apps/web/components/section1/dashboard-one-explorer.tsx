@@ -1,28 +1,22 @@
 "use client"
 
 import Link from "next/link"
-import dynamic from "next/dynamic"
-import { memo, useEffect, useMemo, useRef, useState, useTransition } from "react"
+import { memo, useMemo, useState, useTransition } from "react"
 import type { CSSProperties } from "react"
 
+import {
+  formatSectionCurrency,
+  SECTION1_CONTROL_LABELS,
+  SECTION1_FLAT_COLORS,
+  SectionDashboardNav,
+} from "@/components/section1/dashboard-shared"
+import { SectionTrendPriceLines, SectionTrendStackedBars } from "@/components/section1/dashboard-trend-charts"
 import type { DashboardOneData, DashboardOneRow, MapShape } from "@/lib/section1-dashboard1"
 
-const Plot = dynamic(() => import("@/components/charts/plotly-chart"), { ssr: false })
-
-export type DashboardOneLayoutPreset = "editorial" | "balanced" | "chart-heavy"
+export type DashboardOneLayoutPreset = "editorial" | "balanced" | "chart-heavy" | "map-heavy" | "stacked"
 export type DashboardOneStyleVars = Partial<Record<`--${string}`, string>>
 export type DashboardOneMapSide = "left" | "right"
 export type DashboardOneRightPanel = "legend" | "bars" | "lines"
-
-const FLAT_COLORS: Record<string, string> = {
-  "1 ROOM": "#8f9eaa",
-  "2 ROOM": "#bfcfd7",
-  "3 ROOM": "#b59995",
-  "4 ROOM": "#d9c7aa",
-  "5 ROOM": "#adbdad",
-  EXECUTIVE: "#d9cedf",
-  "MULTI-GENERATION": "#8b8fab",
-}
 
 const DEFAULT_FLAT_COLOR = "#d0d7dd"
 
@@ -42,14 +36,6 @@ function darken(hex: string, amount: number): string {
   const [r, g, b] = hexToRgb(hex)
   const clamp = (value: number) => Math.max(0, Math.min(255, Math.round(value * (1 - amount))))
   return `rgb(${clamp(r)}, ${clamp(g)}, ${clamp(b)})`
-}
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("en-SG", {
-    style: "currency",
-    currency: "SGD",
-    maximumFractionDigits: 0,
-  }).format(value)
 }
 
 function seriesForSelection(rows: DashboardOneRow[], town: string | null, flatType: string) {
@@ -72,9 +58,9 @@ function seriesForSelection(rows: DashboardOneRow[], town: string | null, flatTy
     .map(([name, points]) => ({
       name,
       points: points.sort((left, right) => left.year - right.year),
-      color: FLAT_COLORS[name] ?? DEFAULT_FLAT_COLOR,
-      fillColor: withAlpha(FLAT_COLORS[name] ?? DEFAULT_FLAT_COLOR, 0.34),
-      strokeColor: darken(FLAT_COLORS[name] ?? DEFAULT_FLAT_COLOR, 0.18),
+      color: SECTION1_FLAT_COLORS[name] ?? DEFAULT_FLAT_COLOR,
+      fillColor: withAlpha(SECTION1_FLAT_COLORS[name] ?? DEFAULT_FLAT_COLOR, 0.34),
+      strokeColor: darken(SECTION1_FLAT_COLORS[name] ?? DEFAULT_FLAT_COLOR, 0.18),
     }))
     .sort((left, right) => left.name.localeCompare(right.name))
 }
@@ -145,264 +131,13 @@ const TownMap = memo(function TownMap({
         <span>Median Price</span>
         <div className="dashboard1-map-legend-bar" />
         <div className="dashboard1-map-legend-scale">
-          <span>{formatCurrency(min || 0)}</span>
-          <span>{formatCurrency(max || 0)}</span>
+          <span>{formatSectionCurrency(min || 0)}</span>
+          <span>{formatSectionCurrency(max || 0)}</span>
         </div>
       </div>
     </div>
   )
 })
-
-function StackedBarsPlot({
-  series,
-}: {
-  series: Array<{
-    name: string
-    points: DashboardOneRow[]
-    color: string
-    fillColor: string
-    strokeColor: string
-  }>
-}) {
-  const shellRef = useRef<HTMLDivElement | null>(null)
-  const [hoverState, setHoverState] = useState<{ x: number; left: number; top: number } | null>(null)
-  const years = Array.from(new Set(series.flatMap((entry) => entry.points.map((point) => point.year)))).sort((a, b) => a - b)
-  const plotKey = useMemo(
-    () =>
-      JSON.stringify(
-        series.map((entry) => ({
-          name: entry.name,
-          years: entry.points.map((point) => point.year),
-        })),
-      ),
-    [series],
-  )
-
-  useEffect(() => {
-    setHoverState(null)
-  }, [plotKey])
-
-  const hoverBreakdown = useMemo(() => {
-    if (!hoverState) {
-      return null
-    }
-    const items = series
-      .map((entry) => ({
-        name: entry.name,
-        fillColor: entry.fillColor,
-        strokeColor: entry.strokeColor,
-        value: entry.points.find((point) => point.year === hoverState.x)?.transactions ?? 0,
-      }))
-      .filter((item) => item.value > 0)
-      .sort((left, right) => right.value - left.value)
-    if (items.length === 0) {
-      return null
-    }
-    const total = items.reduce((sum, item) => sum + item.value, 0)
-    const itemsWithShare = items.map((item) => ({
-      ...item,
-      share: total > 0 ? (item.value / total) * 100 : 0,
-    }))
-    return { year: hoverState.x, left: hoverState.left, top: hoverState.top, items: itemsWithShare, total }
-  }, [hoverState, series])
-
-  const traces = series.map((entry) => ({
-    type: "bar" as const,
-    name: entry.name,
-    x: years,
-    y: years.map((year) => entry.points.find((point) => point.year === year)?.transactions ?? 0),
-    marker: {
-      color: entry.fillColor,
-      line: {
-        color: entry.strokeColor,
-        width: 1.2,
-      },
-    },
-    hoverinfo: "none" as const,
-  }))
-
-  return (
-    <div className="dashboard1-chart-shell" ref={shellRef} onMouseLeave={() => setHoverState(null)}>
-      <div className="dashboard1-chart-header">
-        <h3>Transactions over time</h3>
-        <span>Stacked by flat type</span>
-      </div>
-      <Plot
-        key={plotKey}
-        data={traces}
-        layout={{
-          autosize: true,
-          barmode: "stack",
-          showlegend: false,
-          margin: { l: 68, r: 24, t: 8, b: 48 },
-          paper_bgcolor: "rgba(0,0,0,0)",
-          plot_bgcolor: "rgba(0,0,0,0)",
-          hovermode: "x",
-          font: { family: '"Avenir Next", "Segoe UI", sans-serif', color: "rgba(38,35,31,0.78)", size: 12 },
-          xaxis: {
-            tickmode: "linear",
-            dtick: 4,
-            gridcolor: "rgba(87,78,65,0.08)",
-            zeroline: false,
-            title: { text: "Year of transaction year" },
-          },
-          yaxis: {
-            rangemode: "tozero",
-            separatethousands: true,
-            gridcolor: "rgba(87,78,65,0.12)",
-            zeroline: false,
-            title: { text: "Transactions count" },
-          },
-        }}
-        config={{
-          displayModeBar: false,
-          responsive: true,
-        }}
-        className="dashboard1-plot dashboard1-plot-bar"
-        useResizeHandler
-        style={{ width: "100%", height: "100%" }}
-        onHover={(rawEvent) => {
-          const event = rawEvent as {
-            points?: Array<{ x?: number | string }>
-            event?: { clientX?: number; clientY?: number }
-          }
-          const pointX = event.points?.[0]?.x
-          const year = typeof pointX === "number" ? pointX : Number(pointX)
-          if (!Number.isFinite(year) || !shellRef.current) {
-            return
-          }
-          const box = shellRef.current.getBoundingClientRect()
-          const clientX = event.event?.clientX ?? box.left + box.width * 0.66
-          const clientY = event.event?.clientY ?? box.top + 70
-          const left = Math.max(12, Math.min(box.width - 276, clientX - box.left + 14))
-          const top = Math.max(12, Math.min(box.height - 232, clientY - box.top - 16))
-          setHoverState({ x: year, left, top })
-        }}
-        onUnhover={() => {
-          setHoverState(null)
-        }}
-      />
-      {hoverBreakdown ? (
-        <div
-          className="dashboard1-hover-card"
-          style={{ left: `${hoverBreakdown.left}px`, top: `${hoverBreakdown.top}px` }}
-        >
-          <div className="dashboard1-hover-card-head">
-            <strong>{hoverBreakdown.year}</strong>
-            <span>{hoverBreakdown.total.toLocaleString()} total</span>
-          </div>
-          <div className="dashboard1-hover-mini-bars">
-            {hoverBreakdown.items.map((item) => (
-              <div key={`${hoverBreakdown.year}-${item.name}`} className="dashboard1-hover-mini-row">
-                <div className="dashboard1-hover-mini-label">{item.name}</div>
-                <div className="dashboard1-hover-mini-track">
-                  <span
-                    className="dashboard1-hover-mini-fill"
-                    style={{
-                      width: `${Math.max(3, item.share)}%`,
-                      background: item.fillColor,
-                      border: `1px solid ${item.strokeColor}`,
-                      boxSizing: "border-box",
-                    }}
-                  />
-                </div>
-                <div className="dashboard1-hover-mini-value">
-                  {item.value.toLocaleString()} ({item.share.toFixed(1)}%)
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
-    </div>
-  )
-}
-
-function PriceLinesPlot({
-  series,
-}: {
-  series: Array<{
-    name: string
-    points: DashboardOneRow[]
-    color: string
-    fillColor: string
-    strokeColor: string
-  }>
-}) {
-  const years = Array.from(new Set(series.flatMap((entry) => entry.points.map((point) => point.year)))).sort((a, b) => a - b)
-
-  const traces = series.map((entry) => ({
-    type: "scatter" as const,
-    mode: "lines+markers",
-    name: entry.name,
-    x: years,
-    y: years.map((year) => entry.points.find((point) => point.year === year)?.medianPrice ?? null),
-    line: {
-      color: entry.strokeColor,
-      width: 3,
-      shape: "linear" as const,
-    },
-    marker: {
-      color: entry.strokeColor,
-      size: 6,
-    },
-    hovertemplate: `${entry.name}: %{y:$,.0f}<extra></extra>`,
-  }))
-
-  return (
-    <div className="dashboard1-chart-shell">
-      <div className="dashboard1-chart-header">
-        <h3>Median price over time</h3>
-        <span>Linked to the same scope and flat type</span>
-      </div>
-      <Plot
-        data={traces}
-        layout={{
-          autosize: true,
-          showlegend: false,
-          margin: { l: 84, r: 30, t: 8, b: 48 },
-          paper_bgcolor: "rgba(0,0,0,0)",
-          plot_bgcolor: "rgba(0,0,0,0)",
-          hovermode: "x unified",
-          font: { family: '"Avenir Next", "Segoe UI", sans-serif', color: "rgba(38,35,31,0.78)", size: 12 },
-          hoverlabel: {
-            bgcolor: "rgba(255, 253, 249, 0.98)",
-            bordercolor: "rgba(87, 78, 65, 0.16)",
-            font: { family: '"Avenir Next", "Segoe UI", sans-serif', color: "#26231f", size: 12 },
-          },
-          xaxis: {
-            tickmode: "linear",
-            dtick: 4,
-            gridcolor: "rgba(87,78,65,0.08)",
-            zeroline: false,
-            title: { text: "Year of transaction year" },
-            showspikes: true,
-            spikemode: "across",
-            spikesnap: "cursor",
-            spikedash: "dot",
-            spikethickness: 1.2,
-            spikecolor: "rgba(87, 78, 65, 0.45)",
-          },
-          yaxis: {
-            rangemode: "tozero",
-            tickprefix: "SGD ",
-            separatethousands: true,
-            gridcolor: "rgba(87,78,65,0.12)",
-            zeroline: false,
-            title: { text: "Median median price" },
-          },
-        }}
-        config={{
-          displayModeBar: false,
-          responsive: true,
-        }}
-        className="dashboard1-plot dashboard1-plot-line"
-        useResizeHandler
-        style={{ width: "100%", height: "100%" }}
-      />
-    </div>
-  )
-}
 
 function Legend({
   series,
@@ -525,16 +260,26 @@ export function DashboardOneExplorer({
             >
               chart-heavy
             </Link>
+            <Link
+              href={layoutHref("map-heavy") as never}
+              className={layoutPreset === "map-heavy" ? "dashboard1-switch-link dashboard1-switch-link-active" : "dashboard1-switch-link"}
+            >
+              map-heavy
+            </Link>
+            <Link
+              href={layoutHref("stacked") as never}
+              className={layoutPreset === "stacked" ? "dashboard1-switch-link dashboard1-switch-link-active" : "dashboard1-switch-link"}
+            >
+              stacked
+            </Link>
           </div>
-          <Link href="/" className="dashboard1-link">
-            Back to index
-          </Link>
+          <SectionDashboardNav current="dashboard-1" className="dashboard1-header-actions-links" />
         </div>
       </header>
 
       <section className="dashboard1-controls">
         <label className="dashboard1-control">
-          <span>1. Transaction year</span>
+          <span>{`1. ${SECTION1_CONTROL_LABELS.transactionYear}`}</span>
           <select value={selectedYear} onChange={(event) => setSelectedYear(Number(event.target.value))}>
             {data.years.map((year) => (
               <option key={year} value={year}>
@@ -545,7 +290,7 @@ export function DashboardOneExplorer({
         </label>
 
         <label className="dashboard1-control">
-          <span>2. Flat type</span>
+          <span>{`2. ${SECTION1_CONTROL_LABELS.flatType}`}</span>
           <select value={selectedFlatType} onChange={(event) => setSelectedFlatType(event.target.value)}>
             {data.flatTypes.map((flatType) => (
               <option key={flatType} value={flatType}>
@@ -571,7 +316,7 @@ export function DashboardOneExplorer({
 
         <div className="dashboard1-control dashboard1-control-summary">
           <span>Current snapshot</span>
-          <strong>{summaryRow ? formatCurrency(summaryRow.medianPrice) : "No data"}</strong>
+          <strong>{summaryRow ? formatSectionCurrency(summaryRow.medianPrice) : "No data"}</strong>
           <small>
             {summaryRow ? `${summaryRow.transactions.toLocaleString()} transactions in ${selectedYear}` : "No data for this selection."}
           </small>
@@ -610,11 +355,45 @@ export function DashboardOneExplorer({
         </div>
 
         <div className="dashboard1-panel-bars" style={{ gridArea: areaByPanel.bars }}>
-          <StackedBarsPlot series={series} />
+          <div className="dashboard1-chart-shell">
+            <div className="dashboard1-chart-header">
+              <h3>Transactions over time</h3>
+              <span>Stacked by flat type</span>
+            </div>
+            <SectionTrendStackedBars
+              history={series.flatMap((entry) =>
+                entry.points.map((point) => ({
+                  year: point.year,
+                  flatType: entry.name,
+                  transactions: point.transactions,
+                  medianPrice: point.medianPrice,
+                })),
+              )}
+              colors={SECTION1_FLAT_COLORS}
+              className="dashboard1-bars"
+            />
+          </div>
         </div>
 
         <div className="dashboard1-panel-lines" style={{ gridArea: areaByPanel.lines }}>
-          <PriceLinesPlot series={series} />
+          <div className="dashboard1-chart-shell">
+            <div className="dashboard1-chart-header">
+              <h3>Median price over time</h3>
+              <span>Linked to the same scope and flat type</span>
+            </div>
+            <SectionTrendPriceLines
+              history={series.flatMap((entry) =>
+                entry.points.map((point) => ({
+                  year: point.year,
+                  flatType: entry.name,
+                  transactions: point.transactions,
+                  medianPrice: point.medianPrice,
+                })),
+              )}
+              colors={SECTION1_FLAT_COLORS}
+              className="dashboard1-lines"
+            />
+          </div>
         </div>
       </section>
     </main>

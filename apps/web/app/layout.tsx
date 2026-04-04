@@ -4,8 +4,8 @@ import type { ReactNode } from "react"
 import "@/app/globals.css"
 
 export const metadata: Metadata = {
-  title: "Evidence-Based HDB Resale Dashboard",
-  description: "Frontend scaffold for overview, policy, and modeling dashboards."
+  title: "Evidence-Based HDB Resale Market Analysis",
+  description: "Interactive web dashboards for the evidence-based HDB resale market analysis project.",
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {

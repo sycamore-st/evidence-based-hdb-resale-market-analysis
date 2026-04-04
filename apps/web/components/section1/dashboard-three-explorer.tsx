@@ -1,40 +1,24 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
+import {
+  formatSectionCount,
+  formatSectionCurrency,
+  SECTION1_CONTROL_LABELS,
+  SECTION1_FLAT_COLORS,
+  SectionDashboardNav,
+} from "@/components/section1/dashboard-shared"
+import { SectionTrendPriceLines, SectionTrendStackedBars } from "@/components/section1/dashboard-trend-charts"
 import type {
   DashboardThreeCandidate,
   DashboardThreeGeometryFeature,
-  DashboardThreeHistoryPoint,
   DashboardThreeManifest,
   DashboardThreeTownPayload,
 } from "@/lib/section1-dashboard3"
 
 const Plot = dynamic(() => import("@/components/charts/plotly-chart"), { ssr: false })
-
-const FLAT_TYPE_COLORS: Record<string, string> = {
-  "1 ROOM": "#b79f96",
-  "2 ROOM": "#b79f96",
-  "3 ROOM": "#b79f96",
-  "4 ROOM": "#d1bf9f",
-  "5 ROOM": "#a8b6aa",
-  EXECUTIVE: "#7f8d9e",
-  "MULTI-GENERATION": "#7f8d9e",
-}
-
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("en-SG", {
-    style: "currency",
-    currency: "SGD",
-    maximumFractionDigits: 0,
-  }).format(value)
-}
-
-function formatCount(value: number): string {
-  return new Intl.NumberFormat("en-SG").format(value)
-}
 
 function formatDistance(value: number | null | undefined): string {
   if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -153,121 +137,12 @@ function buildSearchParams(filters: {
   return params
 }
 
-function TransactionBars({ history }: { history: DashboardThreeHistoryPoint[] }) {
-  const years = Array.from(new Set(history.map((item) => item.year))).sort((left, right) => left - right)
-  const flatTypes = Array.from(new Set(history.map((item) => item.flatType))).sort((left, right) => left.localeCompare(right))
-  const totals = years.map((year) =>
-    flatTypes.map((flatType) => history.find((item) => item.year === year && item.flatType === flatType)?.transactions ?? 0),
-  )
-  const maxTotal = Math.max(...totals.map((values) => values.reduce((sum, value) => sum + value, 0)), 1)
-
-  return (
-    <div className="dashboard3-bars">
-      {years.map((year, index) => {
-        let offset = 0
-        const yearValues = totals[index]
-        const total = yearValues.reduce((sum, value) => sum + value, 0)
-        return (
-          <div key={year} className="dashboard3-bars-year">
-            <div className="dashboard3-bars-stack">
-              {flatTypes.map((flatType, flatIndex) => {
-                const value = yearValues[flatIndex]
-                const height = total > 0 ? (value / maxTotal) * 100 : 0
-                const segment = (
-                  <span
-                    key={flatType}
-                    className="dashboard3-bars-segment"
-                    style={{
-                      height: `${height}%`,
-                      bottom: `${offset}%`,
-                      background: `${FLAT_TYPE_COLORS[flatType] ?? "#b79f96"}66`,
-                      borderColor: `${FLAT_TYPE_COLORS[flatType] ?? "#b79f96"}aa`,
-                    }}
-                  />
-                )
-                offset += height
-                return segment
-              })}
-            </div>
-            <span>{String(year).slice(-2)}</span>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-function PriceLines({ history }: { history: DashboardThreeHistoryPoint[] }) {
-  const width = 720
-  const height = 180
-  const padding = 18
-  const years = Array.from(new Set(history.map((item) => item.year))).sort((left, right) => left - right)
-  const flatTypes = Array.from(new Set(history.map((item) => item.flatType))).sort((left, right) => left.localeCompare(right))
-  const prices = history.map((item) => item.medianPrice)
-  const maxPrice = Math.max(...prices, 1)
-  const xForIndex = (index: number) => padding + (index / Math.max(years.length - 1, 1)) * (width - padding * 2)
-  const yForValue = (value: number) => height - padding - (value / maxPrice) * (height - padding * 2)
-
-  return (
-    <svg className="dashboard3-lines" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden="true">
-      {[0, 0.33, 0.66, 1].map((stop) => (
-        <line
-          key={stop}
-          x1={padding}
-          x2={width - padding}
-          y1={height - padding - stop * (height - padding * 2)}
-          y2={height - padding - stop * (height - padding * 2)}
-          stroke="rgba(87, 78, 65, 0.12)"
-          strokeWidth="1"
-        />
-      ))}
-      {flatTypes.map((flatType) => {
-        const points = years
-          .map((year, index) => {
-            const row = history.find((item) => item.year === year && item.flatType === flatType)
-            if (!row) return null
-            return `${xForIndex(index)},${yForValue(row.medianPrice)}`
-          })
-          .filter(Boolean)
-          .join(" ")
-        if (!points) return null
-        return (
-          <g key={flatType}>
-            <polyline
-              fill="none"
-              stroke={FLAT_TYPE_COLORS[flatType] ?? "#7f8d9e"}
-              strokeWidth="3"
-              strokeLinejoin="round"
-              strokeLinecap="round"
-              points={points}
-            />
-            {years.map((year, index) => {
-              const row = history.find((item) => item.year === year && item.flatType === flatType)
-              if (!row) return null
-              return (
-                <circle
-                  key={`${flatType}-${year}`}
-                  cx={xForIndex(index)}
-                  cy={yForValue(row.medianPrice)}
-                  r="3.5"
-                  fill={FLAT_TYPE_COLORS[flatType] ?? "#7f8d9e"}
-                />
-              )
-            })}
-          </g>
-        )
-      })}
-    </svg>
-  )
-}
-
 function SelectorMap({
   geometry,
   candidates,
   selectedBuildingKey,
   selectedBuilding,
   nearbyAmenities,
-  transactionYear,
   onSelect,
 }: {
   geometry: DashboardThreeTownPayload["geometry"]
@@ -275,12 +150,10 @@ function SelectorMap({
   selectedBuildingKey: string | null
   selectedBuilding: DashboardThreeCandidate | null
   nearbyAmenities: DashboardThreeTownPayload["nearbyAmenities"]
-  transactionYear: number
   onSelect: (buildingKey: string) => void
 }) {
   const data = useMemo(() => {
     const eligibleKeys = new Set(candidates.map((candidate) => candidate.buildingKey))
-    const candidateLookup = new Map(candidates.map((candidate) => [candidate.buildingKey, candidate]))
     const townGeojson = {
       type: "FeatureCollection",
       features: geometry.features.map((feature) => ({
@@ -325,14 +198,20 @@ function SelectorMap({
         showscale: false,
         customdata: locations,
         text: townGeojson.features.map((feature) => {
-          const candidate = candidateLookup.get(feature.properties.id)
-          const postal = candidate?.postalCode ?? "N/A"
+          const props = geometry.features.find((item) => item.properties["Building Key"] === feature.properties.id)?.properties
+          const streetName = props?.["Street Name"] ?? "N/A"
+          const postal = props?.["Postal Code"] ?? "N/A"
+          const latestYear = props?.["Latest Transaction Year"] ?? "N/A"
+          const latestPrice =
+            typeof props?.["Latest Transaction Price"] === "number"
+              ? formatSectionCurrency(props["Latest Transaction Price"])
+              : "N/A"
           return [
             `Block ${feature.properties.block}`,
-            "Street: unavailable in current web artifact",
+            `Street: ${streetName}`,
             `Postal code: ${postal}`,
-            `Latest transaction year: ${transactionYear}`,
-            `Latest transaction price: ${candidate ? formatCurrency(candidate.medianPrice) : "N/A"}`,
+            `Latest transaction year: ${latestYear}`,
+            `Latest transaction price: ${latestPrice}`,
           ].join("<br>")
         }),
         hovertemplate: "%{text}<extra></extra>",
@@ -395,13 +274,12 @@ function SelectorMap({
         })
         .filter(Boolean),
     ]
-  }, [candidates, geometry.features, nearbyAmenities, selectedBuildingKey, transactionYear])
+  }, [candidates, geometry.features, nearbyAmenities, selectedBuildingKey])
 
   const layout = useMemo(() => {
-    const bounds =
-      selectedBuilding
-        ? boundsAroundPoint(selectedBuilding.longitude, selectedBuilding.latitude, 0.0026, 0.002)
-        : boundsFromGeometry(geometry.features)
+    const bounds = selectedBuilding
+      ? boundsAroundPoint(selectedBuilding.longitude, selectedBuilding.latitude, 0.0026, 0.002)
+      : boundsFromGeometry(geometry.features)
     const center = {
       lon: (bounds.minLon + bounds.maxLon) / 2,
       lat: (bounds.minLat + bounds.maxLat) / 2,
@@ -535,6 +413,12 @@ export function DashboardThreeExplorer({
       : selectedNearestSchools.length === 1
         ? selectedNearestSchools[0]
         : `${selectedNearestSchools.length} schools`
+  const buildingOptions = useMemo(() => {
+    if (!payload.selectedBuilding || payload.candidates.some((candidate) => candidate.buildingKey === payload.selectedBuilding?.buildingKey)) {
+      return payload.candidates
+    }
+    return [payload.selectedBuilding, ...payload.candidates]
+  }, [payload.candidates, payload.selectedBuilding])
 
   return (
     <main className="dashboard3-page">
@@ -545,12 +429,7 @@ export function DashboardThreeExplorer({
           <p>Shortlist HDB buildings by affordability and proximity to MRT, bus stops, schools, and the CBD.</p>
         </div>
         <div className="dashboard3-header-actions">
-          <Link href="/section1/dashboard-2" className="dashboard3-link">
-            Back to Dashboard 2
-          </Link>
-          <Link href="/" className="dashboard3-link">
-            Back to index
-          </Link>
+          <SectionDashboardNav current="dashboard-3" className="dashboard3-header-actions-links" />
         </div>
       </header>
 
@@ -559,7 +438,7 @@ export function DashboardThreeExplorer({
           <div className="dashboard3-step-label">1. Set your budget and access preferences.</div>
 
           <label className="dashboard3-control">
-            <span>Town</span>
+            <span>{SECTION1_CONTROL_LABELS.town}</span>
             <select value={townSlug} onChange={(event) => setTownSlug(event.target.value)}>
               {manifest.towns.map((item) => (
                 <option key={item.slug} value={item.slug}>
@@ -570,7 +449,7 @@ export function DashboardThreeExplorer({
           </label>
 
           <div className="dashboard3-control dashboard3-control-multiselect">
-            <span>Flat Type</span>
+            <span>{SECTION1_CONTROL_LABELS.flatType}</span>
             <button type="button" className="dashboard3-multiselect-button" onClick={() => setFlatTypeMenuOpen((open) => !open)}>
               <strong>{flatTypeSummary}</strong>
               <span>{flatTypeMenuOpen ? "Hide" : "Choose"}</span>
@@ -599,18 +478,18 @@ export function DashboardThreeExplorer({
           </div>
 
           <label className="dashboard3-control">
-            <span>Budget</span>
+            <span>{SECTION1_CONTROL_LABELS.budget}</span>
             <select value={budget} onChange={(event) => setBudget(Number(event.target.value))}>
               {town.filters.budgets.map((item) => (
                 <option key={item} value={item}>
-                  {formatCurrency(item)}
+                  {formatSectionCurrency(item)}
                 </option>
               ))}
             </select>
           </label>
 
           <label className="dashboard3-control">
-            <span>Transaction year</span>
+            <span>{SECTION1_CONTROL_LABELS.transactionYear}</span>
             <select value={year} onChange={(event) => setYear(Number(event.target.value))}>
               {[...town.filters.transaction_years].reverse().map((item) => (
                 <option key={item} value={item}>
@@ -621,7 +500,7 @@ export function DashboardThreeExplorer({
           </label>
 
           <label className="dashboard3-control">
-            <span>Median floor area</span>
+            <span>{SECTION1_CONTROL_LABELS.medianFloorArea}</span>
             <select value={minFloorArea} onChange={(event) => setMinFloorArea(Number(event.target.value))}>
               {[0, 50, 70, 90, 110, 130].map((item) => (
                 <option key={item} value={item}>
@@ -632,7 +511,7 @@ export function DashboardThreeExplorer({
           </label>
 
           <label className="dashboard3-control">
-            <span>School count within 1km</span>
+            <span>{SECTION1_CONTROL_LABELS.schoolCountWithin1Km}</span>
             <select value={minSchoolCount} onChange={(event) => setMinSchoolCount(Number(event.target.value))}>
               {[0, 1, 2, 3, 5].map((item) => (
                 <option key={item} value={item}>
@@ -643,7 +522,7 @@ export function DashboardThreeExplorer({
           </label>
 
           <div className="dashboard3-control dashboard3-control-multiselect">
-            <span>Nearest school within 1km</span>
+            <span>{SECTION1_CONTROL_LABELS.nearestSchoolWithin1Km}</span>
             <button type="button" className="dashboard3-multiselect-button" onClick={() => setSchoolMenuOpen((open) => !open)}>
               <strong>{schoolSummary}</strong>
               <span>{schoolMenuOpen ? "Hide" : "Choose"}</span>
@@ -671,7 +550,7 @@ export function DashboardThreeExplorer({
           </div>
 
           <label className="dashboard3-control">
-            <span>Nearest MRT distance</span>
+            <span>{SECTION1_CONTROL_LABELS.nearestMrtDistance}</span>
             <select value={maxMrtDistanceKm} onChange={(event) => setMaxMrtDistanceKm(Number(event.target.value))}>
               {[0.4, 0.6, 0.8, 1.2, 2].map((item) => (
                 <option key={item} value={item}>
@@ -683,8 +562,8 @@ export function DashboardThreeExplorer({
 
           <div className="dashboard3-summary-card">
             <span>Current shortlist</span>
-            <strong>{formatCount(payload.summary.shortlistCount)}</strong>
-            <small>{formatCount(payload.summary.buildingRowsScanned)} matching building-flat rows after filters.</small>
+            <strong>{formatSectionCount(payload.summary.shortlistCount)}</strong>
+            <small>{formatSectionCount(payload.summary.buildingRowsScanned)} matching building-flat rows after filters.</small>
           </div>
         </aside>
 
@@ -694,14 +573,14 @@ export function DashboardThreeExplorer({
             <strong>{payload.selectedBuilding ? `${payload.selectedBuilding.block} / ${payload.selectedBuilding.bestFlatType}` : "No shortlist match"}</strong>
           </div>
           <label className="dashboard3-control dashboard3-building-picker">
-            <span>Selected building</span>
+            <span>{SECTION1_CONTROL_LABELS.selectedBuilding}</span>
             <select
               value={payload.selectedBuildingKey ?? ""}
               onChange={(event) => setSelectedBuildingKey(event.target.value || null)}
             >
-              {payload.candidates.map((candidate) => (
+              {buildingOptions.map((candidate) => (
                 <option key={candidate.buildingKey} value={candidate.buildingKey}>
-                  {`Block ${candidate.block} / ${candidate.bestFlatType} / ${formatCurrency(candidate.medianPrice)}`}
+                  {`Block ${candidate.block} / ${candidate.bestFlatType} / ${formatSectionCurrency(candidate.latestTransactionPrice ?? candidate.medianPrice)}`}
                 </option>
               ))}
             </select>
@@ -713,7 +592,6 @@ export function DashboardThreeExplorer({
             selectedBuildingKey={payload.selectedBuildingKey}
             selectedBuilding={payload.selectedBuilding}
             nearbyAmenities={payload.nearbyAmenities}
-            transactionYear={payload.filters.year}
             onSelect={setSelectedBuildingKey}
           />
           <div className="dashboard3-map-footer">
@@ -753,17 +631,17 @@ export function DashboardThreeExplorer({
           <div className="dashboard3-trends-wrap">
             <div className="dashboard3-trend-panel">
               <h2>Transactions over time</h2>
-              <TransactionBars history={payload.history} />
+              <SectionTrendStackedBars history={payload.history} colors={SECTION1_FLAT_COLORS} className="dashboard3-bars" />
             </div>
             <div className="dashboard3-trend-panel">
               <h2>Median price over time</h2>
-              <PriceLines history={payload.history} />
+              <SectionTrendPriceLines history={payload.history} colors={SECTION1_FLAT_COLORS} className="dashboard3-lines" />
             </div>
           </div>
           <div className="dashboard3-flat-legend">
             {Array.from(new Set(payload.history.map((item) => item.flatType))).map((flatType) => (
               <span key={flatType}>
-                <i style={{ background: `${FLAT_TYPE_COLORS[flatType] ?? "#b79f96"}88`, borderColor: `${FLAT_TYPE_COLORS[flatType] ?? "#b79f96"}cc` }} />
+                <i style={{ background: `${SECTION1_FLAT_COLORS[flatType] ?? "#b79f96"}88`, borderColor: `${SECTION1_FLAT_COLORS[flatType] ?? "#b79f96"}cc` }} />
                 {flatType}
               </span>
             ))}

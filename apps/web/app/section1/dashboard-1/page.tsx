@@ -2,7 +2,7 @@ import { DashboardOneExplorer, type DashboardOneLayoutPreset } from "@/component
 import { loadDashboardOneData } from "@/lib/section1-dashboard1"
 
 function normalizeLayoutPreset(raw: string | undefined): DashboardOneLayoutPreset {
-  if (raw === "editorial" || raw === "balanced" || raw === "chart-heavy") {
+  if (raw === "editorial" || raw === "balanced" || raw === "chart-heavy" || raw === "map-heavy" || raw === "stacked") {
     return raw
   }
   return "balanced"

@@ -59,6 +59,7 @@ BUILDING_GEOMETRY_EXPORT_COLUMNS = [
     "building_key",
     "town",
     "block",
+    "street_name",
     "postal_code",
     "building_latitude",
     "building_longitude",
@@ -72,12 +73,18 @@ BUILDING_GEOMETRY_EXPORT_COLUMNS = [
     "school_count_within_1km",
     "distance_to_cbd_km",
     "building_match_status",
+    "latest_transaction_month",
+    "latest_transaction_year",
+    "latest_transaction_price",
+    "has_transaction_data",
+    "has_building_geometry",
 ]
 
 BUILDING_OPTIMIZER_EXPORT_COLUMNS = [
     "transaction_year",
     "town",
     "block",
+    "street_name",
     "flat_type",
     "building_key",
     "postal_code",
@@ -100,6 +107,31 @@ BUILDING_OPTIMIZER_EXPORT_COLUMNS = [
     "school_count_within_1km",
     "distance_to_cbd_km",
     "building_match_status",
+    "has_transaction_data",
+    "has_building_geometry",
+]
+
+BUILDING_CANONICAL_EXPORT_COLUMNS = [
+    "building_key",
+    "town",
+    "block",
+    "street_name",
+    "postal_code",
+    "building_latitude",
+    "building_longitude",
+    "nearest_mrt_name",
+    "nearest_mrt_distance_km",
+    "nearest_bus_stop_num",
+    "nearest_bus_stop_distance_km",
+    "bus_stop_count_within_1km",
+    "nearest_school_name",
+    "nearest_school_distance_km",
+    "school_count_within_1km",
+    "distance_to_cbd_km",
+    "building_match_status",
+    "latest_transaction_month",
+    "latest_transaction_year",
+    "latest_transaction_price",
     "has_transaction_data",
     "has_building_geometry",
 ]
@@ -480,6 +512,7 @@ def parse_hdb_building_geojson(building_geojson_path: Path) -> tuple[dict, pd.Da
             {
                 "objectid": properties.get("OBJECTID"),
                 "block": block,
+                "street_name": properties.get("STREET") or properties.get("STREET_NAME") or properties.get("ROAD_NAME"),
                 "postal_code": postal_code,
                 "building_key": building_key,
                 "building_latitude": latitude,
@@ -487,6 +520,92 @@ def parse_hdb_building_geojson(building_geojson_path: Path) -> tuple[dict, pd.Da
             }
         )
     return payload, pd.DataFrame(records)
+
+
+def build_building_latest_transaction_extract(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty:
+        return pd.DataFrame(
+            columns=[
+                "town",
+                "block",
+                "street_name",
+                "latest_transaction_month",
+                "latest_transaction_year",
+                "latest_transaction_price",
+                "has_transaction_data",
+            ]
+        )
+
+    working = frame.copy()
+    working = working.dropna(subset=["town", "block", "transaction_month", "resale_price"]).copy()
+    if working.empty:
+        return pd.DataFrame(
+            columns=[
+                "town",
+                "block",
+                "street_name",
+                "latest_transaction_month",
+                "latest_transaction_year",
+                "latest_transaction_price",
+                "has_transaction_data",
+            ]
+        )
+
+    working["town"] = working["town"].astype(str).str.strip()
+    working["block"] = working["block"].astype(str).str.strip().str.upper()
+    working["street_name"] = working["street_name"].astype("string")
+    latest_month = (
+        working.groupby(["town", "block"], dropna=False)
+        .agg(latest_transaction_month=("transaction_month", "max"))
+        .reset_index()
+    )
+    latest_rows = working.merge(latest_month, on=["town", "block"], how="inner")
+    latest_rows = latest_rows[latest_rows["transaction_month"] == latest_rows["latest_transaction_month"]].copy()
+    latest_rows = latest_rows.sort_values(["town", "block", "street_name", "transaction_month"])
+    latest = (
+        latest_rows.groupby(["town", "block"], dropna=False)
+        .agg(
+            street_name=("street_name", lambda s: next((str(value) for value in s if pd.notna(value) and str(value).strip()), pd.NA)),
+            latest_transaction_price=("resale_price", "median"),
+        )
+        .reset_index()
+        .merge(latest_month, on=["town", "block"], how="left")
+    )
+    latest["latest_transaction_year"] = pd.to_datetime(latest["latest_transaction_month"]).dt.year
+    latest["has_transaction_data"] = "Yes"
+    return latest
+
+
+def build_building_canonical_extract(buildings: pd.DataFrame, frame: pd.DataFrame) -> pd.DataFrame:
+    if buildings.empty:
+        return pd.DataFrame(columns=BUILDING_CANONICAL_EXPORT_COLUMNS)
+
+    latest_transactions = build_building_latest_transaction_extract(frame)
+    canonical = buildings.merge(latest_transactions, on=["town", "block"], how="left", suffixes=("_geometry", "_transaction"))
+    canonical["has_transaction_data"] = canonical["has_transaction_data"].fillna("No")
+    canonical["has_building_geometry"] = canonical["building_latitude"].notna().map({True: "Yes", False: "No"})
+    canonical["street_name"] = canonical.get("street_name_geometry").where(
+        canonical.get("street_name_geometry").notna() & canonical.get("street_name_geometry").astype(str).str.strip().ne(""),
+        canonical.get("street_name_transaction"),
+    )
+    canonical["street_name"] = canonical["street_name"].where(
+        canonical["street_name"].notna() & canonical["street_name"].astype(str).str.strip().ne(""),
+        pd.NA,
+    )
+    return canonical.sort_values(["town", "block"], ascending=[True, True]).reset_index(drop=True)
+
+
+def _json_safe_value(value):
+    if pd.isna(value):
+        return None
+    if isinstance(value, pd.Timestamp):
+        return value.isoformat()
+    if hasattr(value, "item"):
+        try:
+            return value.item()
+        except Exception:
+            return value
+    return value
 
 
 def assign_buildings_to_towns(buildings: pd.DataFrame, town_polygons: pd.DataFrame) -> pd.DataFrame:
@@ -589,6 +708,7 @@ def build_building_optimizer_extract(
         "town",
         "block",
         "building_key",
+        "street_name",
         "postal_code",
         "building_latitude",
         "building_longitude",
@@ -602,6 +722,11 @@ def build_building_optimizer_extract(
         "school_count_within_1km",
         "distance_to_cbd_km",
         "building_match_status",
+        "latest_transaction_month",
+        "latest_transaction_year",
+        "latest_transaction_price",
+        "has_transaction_data",
+        "has_building_geometry",
     ]].drop_duplicates()
     merged = building_transaction_budget.merge(building_index, on=["town", "block"], how="outer")
     merged["building_match_status"] = merged["building_match_status"].where(
@@ -623,8 +748,14 @@ def build_building_optimizer_extract(
         & merged["building_match_status"].eq("matched_geometry"),
         "building_match_status",
     ] = "matched_geometry"
-    merged["has_transaction_data"] = merged["transaction_year"].notna().map({True: "Yes", False: "No"})
-    merged["has_building_geometry"] = merged["building_latitude"].notna().map({True: "Yes", False: "No"})
+    merged["has_transaction_data"] = merged["has_transaction_data"].where(
+        merged["has_transaction_data"].notna(),
+        merged["transaction_year"].notna().map({True: "Yes", False: "No"}),
+    )
+    merged["has_building_geometry"] = merged["has_building_geometry"].where(
+        merged["has_building_geometry"].notna(),
+        merged["building_latitude"].notna().map({True: "Yes", False: "No"}),
+    )
     match_summary = build_building_transaction_match_summary(merged)
     return merged.sort_values(
         ["transaction_year", "budget", "town", "block", "flat_type"],
@@ -687,7 +818,8 @@ def export_dashboard_3_assets(
     buildings = assign_buildings_to_towns(raw_buildings, town_polygons)
     buildings = enrich_buildings_with_poi_metrics(buildings, mrt_points, bus_stop_points, school_points)
     building_poi_points = build_building_poi_points_extract(buildings, mrt_points, bus_stop_points, school_points)
-    building_optimizer, building_match_summary = build_building_optimizer_extract(buildings, building_budget)
+    building_canonical = build_building_canonical_extract(buildings, frame)
+    building_optimizer, building_match_summary = build_building_optimizer_extract(building_canonical, building_budget)
     building_optimizer_tableau = filter_building_optimizer_for_tableau(building_optimizer)
 
     write_section1_csv(
@@ -696,8 +828,13 @@ def export_dashboard_3_assets(
         kind="final",
     )
     write_section1_csv(
-        buildings.loc[:, BUILDING_GEOMETRY_EXPORT_COLUMNS],
+        building_canonical.loc[:, BUILDING_GEOMETRY_EXPORT_COLUMNS],
         "building_geometry_lookup.csv",
+        kind="final",
+    )
+    write_section1_csv(
+        building_canonical.loc[:, BUILDING_CANONICAL_EXPORT_COLUMNS],
+        "building_canonical_lookup.csv",
         kind="final",
     )
     write_section1_csv(
@@ -718,7 +855,7 @@ def export_dashboard_3_assets(
 
     properties_by_key = {
         row["building_key"]: row
-        for row in buildings[BUILDING_GEOMETRY_EXPORT_COLUMNS].to_dict("records")
+        for row in building_canonical[BUILDING_CANONICAL_EXPORT_COLUMNS].to_dict("records")
         if row.get("building_key")
     }
     for feature in building_payload.get("features", []):
@@ -730,11 +867,17 @@ def export_dashboard_3_assets(
         feature["properties"] = {
             "Building Key": building_key,
             "Block": block,
+            "Street Name": _json_safe_value(mapped.get("street_name")),
             "Postal Code": postal,
-            "Town": mapped.get("town"),
-            "Building Match Status": mapped.get("building_match_status"),
-            "Building Latitude": mapped.get("building_latitude"),
-            "Building Longitude": mapped.get("building_longitude"),
+            "Town": _json_safe_value(mapped.get("town")),
+            "Building Match Status": _json_safe_value(mapped.get("building_match_status")),
+            "Building Latitude": _json_safe_value(mapped.get("building_latitude")),
+            "Building Longitude": _json_safe_value(mapped.get("building_longitude")),
+            "Latest Transaction Month": _json_safe_value(mapped.get("latest_transaction_month")),
+            "Latest Transaction Year": _json_safe_value(mapped.get("latest_transaction_year")),
+            "Latest Transaction Price": _json_safe_value(mapped.get("latest_transaction_price")),
+            "Has Transaction Data": _json_safe_value(mapped.get("has_transaction_data")),
+            "Has Building Geometry": _json_safe_value(mapped.get("has_building_geometry")),
         }
     hdb_geojson = section1_output_path("hdb_existing_buildings.geojson", kind="final")
     hdb_geojson.write_text(json.dumps(building_payload), encoding="utf-8")
@@ -743,6 +886,7 @@ def export_dashboard_3_assets(
         {
             "building_poi_points": str(section1_output_path("building_poi_points.csv", kind="final")),
             "building_geometry_lookup": str(section1_output_path("building_geometry_lookup.csv", kind="final")),
+            "building_canonical_lookup": str(section1_output_path("building_canonical_lookup.csv", kind="final")),
             "building_optimizer_raw": str(section1_output_path("building_optimizer_raw.csv", kind="diagnostic")),
             "building_optimizer": str(section1_output_path("building_optimizer.csv", kind="final")),
             "building_transaction_match_summary": str(section1_output_path("building_transaction_match_summary.csv", kind="diagnostic")),

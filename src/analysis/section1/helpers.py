@@ -5,6 +5,7 @@ import re
 import pandas as pd
 
 from src.common.config import (
+    DATA_RAW,
     DATA_PROCESSED,
     HDB_BUILDING_DATASET_ID,
     SECTION1_OUTPUT_DIAGNOSTICS,
@@ -75,9 +76,13 @@ TABLEAU_EXPORT_LABELS = {
     "median_distance_km": "Median Distance Km",
     "building_key": "Building Key",
     "block": "Block",
+    "street_name": "Street Name",
     "postal_code": "Postal Code",
     "building_latitude": "Building Latitude",
     "building_longitude": "Building Longitude",
+    "latest_transaction_month": "Latest Transaction Month",
+    "latest_transaction_year": "Latest Transaction Year",
+    "latest_transaction_price": "Latest Transaction Price",
     "nearest_mrt_name": "Nearest Mrt Name",
     "bus_stop_count_within_1km": "Bus Stop Count Within 1Km",
     "school_count_within_1km": "School Count Within 1Km",

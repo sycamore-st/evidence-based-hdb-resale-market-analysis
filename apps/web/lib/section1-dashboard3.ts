@@ -6,6 +6,7 @@ export interface DashboardThreeManifestTown {
   slug: string
   counts: {
     building_rows: number
+    transaction_rows: number
     location_rows: number
     poi_point_rows: number
     poi_summary_rows: number
@@ -19,6 +20,7 @@ export interface DashboardThreeManifestTown {
   files: {
     summary: string
     buildings: string
+    transactions: string
     location: string
     poi_points: string
     poi_summary: string
@@ -40,9 +42,35 @@ export interface DashboardThreeManifest {
 }
 
 export interface DashboardThreeBuildingRow {
+  building_key: string
+  town: string
+  block: string
+  street_name: string | null
+  postal_code: number | string | null
+  building_latitude: number
+  building_longitude: number
+  nearest_mrt_name: string | null
+  nearest_mrt_distance_km: number | null
+  nearest_bus_stop_num: string | number | null
+  nearest_bus_stop_distance_km: number | null
+  bus_stop_count_within_1km: number | null
+  nearest_school_name: string | null
+  nearest_school_distance_km: number | null
+  school_count_within_1km: number | null
+  distance_to_cbd_km: number | null
+  building_match_status: string | null
+  latest_transaction_month: string | null
+  latest_transaction_year: number | null
+  latest_transaction_price: number | null
+  has_transaction_data: string | null
+  has_building_geometry: string | null
+}
+
+export interface DashboardThreeTransactionRow {
   transaction_year: number
   town: string
   block: string
+  street_name: string | null
   flat_type: string
   building_key: string
   postal_code: number | null
@@ -89,6 +117,12 @@ export interface DashboardThreeGeometryFeature {
     "Building Match Status": string | null
     "Building Latitude": number
     "Building Longitude": number
+    "Street Name": string | null
+    "Latest Transaction Month": string | null
+    "Latest Transaction Year": number | null
+    "Latest Transaction Price": number | null
+    "Has Transaction Data": string | null
+    "Has Building Geometry": string | null
   }
   geometry: {
     type: string
@@ -99,6 +133,7 @@ export interface DashboardThreeGeometryFeature {
 export interface DashboardThreeCandidate {
   buildingKey: string
   block: string
+  streetName: string | null
   postalCode: string | null
   latitude: number
   longitude: number
@@ -118,6 +153,10 @@ export interface DashboardThreeCandidate {
   nearestSchool: string | null
   nearestSchoolDistanceKm: number | null
   distanceToCbdKm: number | null
+  latestTransactionMonth: string | null
+  latestTransactionYear: number | null
+  latestTransactionPrice: number | null
+  isEligible: boolean
   score: number
 }
 
@@ -180,6 +219,7 @@ export interface DashboardThreeQuery {
 interface RawTownBundle {
   town: DashboardThreeManifestTown
   buildings: DashboardThreeBuildingRow[]
+  transactions: DashboardThreeTransactionRow[]
   poiPoints: DashboardThreePoiPoint[]
   geometry: {
     type: "FeatureCollection"
@@ -213,7 +253,7 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return 2 * radius * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-function candidateScore(row: DashboardThreeBuildingRow): number {
+function candidateScore(row: DashboardThreeTransactionRow): number {
   return (
     normalizeNumber(row.median_floor_area, 0) * 1.8 +
     normalizeNumber(row.budget_slack, 0) / 15000 +
@@ -223,7 +263,7 @@ function candidateScore(row: DashboardThreeBuildingRow): number {
   )
 }
 
-function chooseRepresentativeRow(current: DashboardThreeBuildingRow, next: DashboardThreeBuildingRow): DashboardThreeBuildingRow {
+function chooseRepresentativeRow(current: DashboardThreeTransactionRow, next: DashboardThreeTransactionRow): DashboardThreeTransactionRow {
   if (next.median_floor_area !== current.median_floor_area) {
     return next.median_floor_area > current.median_floor_area ? next : current
   }
@@ -270,6 +310,7 @@ function loadRawTownBundle(slug: string): RawTownBundle {
   const bundle: RawTownBundle = {
     town,
     buildings: readJson<DashboardThreeBuildingRow[]>(path.join(DASHBOARD3_ROOT, town.files.buildings)),
+    transactions: readJson<DashboardThreeTransactionRow[]>(path.join(DASHBOARD3_ROOT, town.files.transactions)),
     poiPoints: readJson<DashboardThreePoiPoint[]>(path.join(DASHBOARD3_ROOT, town.files.poi_points)),
     geometry: readJson<{ type: "FeatureCollection"; features: DashboardThreeGeometryFeature[] }>(
       path.join(DASHBOARD3_ROOT, town.files.geometry),
@@ -303,9 +344,9 @@ export function buildDashboardThreeTownPayload(query: DashboardThreeQuery): Dash
   const activeFlatTypes = query.flatTypes.length > 0 ? query.flatTypes : bundle.town.filters.flat_types
   const activeNearestSchools = query.nearestSchools.filter((school) => school.length > 0)
   const availableNearestSchools = Array.from(
-    new Set(bundle.buildings.map((row) => row.nearest_school).filter((school): school is string => Boolean(school))),
+    new Set(bundle.transactions.map((row) => row.nearest_school).filter((school): school is string => Boolean(school))),
   ).sort((left, right) => left.localeCompare(right))
-  const filteredRows = bundle.buildings.filter((row) => {
+  const filteredRows = bundle.transactions.filter((row) => {
     if (row.transaction_year !== query.year) return false
     if (row.budget !== query.budget) return false
     if (!activeFlatTypes.includes(row.flat_type)) return false
@@ -326,10 +367,47 @@ export function buildDashboardThreeTownPayload(query: DashboardThreeQuery): Dash
     return row.has_building_geometry === "Yes"
   })
 
+  const buildingLookup = new Map<string, DashboardThreeCandidate>(
+    bundle.buildings
+      .filter((row) => row.building_key)
+      .map((row) => [
+        row.building_key,
+        {
+          buildingKey: row.building_key,
+          block: String(row.block),
+          streetName: row.street_name ?? null,
+          postalCode: row.postal_code != null ? String(row.postal_code) : null,
+          latitude: row.building_latitude,
+          longitude: row.building_longitude,
+          flatTypes: [],
+          bestFlatType: "N/A",
+          medianPrice: row.latest_transaction_price ?? 0,
+          medianFloorArea: 0,
+          medianPricePerSqm: 0,
+          medianFlatAge: 0,
+          transactions: 0,
+          budgetSlack: 0,
+          nearestMrtName: row.nearest_mrt_name,
+          nearestMrtDistanceKm: row.nearest_mrt_distance_km,
+          nearestBusStop: row.nearest_bus_stop_num != null ? String(row.nearest_bus_stop_num) : null,
+          nearestBusStopDistanceKm: row.nearest_bus_stop_distance_km,
+          schoolCountWithin1Km: row.school_count_within_1km,
+          nearestSchool: row.nearest_school_name,
+          nearestSchoolDistanceKm: row.nearest_school_distance_km,
+          distanceToCbdKm: row.distance_to_cbd_km,
+          latestTransactionMonth: row.latest_transaction_month ?? null,
+          latestTransactionYear: row.latest_transaction_year ?? null,
+          latestTransactionPrice: row.latest_transaction_price ?? null,
+          isEligible: false,
+          score: -1_000_000,
+        } satisfies DashboardThreeCandidate,
+      ]),
+  )
+
   const grouped = new Map<
     string,
     {
-      representative: DashboardThreeBuildingRow
+      representative: DashboardThreeTransactionRow
       flatTypes: Set<string>
     }
   >()
@@ -350,9 +428,11 @@ export function buildDashboardThreeTownPayload(query: DashboardThreeQuery): Dash
   const allCandidates = Array.from(grouped.entries())
     .map(([buildingKey, value]) => {
       const row = value.representative
+      const canonical = buildingLookup.get(buildingKey)
       return {
         buildingKey,
         block: String(row.block),
+        streetName: canonical?.streetName ?? row.street_name ?? null,
         postalCode: row.postal_code != null ? String(row.postal_code) : null,
         latitude: row.building_latitude,
         longitude: row.building_longitude,
@@ -372,20 +452,28 @@ export function buildDashboardThreeTownPayload(query: DashboardThreeQuery): Dash
         nearestSchool: row.nearest_school,
         nearestSchoolDistanceKm: row.nearest_school_distance_km,
         distanceToCbdKm: row.distance_to_cbd_km,
+        latestTransactionMonth: canonical?.latestTransactionMonth ?? null,
+        latestTransactionYear: canonical?.latestTransactionYear ?? row.transaction_year,
+        latestTransactionPrice: canonical?.latestTransactionPrice ?? row.median_price,
+        isEligible: true,
         score: candidateScore(row),
       } satisfies DashboardThreeCandidate
     })
     .sort(sortCandidates)
 
+  for (const candidate of allCandidates) {
+    buildingLookup.set(candidate.buildingKey, candidate)
+  }
+
   const selectedBuilding =
-    allCandidates.find((candidate) => candidate.buildingKey === query.buildingKey) ??
+    (query.buildingKey ? buildingLookup.get(query.buildingKey) ?? null : null) ??
     allCandidates[0] ??
     null
 
   const candidates = allCandidates.slice(0, 120)
 
   const historyRows = selectedBuilding
-    ? bundle.buildings
+    ? bundle.transactions
         .filter(
           (row) =>
             row.building_key === selectedBuilding.buildingKey &&

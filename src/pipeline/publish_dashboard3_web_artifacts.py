@@ -24,6 +24,7 @@ DASHBOARD3_OUTPUT_DIR = WEB_OVERVIEW_ARTIFACTS / "dashboard3"
 TOWNS_OUTPUT_DIR = DASHBOARD3_OUTPUT_DIR / "towns"
 
 BUILDING_OPTIMIZER_CSV = SECTION1_OUTPUT_FINAL / "building_optimizer.csv"
+BUILDING_CANONICAL_CSV = SECTION1_OUTPUT_FINAL / "building_canonical_lookup.csv"
 LOCATION_QUALITY_CSV = SECTION1_OUTPUT_FINAL / "location_quality.csv"
 LOCATION_POI_POINTS_CSV = SECTION1_OUTPUT_FINAL / "location_poi_points.csv"
 LOCATION_POI_SUMMARY_CSV = SECTION1_OUTPUT_FINAL / "location_poi_summary.csv"
@@ -98,6 +99,7 @@ def _town_paths(town_slug: str) -> dict[str, str]:
     return {
         "summary": f"towns/{town_slug}/summary.json",
         "buildings": f"towns/{town_slug}/buildings.json",
+        "transactions": f"towns/{town_slug}/transactions.json",
         "location": f"towns/{town_slug}/location.json",
         "poi_points": f"towns/{town_slug}/poi_points.json",
         "poi_summary": f"towns/{town_slug}/poi_summary.json",
@@ -116,6 +118,7 @@ def _ensure_town_meta(
             "slug": town_slug,
             "counts": {
                 "building_rows": 0,
+                "transaction_rows": 0,
                 "location_rows": 0,
                 "poi_point_rows": 0,
                 "poi_summary_rows": 0,
@@ -168,7 +171,7 @@ def _write_streamed_town_rows(
                 for row in rows:
                     writer.write(row)
                     town_meta["counts"][count_key] += 1
-                    if dataset_name == "buildings":
+                    if dataset_name == "transactions":
                         year = row.get("transaction_year")
                         budget = row.get("budget")
                         flat_type = row.get("flat_type")
@@ -202,17 +205,51 @@ def _write_town_small_json_files(
         _write_json(TOWNS_OUTPUT_DIR / town_meta["slug"] / f"{dataset_name}.json", payload)
 
 
+def _load_canonical_buildings_by_town() -> dict[str, dict[str, dict[str, Any]]]:
+    if not BUILDING_CANONICAL_CSV.exists():
+        return {}
+    frame = _canonicalize_frame_columns(pd.read_csv(BUILDING_CANONICAL_CSV, low_memory=False))
+    if frame.empty or "town" not in frame.columns or "building_key" not in frame.columns:
+        return {}
+    frame = frame.dropna(subset=["town", "building_key"]).copy()
+    frame["town"] = frame["town"].astype(str).str.strip()
+    by_town: dict[str, dict[str, dict[str, Any]]] = {}
+    for town, group in frame.groupby("town", dropna=False, sort=True):
+        by_town[town] = {
+            str(record["building_key"]): _normalize_record(record)
+            for record in group.to_dict("records")
+            if record.get("building_key")
+        }
+    return by_town
+
+
 def _write_town_geometry_files(metadata: dict[str, dict[str, Any]]) -> None:
     if not HDB_BUILDINGS_GEOJSON.exists():
         return
     payload = json.loads(HDB_BUILDINGS_GEOJSON.read_text(encoding="utf-8"))
+    canonical_by_town = _load_canonical_buildings_by_town()
     features_by_town: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for feature in payload.get("features", []):
         props = feature.get("properties", {})
         town = props.get("Town")
         if not town:
             continue
-        features_by_town[str(town).strip()].append(feature)
+        town_name = str(town).strip()
+        building_key = props.get("Building Key")
+        canonical = canonical_by_town.get(town_name, {}).get(str(building_key), {})
+        enriched_feature = {
+            **feature,
+            "properties": {
+                **props,
+                "Street Name": canonical.get("street_name", props.get("Street Name")),
+                "Latest Transaction Month": canonical.get("latest_transaction_month", props.get("Latest Transaction Month")),
+                "Latest Transaction Year": canonical.get("latest_transaction_year", props.get("Latest Transaction Year")),
+                "Latest Transaction Price": canonical.get("latest_transaction_price", props.get("Latest Transaction Price")),
+                "Has Transaction Data": canonical.get("has_transaction_data", props.get("Has Transaction Data")),
+                "Has Building Geometry": canonical.get("has_building_geometry", props.get("Has Building Geometry")),
+            },
+        }
+        features_by_town[town_name].append(enriched_feature)
 
     for town, features in features_by_town.items():
         town_meta = _ensure_town_meta(metadata, town)
@@ -256,6 +293,7 @@ def _build_manifest(metadata: dict[str, dict[str, Any]]) -> dict[str, Any]:
         "generated_at": _utc_now_iso(),
         "artifact_root": "artifacts/web/overview/dashboard3",
         "source_files": {
+            "building_canonical_lookup": str(BUILDING_CANONICAL_CSV),
             "building_optimizer": str(BUILDING_OPTIMIZER_CSV),
             "location_quality": str(LOCATION_QUALITY_CSV),
             "location_poi_points": str(LOCATION_POI_POINTS_CSV),
@@ -298,6 +336,7 @@ def publish_dashboard3_web_artifacts(*, chunk_size: int = 25_000) -> Path:
     TOWNS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     required_files = [
+        BUILDING_CANONICAL_CSV,
         BUILDING_OPTIMIZER_CSV,
         LOCATION_QUALITY_CSV,
         LOCATION_POI_POINTS_CSV,
@@ -313,9 +352,16 @@ def publish_dashboard3_web_artifacts(*, chunk_size: int = 25_000) -> Path:
 
     metadata: dict[str, dict[str, Any]] = {}
     _write_streamed_town_rows(
-        BUILDING_OPTIMIZER_CSV,
+        BUILDING_CANONICAL_CSV,
         dataset_name="buildings",
         count_key="building_rows",
+        metadata=metadata,
+        chunk_size=chunk_size,
+    )
+    _write_streamed_town_rows(
+        BUILDING_OPTIMIZER_CSV,
+        dataset_name="transactions",
+        count_key="transaction_rows",
         metadata=metadata,
         chunk_size=chunk_size,
     )
