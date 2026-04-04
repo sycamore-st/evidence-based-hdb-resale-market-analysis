@@ -1,5 +1,4 @@
-import { readFileSync } from "node:fs"
-import path from "node:path"
+import { readJsonAsset, readTextAsset } from "@/lib/server-data"
 
 export interface DashboardOneRow {
   year: number
@@ -40,9 +39,8 @@ type GeoFeature = {
   }
 }
 
-const ROOT = path.resolve(process.cwd(), "../..")
-const DASHBOARD_CSV = path.join(ROOT, "outputs/section1/results/final/dashboard_market_overview.csv")
-const MAP_GEOJSON = path.join(ROOT, "outputs/section1/results/final/planning_area_hdb_map_2019.geojson")
+const DASHBOARD_CSV = "outputs/section1/results/final/dashboard_market_overview.csv"
+const MAP_GEOJSON = "outputs/section1/results/final/planning_area_hdb_map_2019.geojson"
 
 function parseCsvRow(line: string): string[] {
   const cells: string[] = []
@@ -99,8 +97,8 @@ function toNumber(value: string): number {
   return Number.isFinite(parsed) ? parsed : 0
 }
 
-function readDashboardRows(): DashboardOneRow[] {
-  const csv = readFileSync(DASHBOARD_CSV, "utf8")
+async function readDashboardRows(): Promise<DashboardOneRow[]> {
+  const csv = await readTextAsset(DASHBOARD_CSV)
   const rows = parseCsv(csv)
 
   return rows.map((row) => ({
@@ -148,8 +146,8 @@ function buildPath(
   return (geometry.coordinates as number[][][][]).map((polygon) => polygonToPath(polygon)).join(" ")
 }
 
-function readMapShapes(): MapShape[] {
-  const geojson = JSON.parse(readFileSync(MAP_GEOJSON, "utf8")) as { features: GeoFeature[] }
+async function readMapShapes(): Promise<MapShape[]> {
+  const geojson = await readJsonAsset<{ features: GeoFeature[] }>(MAP_GEOJSON)
   const allPoints = geojson.features.flatMap((feature) => flattenRingPoints(feature.geometry))
   const xs = allPoints.map(([x]) => x)
   const ys = allPoints.map(([, y]) => y)
@@ -178,8 +176,8 @@ function readMapShapes(): MapShape[] {
   }))
 }
 
-export function loadDashboardOneData(): DashboardOneData {
-  const rows = readDashboardRows()
+export async function loadDashboardOneData(): Promise<DashboardOneData> {
+  const rows = await readDashboardRows()
   const flatTypes = rows
     .map((row) => row.flatType)
     .filter((value, index, all) => all.indexOf(value) === index)
@@ -197,6 +195,6 @@ export function loadDashboardOneData(): DashboardOneData {
     years,
     flatTypes,
     rows,
-    mapShapes: readMapShapes(),
+    mapShapes: await readMapShapes(),
   }
 }

@@ -9,8 +9,8 @@ function parseNumber(value: string | null, fallback: number): number {
 
 export async function GET(request: Request) {
   const url = new URL(request.url)
-  const manifest = loadDashboardThreeManifest()
-  const defaults = defaultDashboardThreeQuery()
+  const manifest = await loadDashboardThreeManifest()
+  const defaults = await defaultDashboardThreeQuery()
 
   const slug = url.searchParams.get("slug") ?? defaults.slug
   const town = manifest.towns.find((item) => item.slug === slug) ?? manifest.towns[0]
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     buildingKey: url.searchParams.get("buildingKey"),
   }
 
-  const payload = buildDashboardThreeTownPayload({
+  const payload = await buildDashboardThreeTownPayload({
     ...query,
     flatTypes: query.flatTypes.length > 0 ? query.flatTypes : town.filters.flat_types,
   })

@@ -1,5 +1,4 @@
-import { readFileSync } from "node:fs"
-import path from "node:path"
+import { readJsonAsset } from "@/lib/server-data"
 
 export interface DashboardThreeManifestTown {
   town: string
@@ -227,16 +226,11 @@ interface RawTownBundle {
   }
 }
 
-const ROOT = path.resolve(process.cwd(), "../..")
-const DASHBOARD3_ROOT = path.join(ROOT, "artifacts/web/overview/dashboard3")
-const MANIFEST_PATH = path.join(DASHBOARD3_ROOT, "manifest.json")
+const DASHBOARD3_ROOT = "artifacts/web/overview/dashboard3"
+const MANIFEST_PATH = `${DASHBOARD3_ROOT}/manifest.json`
 
-const manifestCache = { value: null as DashboardThreeManifest | null }
-const townBundleCache = new Map<string, RawTownBundle>()
-
-function readJson<T>(filePath: string): T {
-  return JSON.parse(readFileSync(filePath, "utf8")) as T
-}
+const manifestCache = { value: null as Promise<DashboardThreeManifest> | null }
+const townBundleCache = new Map<string, Promise<RawTownBundle>>()
 
 function normalizeNumber(value: number | null | undefined, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback
@@ -288,40 +282,47 @@ function sortCandidates(left: DashboardThreeCandidate, right: DashboardThreeCand
   )
 }
 
-export function loadDashboardThreeManifest(): DashboardThreeManifest {
+export async function loadDashboardThreeManifest(): Promise<DashboardThreeManifest> {
   if (!manifestCache.value) {
-    manifestCache.value = readJson<DashboardThreeManifest>(MANIFEST_PATH)
+    manifestCache.value = readJsonAsset<DashboardThreeManifest>(MANIFEST_PATH)
   }
   return manifestCache.value
 }
 
-function loadRawTownBundle(slug: string): RawTownBundle {
+async function loadRawTownBundle(slug: string): Promise<RawTownBundle> {
   const cached = townBundleCache.get(slug)
   if (cached) {
     return cached
   }
 
-  const manifest = loadDashboardThreeManifest()
+  const manifest = await loadDashboardThreeManifest()
   const town = manifest.towns.find((item) => item.slug === slug)
   if (!town) {
     throw new Error(`Unknown Dashboard 3 town slug: ${slug}`)
   }
 
-  const bundle: RawTownBundle = {
-    town,
-    buildings: readJson<DashboardThreeBuildingRow[]>(path.join(DASHBOARD3_ROOT, town.files.buildings)),
-    transactions: readJson<DashboardThreeTransactionRow[]>(path.join(DASHBOARD3_ROOT, town.files.transactions)),
-    poiPoints: readJson<DashboardThreePoiPoint[]>(path.join(DASHBOARD3_ROOT, town.files.poi_points)),
-    geometry: readJson<{ type: "FeatureCollection"; features: DashboardThreeGeometryFeature[] }>(
-      path.join(DASHBOARD3_ROOT, town.files.geometry),
+  const bundlePromise = Promise.all([
+    readJsonAsset<DashboardThreeBuildingRow[]>(`${DASHBOARD3_ROOT}/${town.files.buildings}`),
+    readJsonAsset<DashboardThreeTransactionRow[]>(`${DASHBOARD3_ROOT}/${town.files.transactions}`),
+    readJsonAsset<DashboardThreePoiPoint[]>(`${DASHBOARD3_ROOT}/${town.files.poi_points}`),
+    readJsonAsset<{ type: "FeatureCollection"; features: DashboardThreeGeometryFeature[] }>(
+      `${DASHBOARD3_ROOT}/${town.files.geometry}`,
     ),
-  }
-  townBundleCache.set(slug, bundle)
+  ]).then(([buildings, transactions, poiPoints, geometry]) => ({
+    town,
+    buildings,
+    transactions,
+    poiPoints,
+    geometry,
+  }))
+
+  townBundleCache.set(slug, bundlePromise)
+  const bundle = await bundlePromise
   return bundle
 }
 
-export function defaultDashboardThreeQuery(): DashboardThreeQuery {
-  const manifest = loadDashboardThreeManifest()
+export async function defaultDashboardThreeQuery(): Promise<DashboardThreeQuery> {
+  const manifest = await loadDashboardThreeManifest()
   const defaultTown =
     manifest.towns.find((town) => town.slug === "bedok") ??
     manifest.towns[0]
@@ -339,8 +340,8 @@ export function defaultDashboardThreeQuery(): DashboardThreeQuery {
   }
 }
 
-export function buildDashboardThreeTownPayload(query: DashboardThreeQuery): DashboardThreeTownPayload {
-  const bundle = loadRawTownBundle(query.slug)
+export async function buildDashboardThreeTownPayload(query: DashboardThreeQuery): Promise<DashboardThreeTownPayload> {
+  const bundle = await loadRawTownBundle(query.slug)
   const activeFlatTypes = query.flatTypes.length > 0 ? query.flatTypes : bundle.town.filters.flat_types
   const activeNearestSchools = query.nearestSchools.filter((school) => school.length > 0)
   const availableNearestSchools = Array.from(

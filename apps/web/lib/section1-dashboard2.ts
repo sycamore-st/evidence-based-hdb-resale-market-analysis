@@ -1,5 +1,4 @@
-import { readFileSync } from "node:fs"
-import path from "node:path"
+import { readTextAsset } from "@/lib/server-data"
 
 export interface DashboardTwoRow {
   year: number
@@ -42,10 +41,9 @@ export interface DashboardTwoData {
   legend: DashboardTwoLegendItem[]
 }
 
-const ROOT = path.resolve(process.cwd(), "../..")
-const BUDGET_AFFORDABILITY_CSV = path.join(ROOT, "outputs/section1/results/final/budget_affordability.csv")
-const BUDGET_METRICS_CSV = path.join(ROOT, "outputs/section1/results/final/budget_affordability_metrics.csv")
-const BUDGET_LEGEND_CSV = path.join(ROOT, "outputs/section1/results/final/budget_affordability_legend.csv")
+const BUDGET_AFFORDABILITY_CSV = "outputs/section1/results/final/budget_affordability.csv"
+const BUDGET_METRICS_CSV = "outputs/section1/results/final/budget_affordability_metrics.csv"
+const BUDGET_LEGEND_CSV = "outputs/section1/results/final/budget_affordability_legend.csv"
 
 function parseCsvRow(line: string): string[] {
   const cells: string[] = []
@@ -98,8 +96,14 @@ function toNumber(value: string): number {
   return Number.isFinite(parsed) ? parsed : 0
 }
 
-export function loadDashboardTwoData(): DashboardTwoData {
-  const rows = parseCsv(readFileSync(BUDGET_AFFORDABILITY_CSV, "utf8")).map<DashboardTwoRow>((row) => ({
+export async function loadDashboardTwoData(): Promise<DashboardTwoData> {
+  const [affordabilityCsv, metricsCsv, legendCsv] = await Promise.all([
+    readTextAsset(BUDGET_AFFORDABILITY_CSV),
+    readTextAsset(BUDGET_METRICS_CSV),
+    readTextAsset(BUDGET_LEGEND_CSV),
+  ])
+
+  const rows = parseCsv(affordabilityCsv).map<DashboardTwoRow>((row) => ({
     year: toNumber(row["Transaction Year"]),
     town: row["Town"],
     flatType: row["Flat Type"],
@@ -114,7 +118,7 @@ export function loadDashboardTwoData(): DashboardTwoData {
     budgetSlack: toNumber(row["Budget Slack"]),
   }))
 
-  const metricRows = parseCsv(readFileSync(BUDGET_METRICS_CSV, "utf8")).map<DashboardTwoMetricRow>((row) => ({
+  const metricRows = parseCsv(metricsCsv).map<DashboardTwoMetricRow>((row) => ({
     year: toNumber(row["Transaction Year"]),
     town: row["Town"],
     flatType: row["Flat Type"],
@@ -124,7 +128,7 @@ export function loadDashboardTwoData(): DashboardTwoData {
     floorArea: toNumber(row["Floor Area"]),
   }))
 
-  const legend = parseCsv(readFileSync(BUDGET_LEGEND_CSV, "utf8")).map<DashboardTwoLegendItem>((row) => ({
+  const legend = parseCsv(legendCsv).map<DashboardTwoLegendItem>((row) => ({
     panel: (row["Legend Panel"] as "Floor Area" | "Price") ?? "Floor Area",
     metric: (row["Metric"] as "Min" | "Median" | "Max") ?? "Median",
     value: toNumber(row["Legend Value"]),

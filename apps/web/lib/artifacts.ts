@@ -1,7 +1,5 @@
-import { readFile } from "node:fs/promises"
-import path from "node:path"
-
 import type { DashboardSection } from "@/lib/theme"
+import { readJsonAsset } from "@/lib/server-data"
 
 export interface SummaryCard {
   id: string
@@ -65,12 +63,8 @@ export interface DashboardBundle {
   metadata: DashboardMetadata
 }
 
-const ARTIFACT_ROOT = path.resolve(process.cwd(), "../../artifacts/web")
-
 async function readJson<T>(section: DashboardSection, name: string): Promise<T> {
-  const filePath = path.join(ARTIFACT_ROOT, section, `${name}.json`)
-  const file = await readFile(filePath, "utf8")
-  return JSON.parse(file) as T
+  return readJsonAsset<T>(`artifacts/web/${section}/${name}.json`)
 }
 
 export async function readDashboardBundle(section: DashboardSection): Promise<DashboardBundle> {

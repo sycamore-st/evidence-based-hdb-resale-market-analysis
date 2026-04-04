@@ -13,7 +13,7 @@ export default async function DashboardOnePage({
 }: {
   searchParams: Promise<{ layout?: string }>
 }) {
-  const data = loadDashboardOneData()
+  const data = await loadDashboardOneData()
   const params = await searchParams
   const layoutPreset = normalizeLayoutPreset(params.layout)
 
