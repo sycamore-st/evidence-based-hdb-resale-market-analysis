@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from sklearn.cluster import MiniBatchKMeans
+from sklearn.cluster import AgglomerativeClustering, Birch, MiniBatchKMeans
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
@@ -16,14 +17,14 @@ from sklearn.metrics import (
     mean_squared_error,
     silhouette_score,
 )
+from sklearn.metrics.pairwise import pairwise_distances_argmin
+from sklearn.mixture import GaussianMixture
 from sklearn.pipeline import Pipeline
 
 from src.analysis.common.plotly_standard import apply_standard_theme, load_plotly_theme
 from src.analysis.section2.S2_config import (
     DEFAULT_XGBOOST_TUNING_ITERATIONS,
     QUESTION_C_HOLDOUT_MONTH_COUNT,
-    QUESTION_B_OPTIONAL_FEATURES,
-    QUESTION_C_CLUSTER_K_VALUES,
     QUESTION_C_FEATURES,
     QUESTION_C_TRAIN_WINDOW_MAX_YEARS,
     QUESTION_C_TRAIN_WINDOW_MIN_YEARS,
@@ -32,15 +33,16 @@ from src.analysis.section2.S2_config import (
 )
 from src.analysis.section2.S2_helpers import (
     LOGGER,
+    _augment_regression_features,
     _classifier_preprocessor,
     _configure_logging,
     _estimator_for_refit,
     _fit_classifier_models,
-    _fit_regression_models,
     _load_frame,
     _price_preprocessor,
     _recover_resale_price,
     _tune_xgboost_estimator,
+    _with_log_price_target,
     _write_plotly_assets,
 )
 from src.analysis.section2.section2_question_b import (
@@ -51,6 +53,68 @@ from src.analysis.section2.section2_question_b import (
 from src.common.config import SECTION2_OUTPUT_RESULTS
 
 REPORTS = SECTION2_OUTPUT_RESULTS
+QUESTION_C_UNSUPERVISED_MAX_TRAIN_SAMPLE = 12_000
+QUESTION_C_UNSUPERVISED_METHOD_TRAIN_SAMPLE = {
+    "kmeans": 12_000,
+    "gaussian_mixture": 5_000,
+    "agglomerative": 2_000,
+    "birch": 5_000,
+}
+QUESTION_C_UNSUPERVISED_METHODS = (
+    "kmeans",
+    # "gaussian_mixture",
+    # "agglomerative",
+    # "birch",
+)
+QUESTION_C_UNSUPERVISED_CATEGORICAL_FEATURES = [
+    # "town",
+    # "block",
+    # "street_name",
+    # "storey_range",
+    # "flat_model",
+    # "remaining_lease",
+    # "transaction_quarter",
+    # "nearest_mrt_station",
+    # "nearest_mrt_line",
+    # "nearest_school_name",
+    # "building_match_status",
+]
+QUESTION_C_UNSUPERVISED_NUMERIC_FEATURES = [
+    "resale_price",
+    # "year",
+    # "age",
+    # "lease_commence_date",
+    "floor_area_sqm",
+    # "remaining_lease_years",
+    # "remaining_lease_proxy",
+    # "remaining_lease_effective",
+    # "min_floor_level",
+    # "max_floor_level",
+    # "town_latitude",
+    # "town_longitude",
+    # "distance_to_cbd_km",
+    # "nearest_mrt_distance_km",
+    # "nearest_bus_stop_distance_km",
+    # "nearest_school_distance_km",
+    # "building_latitude",
+    # "building_longitude",
+    # "bus_stop_count_within_1km",
+    # "school_count_within_1km",
+]
+QUESTION_C_UNSUPERVISED_REQUIRED_COLUMNS = [
+    "transaction_month",
+    "flat_type",
+    "resale_price",
+    "floor_area_sqm",
+]
+QUESTION_C_UNSUPERVISED_DISPLAY_COLUMNS = [
+    "transaction_month",
+    "town",
+    "flat_model",
+    "flat_type",
+    "floor_area_sqm",
+    "resale_price",
+]
 
 
 def _compact_metric_label(value: float, *, currency: bool = False) -> str:
@@ -128,7 +192,11 @@ def _build_question_c_flat_type_distribution(
         subject_month: pd.Timestamp | None = None,
 ) -> dict[str, pd.DataFrame]:
     sample = _prepare_question_c_frame(frame, subject_month=subject_month)
-    distribution_frame = sample[["flat_type", "floor_area_sqm", "resale_price"]].copy()
+    distribution_columns = [
+        column for column in ["flat_type", "floor_area_sqm", "resale_price", "town", "flat_model"]
+        if column in sample.columns
+    ]
+    distribution_frame = sample[distribution_columns].copy()
     summary = (
         distribution_frame.groupby("flat_type", dropna=False)
         .agg(
@@ -155,6 +223,204 @@ def _build_question_c_flat_type_distribution(
     }
 
 
+def _prepare_question_c_unsupervised_frame(frame: pd.DataFrame) -> pd.DataFrame:
+    enriched = _augment_regression_features(frame)
+    keep_columns = [
+        *QUESTION_C_UNSUPERVISED_REQUIRED_COLUMNS,
+        *QUESTION_C_UNSUPERVISED_DISPLAY_COLUMNS,
+        *QUESTION_C_UNSUPERVISED_CATEGORICAL_FEATURES,
+        *QUESTION_C_UNSUPERVISED_NUMERIC_FEATURES,
+    ]
+    existing = [column for column in dict.fromkeys(keep_columns) if column in enriched.columns]
+    sample = enriched[existing].dropna(subset=QUESTION_C_UNSUPERVISED_REQUIRED_COLUMNS).copy()
+    return _with_log_price_target(sample)
+
+
+def _columns_present_with_values(frame: pd.DataFrame, columns: list[str]) -> list[str]:
+    return [
+        column for column in columns
+        if column in frame.columns and frame[column].notna().any()
+    ]
+
+
+def _existing_columns(frame: pd.DataFrame, columns: list[str]) -> list[str]:
+    return [column for column in columns if column in frame.columns]
+
+
+def _get_question_c_unsupervised_clustering_features(frame: pd.DataFrame) -> tuple[list[str], list[str], list[str]]:
+    categorical = [
+        column for column in QUESTION_C_UNSUPERVISED_CATEGORICAL_FEATURES
+        if column in frame.columns and frame[column].notna().any()
+    ]
+    numeric = _columns_present_with_values(frame, QUESTION_C_UNSUPERVISED_NUMERIC_FEATURES)
+    return categorical + numeric, categorical, numeric
+
+
+def _get_question_c_unsupervised_pricing_features(
+        frame: pd.DataFrame,
+        *,
+        segment_feature: str,
+) -> tuple[list[str], list[str], list[str]]:
+    base_categorical = _columns_present_with_values(frame, QUESTION_C_UNSUPERVISED_CATEGORICAL_FEATURES)
+    base_numeric = _columns_present_with_values(frame, QUESTION_C_UNSUPERVISED_NUMERIC_FEATURES)
+    categorical = [segment_feature, *[column for column in base_categorical if column != segment_feature and column != "flat_type"]]
+    numeric = [column for column in base_numeric if column != "resale_price"]
+    return categorical + numeric, categorical, numeric
+
+
+def _sample_question_c_unsupervised_train(
+        frame: pd.DataFrame,
+        *,
+        max_sample: int | None = QUESTION_C_UNSUPERVISED_MAX_TRAIN_SAMPLE,
+) -> pd.DataFrame:
+    if max_sample is None:
+        return frame.copy()
+    if len(frame) <= max_sample:
+        return frame.copy()
+    return frame.sample(max_sample, random_state=RANDOM_STATE)
+
+
+def _assign_clusters_by_centroid(
+        train_features: np.ndarray,
+        train_labels: np.ndarray,
+        target_features: np.ndarray,
+) -> np.ndarray:
+    unique_labels = np.unique(train_labels)
+    centroids = np.vstack([train_features[train_labels == label].mean(axis=0) for label in unique_labels])
+    nearest = pairwise_distances_argmin(target_features, centroids)
+    return unique_labels[nearest]
+
+
+def _predict_clusters_in_chunks(
+        transformed_features,
+        predict_fn,
+        *,
+        chunk_size: int = 50_000,
+        densify: bool = False,
+) -> np.ndarray:
+    labels: list[np.ndarray] = []
+    total_rows = transformed_features.shape[0]
+
+    for start in range(0, total_rows, chunk_size):
+        stop = min(start + chunk_size, total_rows)
+        chunk = transformed_features[start:stop]
+        if densify:
+            chunk = chunk.toarray() if hasattr(chunk, "toarray") else np.asarray(chunk)
+        labels.append(np.asarray(predict_fn(chunk)))
+    return np.concatenate(labels, axis=0) if labels else np.array([], dtype=int)
+
+
+def _map_segments_to_flat_type_by_median_area(
+        frame: pd.DataFrame,
+        *,
+        segment_column: str,
+) -> tuple[dict[str, str], pd.DataFrame]:
+    summary_aggregations: dict[str, tuple[str, str]] = {
+        "transactions": (segment_column, "size"),
+        "median_price": ("resale_price", "median"),
+        "median_floor_area": ("floor_area_sqm", "median"),
+    }
+    if "age" in frame.columns:
+        summary_aggregations["median_flat_age"] = ("age", "median")
+    segment_summary = (
+        frame.groupby(segment_column, dropna=False)
+        .agg(**summary_aggregations)
+        .reset_index()
+        .sort_values(["median_floor_area", segment_column], ascending=[False, True], na_position="last")
+        .reset_index(drop=True)
+    )
+    ordered_flat_types = (
+        frame.groupby("flat_type", dropna=False)["floor_area_sqm"]
+        .median()
+        .sort_values(ascending=False)
+        .index.astype(str)
+        .tolist()
+    )
+    if not ordered_flat_types:
+        return {}, segment_summary
+
+    mapping: dict[str, str] = {}
+    flat_type_count = len(ordered_flat_types)
+    for index, segment in enumerate(segment_summary[segment_column].astype(str)):
+        flat_type_index = min(index, flat_type_count - 1)
+        mapping[str(segment)] = ordered_flat_types[flat_type_index]
+    return mapping, segment_summary
+
+
+def _build_segment_flat_type_crosstab(
+        frame: pd.DataFrame,
+        *,
+        segment_column: str,
+) -> pd.DataFrame:
+    crosstab = pd.crosstab(
+        frame[segment_column].astype(str),
+        frame["flat_type"].astype(str),
+        dropna=False,
+    )
+    crosstab.index.name = segment_column
+    return crosstab.reset_index()
+
+
+def _map_segments_to_flat_type_by_majority_vote(
+        frame: pd.DataFrame,
+        *,
+        segment_column: str,
+) -> dict[str, str]:
+    majority = (
+        frame.groupby(segment_column, dropna=False)["flat_type"]
+        .agg(
+            lambda values: values.astype(str).mode(dropna=True).sort_values().iloc[0]
+            if not values.dropna().empty else np.nan
+        )
+        .to_dict()
+    )
+    return {str(key): str(value) for key, value in majority.items() if pd.notna(value)}
+
+
+def _fit_question_c_pricing_xgboost_full_sample(
+        frame: pd.DataFrame,
+        *,
+        segment_feature: str,
+        tune_xgboost: bool = False,
+        xgboost_tuning_iterations: int = DEFAULT_XGBOOST_TUNING_ITERATIONS,
+) -> dict[str, object]:
+    model_frame = frame.copy()
+    features, categorical, numeric = _get_question_c_unsupervised_pricing_features(
+        model_frame,
+        segment_feature=segment_feature,
+    )
+    candidate_model = _build_question_b_candidates()["xgboost"]
+    tuned_params: dict[str, float | int] = {}
+    candidate_model, tuned_params = _tune_xgboost_estimator(
+        candidate_model,
+        model_frame,
+        features=features,
+        categorical=categorical,
+        numeric=numeric,
+        tune_enabled=tune_xgboost,
+        tuning_iterations=xgboost_tuning_iterations,
+    )
+    pipeline = Pipeline(
+        [
+            ("preprocessor", _price_preprocessor(categorical, numeric)),
+            ("model", _estimator_for_refit(candidate_model)),
+        ]
+    )
+    pipeline.fit(model_frame[features], model_frame["log_price_per_sqm"])
+    log_predictions = pipeline.predict(model_frame[features])
+    predictions = _recover_resale_price(log_predictions, model_frame["floor_area_sqm"])
+    rmse = float(np.sqrt(mean_squared_error(model_frame["resale_price"], predictions)))
+    return {
+        "features": features,
+        "categorical": categorical,
+        "numeric": numeric,
+        "pipeline": pipeline,
+        "rmse": rmse,
+        "tuned_params": tuned_params,
+        "predictions": predictions,
+    }
+
+
 def _per_class_accuracy_table(confusion: np.ndarray, labels: list[str]) -> pd.DataFrame:
     row_totals = confusion.sum(axis=1)
     diagonal = confusion.diagonal() if confusion.size else np.array([], dtype=float)
@@ -172,48 +438,6 @@ def _per_class_accuracy_table(confusion: np.ndarray, labels: list[str]) -> pd.Da
             "per_class_accuracy": accuracy.astype(float),
         }
     )
-
-
-def _build_unsupervised_k_comparison(
-        transformed_full: np.ndarray,
-        labels_full: pd.Series,
-) -> pd.DataFrame:
-    max_allowed = min(int(len(transformed_full) - 1), max(QUESTION_C_CLUSTER_K_VALUES))
-    k_values = [k for k in QUESTION_C_CLUSTER_K_VALUES if 2 <= k <= max_allowed]
-    if not k_values:
-        return pd.DataFrame()
-
-    rows: list[dict[str, object]] = []
-    for k in k_values:
-        model = MiniBatchKMeans(n_clusters=k, n_init=5, random_state=RANDOM_STATE, batch_size=2048)
-        full_clusters = model.fit_predict(transformed_full)
-        cluster_names = pd.Series(full_clusters).map(lambda value: f"SEGMENT_{value}")
-        mapping = (
-            pd.DataFrame({"segment": cluster_names, "flat_type": labels_full.astype(str).to_numpy()})
-            .groupby("segment", dropna=False)["flat_type"]
-            .agg(lambda values: values.mode(dropna=True).sort_values().iloc[0] if not values.mode(dropna=True).empty else np.nan)
-            .to_dict()
-        )
-        predicted = pd.Series(full_clusters).map(lambda value: mapping.get(f"SEGMENT_{value}", np.nan))
-        valid = predicted.notna()
-        accuracy = (
-            float(accuracy_score(labels_full.reset_index(drop=True).loc[valid].astype(str), predicted.loc[valid].astype(str)))
-            if valid.any()
-            else np.nan
-        )
-        silhouette = float(silhouette_score(transformed_full, full_clusters)) if len(np.unique(full_clusters)) > 1 else np.nan
-        dbi = float(davies_bouldin_score(transformed_full, full_clusters)) if len(np.unique(full_clusters)) > 1 else np.nan
-        rows.append(
-            {
-                "k": int(k),
-                "mapped_accuracy": accuracy,
-                "inertia": float(model.inertia_),
-                "silhouette_score": silhouette,
-                "davies_bouldin_score": dbi,
-                "matches_hdb_flat_categories": bool(int(k) == QUESTION_C_UNSUPERVISED_CLUSTER_COUNT),
-            }
-        )
-    return pd.DataFrame(rows)
 
 
 def _fit_known_flat_type_pricing_on_split(
@@ -360,157 +584,232 @@ def recover_flat_type_segments_unsupervised(
         xgboost_tuning_iterations: int = DEFAULT_XGBOOST_TUNING_ITERATIONS,
 ) -> dict[str, object]:
     LOGGER.info("Question C unsupervised track start")
-    sample = _prepare_question_c_frame(frame, subject_month=subject_month)
+    sample = _prepare_question_c_unsupervised_frame(frame)
+
     LOGGER.info("Question C unsupervised sample prepared with %d rows", len(sample))
-    categorical = ["town", "flat_model"]
-    numeric = [column for column in QUESTION_C_FEATURES if column not in categorical]
+    analysis_frame = sample.sort_values("transaction_month").reset_index(drop=True)
+    features, categorical, numeric = _get_question_c_unsupervised_clustering_features(analysis_frame)
+
     preprocessor = _classifier_preprocessor(categorical, numeric)
-    transformed_full = preprocessor.fit_transform(sample[QUESTION_C_FEATURES])
-    if hasattr(transformed_full, "toarray"):
-        transformed_full_dense = transformed_full.toarray()
-    else:
-        transformed_full_dense = np.asarray(transformed_full)
-    k_comparison = _build_unsupervised_k_comparison(
-        transformed_full_dense,
-        sample["flat_type"],
-    )
-    max_feasible_clusters = max(2, min(int(len(transformed_full_dense) - 1), len(sample["flat_type"].dropna().unique())))
-    n_clusters = min(QUESTION_C_UNSUPERVISED_CLUSTER_COUNT, max_feasible_clusters)
-    LOGGER.info("Question C unsupervised fitting MiniBatchKMeans with %d clusters", n_clusters)
-    kmeans = MiniBatchKMeans(n_clusters=n_clusters, n_init=5, random_state=RANDOM_STATE, batch_size=2048)
-    full_clusters = kmeans.fit_predict(transformed_full_dense)
-
-    full_segmented = sample.copy()
-    full_segmented["recovered_segment"] = pd.Series(full_clusters, index=full_segmented.index).map(
-        lambda value: f"SEGMENT_{value}")
-    segment_to_flat_type = (
-        full_segmented.groupby("recovered_segment", dropna=False)["flat_type"]
-        .agg(lambda values: values.mode(dropna=True).sort_values().iloc[0] if not values.mode(dropna=True).empty else np.nan)
-        .to_dict()
-    )
-    full_segmented["predicted_flat_type"] = full_segmented["recovered_segment"].map(segment_to_flat_type)
-    confusion_labels = sorted(sample["flat_type"].dropna().astype(str).unique().tolist())
-    valid_unsupervised = full_segmented["predicted_flat_type"].notna()
-    unsupervised_accuracy = (
-        float(
-            accuracy_score(
-                full_segmented.loc[valid_unsupervised, "flat_type"].astype(str),
-                full_segmented.loc[valid_unsupervised, "predicted_flat_type"].astype(str),
-            )
-        )
-        if valid_unsupervised.any()
-        else np.nan
-    )
-    unsupervised_report = (
-        classification_report(
-            full_segmented.loc[valid_unsupervised, "flat_type"].astype(str),
-            full_segmented.loc[valid_unsupervised, "predicted_flat_type"].astype(str),
-            labels=confusion_labels,
-            output_dict=True,
-            zero_division=0,
-        )
-        if valid_unsupervised.any()
-        else {}
-    )
-    unsupervised_confusion = (
-        confusion_matrix(
-            full_segmented.loc[valid_unsupervised, "flat_type"].astype(str),
-            full_segmented.loc[valid_unsupervised, "predicted_flat_type"].astype(str),
-            labels=confusion_labels,
-        )
-        if valid_unsupervised.any()
-        else np.zeros((len(confusion_labels), len(confusion_labels)), dtype=int)
-    )
-    unsupervised_per_class_accuracy = _per_class_accuracy_table(unsupervised_confusion, confusion_labels)
-
-    optional_features = [feature for feature in QUESTION_B_OPTIONAL_FEATURES if
-                         feature in sample.columns and sample[feature].notna().any()]
-    unsupervised_features = [
-        "recovered_segment",
-        "town",
-        "flat_model",
-        "floor_area_sqm",
-        "year",
-        "age",
-        "remaining_lease_years",
-        "min_floor_level",
-        "max_floor_level",
-        *optional_features,
-    ]
-    categorical_pricing = ["recovered_segment", "town", "flat_model"]
-    numeric_pricing = [feature for feature in unsupervised_features if feature not in categorical_pricing]
-    pricing_split = _build_question_c_split(full_segmented)
-    pricing_fit = _fit_regression_models(
-        pricing_split["train_frame"].assign(resale_price=pricing_split["train_frame"]["resale_price"]),
-        pricing_split["test_frame"].assign(resale_price=pricing_split["test_frame"]["resale_price"]),
-        features=unsupervised_features,
-        categorical=categorical_pricing,
-        numeric=numeric_pricing,
-        candidates=_build_question_b_candidates(),
+    transformed_full = preprocessor.fit_transform(analysis_frame[features])
+    to_dense = lambda values: values.toarray() if hasattr(values, "toarray") else np.asarray(values)
+    base_cluster_limit = len(analysis_frame["flat_type"].dropna().astype(str).unique().tolist())
+    known_pricing = _fit_question_c_pricing_xgboost_full_sample(
+        analysis_frame,
+        segment_feature="flat_type",
         tune_xgboost=tune_xgboost,
         xgboost_tuning_iterations=xgboost_tuning_iterations,
     )
-    best_name = str(pricing_fit["best_model"])
-    pricing_pipeline = Pipeline(
-        [
-            ("preprocessor", _price_preprocessor(categorical_pricing, numeric_pricing)),
-            ("model", _estimator_for_refit(pricing_fit["best_estimator"])),
-        ]
-    )
-    pricing_pipeline.fit(pricing_split["train_frame"][unsupervised_features], pricing_split["train_frame"]["log_price_per_sqm"])
-    segment_log_predictions = pricing_pipeline.predict(pricing_split["test_frame"][unsupervised_features])
-    segment_predictions = _recover_resale_price(
-        segment_log_predictions,
-        pricing_split["test_frame"]["floor_area_sqm"],
-    )
-    segment_rmse = float(np.sqrt(mean_squared_error(pricing_split["test_frame"]["resale_price"], segment_predictions)))
-    known_pricing = _fit_known_flat_type_pricing_on_split(sample)
+    confusion_labels = sorted(sample["flat_type"].dropna().astype(str).unique().tolist())
+    method_rows: list[dict[str, object]] = []
+    best_result: dict[str, object] | None = None
+    best_sort_key: tuple[float, float] | None = None
 
-    segment_summary = (
-        full_segmented
-        .groupby("recovered_segment", dropna=False)
-        .agg(
-            transactions=("recovered_segment", "size"),
-            median_price=("resale_price", "median"),
-            median_floor_area=("floor_area_sqm", "median"),
-            median_flat_age=("age", "median"),
+    for method_name in QUESTION_C_UNSUPERVISED_METHODS:
+        method_fit_frame = _sample_question_c_unsupervised_train(
+            analysis_frame,
+            max_sample=QUESTION_C_UNSUPERVISED_METHOD_TRAIN_SAMPLE.get(
+                method_name,
+                QUESTION_C_UNSUPERVISED_MAX_TRAIN_SAMPLE,
+            ),
         )
-        .reset_index()
-        .sort_values("recovered_segment")
+        transformed_fit_dense = to_dense(preprocessor.transform(method_fit_frame[features]))
+        fit_on_full_data = len(method_fit_frame) == len(analysis_frame)
+        max_feasible_clusters = max(
+            2,
+            min(
+                int(len(method_fit_frame) - 1),
+                base_cluster_limit,
+            ),
+        )
+        n_clusters = min(QUESTION_C_UNSUPERVISED_CLUSTER_COUNT, max_feasible_clusters)
+        LOGGER.info("Question C unsupervised fitting %s with %d clusters", method_name, n_clusters)
+        if method_name == "kmeans":
+            model = MiniBatchKMeans(
+                n_clusters=n_clusters,
+                n_init=5,
+                random_state=RANDOM_STATE,
+                batch_size=2048,
+            )
+            fit_labels = model.fit_predict(transformed_fit_dense)
+            full_labels = fit_labels if fit_on_full_data else _predict_clusters_in_chunks(
+                transformed_full,
+                model.predict,
+                densify=False,
+            )
+        elif method_name == "gaussian_mixture":
+            model = GaussianMixture(
+                n_components=n_clusters,
+                covariance_type="diag",
+                random_state=RANDOM_STATE,
+            )
+            fit_labels = model.fit_predict(transformed_fit_dense)
+            full_labels = fit_labels if fit_on_full_data else _predict_clusters_in_chunks(
+                transformed_full,
+                model.predict,
+                densify=True,
+            )
+        elif method_name == "agglomerative":
+            model = AgglomerativeClustering(n_clusters=n_clusters, linkage="ward")
+            fit_labels = model.fit_predict(transformed_fit_dense)
+            full_labels = fit_labels if fit_on_full_data else _predict_clusters_in_chunks(
+                transformed_full,
+                lambda chunk: _assign_clusters_by_centroid(transformed_fit_dense, fit_labels, to_dense(chunk)),
+                densify=False,
+            )
+        elif method_name == "birch":
+            model = Birch(n_clusters=n_clusters)
+            fit_labels = model.fit_predict(transformed_fit_dense)
+            full_labels = fit_labels if fit_on_full_data else _predict_clusters_in_chunks(
+                transformed_full,
+                model.predict,
+                densify=True,
+            )
+        else:
+            continue
+
+        silhouette = float(silhouette_score(transformed_fit_dense, fit_labels)) if len(np.unique(fit_labels)) > 1 else np.nan
+        dbi = float(davies_bouldin_score(transformed_fit_dense, fit_labels)) if len(np.unique(fit_labels)) > 1 else np.nan
+        full_segmented = analysis_frame.copy()
+        full_segmented["recovered_segment"] = pd.Series(full_labels, index=full_segmented.index).map(lambda value: f"SEGMENT_{value}")
+        area_order_mapping, segment_summary = _map_segments_to_flat_type_by_median_area(
+            full_segmented,
+            segment_column="recovered_segment",
+        )
+        segment_crosstab = _build_segment_flat_type_crosstab(
+            full_segmented,
+            segment_column="recovered_segment",
+        )
+        segment_to_flat_type = _map_segments_to_flat_type_by_majority_vote(
+            full_segmented,
+            segment_column="recovered_segment",
+        )
+        full_segmented["predicted_flat_type"] = full_segmented["recovered_segment"].map(segment_to_flat_type)
+        valid_unsupervised = full_segmented["predicted_flat_type"].notna()
+        unsupervised_accuracy = (
+            float(
+                accuracy_score(
+                    full_segmented.loc[valid_unsupervised, "flat_type"].astype(str),
+                    full_segmented.loc[valid_unsupervised, "predicted_flat_type"].astype(str),
+                )
+            )
+            if valid_unsupervised.any()
+            else np.nan
+        )
+        unsupervised_report = (
+            classification_report(
+                full_segmented.loc[valid_unsupervised, "flat_type"].astype(str),
+                full_segmented.loc[valid_unsupervised, "predicted_flat_type"].astype(str),
+                labels=confusion_labels,
+                output_dict=True,
+                zero_division=0,
+            )
+            if valid_unsupervised.any()
+            else {}
+        )
+        unsupervised_confusion = (
+            confusion_matrix(
+                full_segmented.loc[valid_unsupervised, "flat_type"].astype(str),
+                full_segmented.loc[valid_unsupervised, "predicted_flat_type"].astype(str),
+                labels=confusion_labels,
+            )
+            if valid_unsupervised.any()
+            else np.zeros((len(confusion_labels), len(confusion_labels)), dtype=int)
+        )
+        unsupervised_per_class_accuracy = _per_class_accuracy_table(unsupervised_confusion, confusion_labels)
+        recovered_pricing = _fit_question_c_pricing_xgboost_full_sample(
+            full_segmented,
+            segment_feature="recovered_segment",
+            tune_xgboost=tune_xgboost,
+            xgboost_tuning_iterations=xgboost_tuning_iterations,
+        )
+        pricing_rmse = float(recovered_pricing["rmse"])
+        pricing_rmse_delta = float(pricing_rmse - known_pricing["rmse"])
+        method_row = {
+            "method_name": method_name,
+            "cluster_count": n_clusters,
+            "fit_sample_size": int(len(method_fit_frame)),
+            "accuracy": unsupervised_accuracy,
+            "pricing_with_known_flat_type_rmse": known_pricing["rmse"],
+            "pricing_with_recovered_segment_rmse": pricing_rmse,
+            "pricing_rmse_delta": pricing_rmse_delta,
+            "silhouette_score": silhouette,
+            "davies_bouldin_score": dbi,
+        }
+        method_rows.append(method_row)
+        sort_key = (
+            pricing_rmse,
+            -np.inf if pd.isna(unsupervised_accuracy) else -float(unsupervised_accuracy),
+        )
+        if best_sort_key is None or sort_key < best_sort_key:
+            best_sort_key = sort_key
+            best_result = {
+                "method_name": method_name,
+                "cluster_count": n_clusters,
+                "fit_sample_size": int(len(method_fit_frame)),
+                "accuracy": unsupervised_accuracy,
+                "pricing_with_recovered_segment_rmse": pricing_rmse,
+                "pricing_rmse_delta": pricing_rmse_delta,
+                "silhouette_score": silhouette,
+                "davies_bouldin_score": dbi,
+                "segment_to_flat_type_mapping": segment_to_flat_type,
+                "segment_area_order_mapping": area_order_mapping,
+                "report": unsupervised_report,
+                "confusion_matrix": unsupervised_confusion.tolist(),
+                "per_class_accuracy": unsupervised_per_class_accuracy,
+                "segment_summary": segment_summary,
+                "segment_flat_type_crosstab": segment_crosstab,
+                "assignments": full_segmented[
+                    _existing_columns(
+                        full_segmented,
+                        [
+                            *QUESTION_C_UNSUPERVISED_DISPLAY_COLUMNS,
+                            "recovered_segment",
+                            "predicted_flat_type",
+                        ],
+                    )
+                ].copy(),
+            }
+        del full_segmented, unsupervised_report, unsupervised_per_class_accuracy, segment_summary, recovered_pricing
+        gc.collect()
+
+    if not method_rows or best_result is None:
+        raise ValueError("Question C unsupervised comparison produced no method results.")
+
+    method_comparison = (
+        pd.DataFrame(method_rows)
+        .sort_values(["pricing_with_recovered_segment_rmse", "accuracy"], ascending=[True, False])
+        .reset_index(drop=True)
     )
+    best_method_name = str(best_result["method_name"])
     LOGGER.info(
-        "Question C unsupervised complete | pricing_model=%s pricing_rmse_delta=%.0f",
-        best_name,
-        segment_rmse - known_pricing["known_flat_type_rmse"],
+        "Question C unsupervised complete | best_method=%s pricing_rmse_delta=%.0f mapped_accuracy=%.3f",
+        best_method_name,
+        float(best_result["pricing_rmse_delta"]),
+        float(best_result["accuracy"]),
     )
     return {
         "segment_feature": "recovered_segment",
-        "cluster_count": n_clusters,
-        "segment_to_flat_type_mapping": segment_to_flat_type,
-        "accuracy": unsupervised_accuracy,
-        "report": unsupervised_report,
+        "method_name": best_method_name,
+        "cluster_count": int(best_result["cluster_count"]),
+        "segment_to_flat_type_mapping": best_result["segment_to_flat_type_mapping"],
+        "segment_area_order_mapping": best_result["segment_area_order_mapping"],
+        "accuracy": best_result["accuracy"],
+        "report": best_result["report"],
         "confusion_labels": confusion_labels,
-        "confusion_matrix": unsupervised_confusion.tolist(),
-        "per_class_accuracy": unsupervised_per_class_accuracy,
-        "pricing_model": best_name,
-        "segment_summary": segment_summary,
-        "k_comparison": k_comparison,
-        "evaluation_scope": "full_sample_mapped_accuracy",
-        "pricing_split_method": "latest_9_month_holdout_with_prior_5y_training_window",
-        "train_period_start": pricing_split["train_period_start"].strftime("%Y-%m"),
-        "train_period_end": pricing_split["train_period_end"].strftime("%Y-%m"),
-        "holdout_period_start": pricing_split["holdout_period_start"].strftime("%Y-%m"),
-        "holdout_period_end": pricing_split["holdout_period_end"].strftime("%Y-%m"),
-        "holdout_month_count": pricing_split["holdout_month_count"],
-        "configured_train_window_years": pricing_split["configured_train_window_years"],
-        "actual_train_window_years": pricing_split["actual_train_window_years"],
-        "split_holdout_months": [month.strftime("%Y-%m") for month in pricing_split["holdout_months"]],
-        "pricing_with_known_flat_type_rmse": known_pricing["known_flat_type_rmse"],
-        "pricing_with_recovered_segment_rmse": segment_rmse,
-        "pricing_rmse_delta": segment_rmse - known_pricing["known_flat_type_rmse"],
-        "test_assignments": full_segmented[
-            ["transaction_month", "town", "flat_model", "flat_type", "recovered_segment", "predicted_flat_type"]
-        ].copy(),
+        "confusion_matrix": best_result["confusion_matrix"],
+        "per_class_accuracy": best_result["per_class_accuracy"],
+        "pricing_model": "xgboost",
+        "segment_summary": best_result["segment_summary"],
+        "segment_flat_type_crosstab": best_result["segment_flat_type_crosstab"],
+        "method_comparison": method_comparison,
+        "evaluation_scope": "full_sample_cluster_recovery",
+        "pricing_split_method": "full_sample_fit",
+        "sample_size": int(len(sample)),
+        "pricing_with_known_flat_type_rmse": known_pricing["rmse"],
+        "pricing_with_recovered_segment_rmse": best_result["pricing_with_recovered_segment_rmse"],
+        "pricing_rmse_delta": best_result["pricing_rmse_delta"],
+        "assignments": best_result["assignments"],
     }
 
 
@@ -623,88 +922,120 @@ def build_question_c_figures(result: dict[str, object]) -> dict[str, go.Figure]:
     )
     apply_standard_theme(
         fig_c_unsupervised_confusion,
-        title="Question 3 Unsupervised Mapped Confusion Matrix",
+        title="Question 3 Unsupervised Full-Sample Mapped Confusion Matrix",
         xaxis_title="Mapped Predicted Flat Type",
         yaxis_title="Actual Flat Type",
     )
 
-    k_comparison = result["unsupervised"]["k_comparison"].copy()
+    method_comparison = result["unsupervised"]["method_comparison"].copy()
     fig_c_unsupervised_k = go.Figure()
-    if not k_comparison.empty:
-        fig_c_unsupervised_k.add_scatter(
-            x=k_comparison["k"],
-            y=k_comparison["inertia"],
-            mode="lines+markers",
-            name="Inertia",
-            line={"color": theme.secondary, "width": 3},
-            marker={"size": 9, "color": theme.alpha(theme.secondary, 0.42), "line": {"color": theme.secondary, "width": 1.2}},
-            yaxis="y",
-            hovertemplate="k=%{x}<br>Inertia=%{y:,.0f}<extra></extra>",
+    if not method_comparison.empty:
+        fig_c_unsupervised_k.add_bar(
+            x=method_comparison["method_name"],
+            y=method_comparison["pricing_with_recovered_segment_rmse"],
+            name="Recovered Segment RMSE",
+            marker_color=theme.alpha(theme.secondary, 0.58),
+            marker_line={"color": theme.secondary, "width": 1.2},
+            text=[f"SGD {value:,.0f}" for value in method_comparison["pricing_with_recovered_segment_rmse"]],
+            textposition="outside",
+            cliponaxis=False,
+            customdata=method_comparison[["accuracy", "pricing_rmse_delta", "silhouette_score", "davies_bouldin_score"]].to_numpy(),
+            hovertemplate=(
+                "Method: %{x}<br>Recovered-segment RMSE: SGD %{y:,.0f}<br>Mapped full-sample accuracy: %{customdata[0]:.3f}"
+                "<br>RMSE delta vs known flat type: %{customdata[1]:,.0f}<br>Silhouette: %{customdata[2]:.3f}"
+                "<br>Davies-Bouldin: %{customdata[3]:.3f}<extra></extra>"
+            ),
         )
         fig_c_unsupervised_k.add_scatter(
-            x=k_comparison["k"],
-            y=k_comparison["mapped_accuracy"],
+            x=method_comparison["method_name"],
+            y=method_comparison["accuracy"],
             mode="lines+markers",
-            name="Mapped Accuracy",
+            name="Mapped Full-Sample Accuracy",
             line={"color": theme.blue, "width": 2, "dash": "dot"},
             marker={"size": 8, "color": theme.alpha(theme.blue, 0.38), "line": {"color": theme.blue, "width": 1.1}},
             yaxis="y2",
-            hovertemplate="k=%{x}<br>Mapped accuracy=%{y:.3f}<extra></extra>",
+            hovertemplate="Method: %{x}<br>Mapped full-sample accuracy: %{y:.3f}<extra></extra>",
         )
-        for index, row in enumerate(k_comparison.itertuples()):
-            fig_c_unsupervised_k.add_annotation(
-                x=float(row.k),
-                y=float(row.inertia),
-                text=f"{float(row.inertia):,.0f}",
-                showarrow=False,
-                yshift=-18 if index % 2 == 0 else -34,
-                font={"size": 13, "color": "#000000"},
-                bgcolor="rgba(0,0,0,0)",
-            )
-            fig_c_unsupervised_k.add_annotation(
-                x=float(row.k),
-                y=float(row.mapped_accuracy),
-                yref="y2",
-                text=f"{float(row.mapped_accuracy):.3f}",
-                showarrow=False,
-                yshift=16 if index % 2 == 0 else 30,
-                font={"size": 13, "color": "#000000"},
-                bgcolor="rgba(0,0,0,0)",
-            )
-        selected_row = k_comparison.loc[k_comparison["k"].eq(result["unsupervised"]["cluster_count"])]
+        selected_method = str(result["unsupervised"]["method_name"])
+        selected_row = method_comparison.loc[method_comparison["method_name"].eq(selected_method)]
         if not selected_row.empty:
-            selected_k = int(selected_row["k"].iloc[0])
-            fig_c_unsupervised_k.add_vline(
-                x=selected_k,
-                line={"color": theme.accent, "width": 2, "dash": "dash"},
-            )
             fig_c_unsupervised_k.add_annotation(
-                x=selected_k,
-                y=float(selected_row["inertia"].iloc[0]),
-                text=f"k={selected_k} aligns with primary HDB flat categories",
+                x=selected_method,
+                y=float(selected_row["pricing_with_recovered_segment_rmse"].iloc[0]),
+                text=f"Selected: {selected_method}",
                 showarrow=True,
                 arrowhead=2,
-                ax=88,
-                ay=-56,
+                ax=84,
+                ay=-48,
                 font={"size": 13, "color": "#000000"},
                 bgcolor=theme.alpha(theme.surface, 0.94),
                 bordercolor=theme.alpha(theme.accent, 0.55),
             )
     apply_standard_theme(
         fig_c_unsupervised_k,
-        title="Question 3 Unsupervised Elbow Plot",
-        xaxis_title="Cluster Count (k)",
-        yaxis_title="Inertia",
+        title="Question 3 Unsupervised Method Comparison",
+        xaxis_title="Unsupervised Method",
+        yaxis_title="Recovered-Segment Full-Sample RMSE (SGD)",
     )
     fig_c_unsupervised_k.update_layout(
         margin={"l": 72, "r": 96, "t": 112, "b": 96},
+        bargap=0.36,
         yaxis2={
-            "title": "Mapped Accuracy",
+            "title": "Mapped Full-Sample Accuracy",
             "overlaying": "y",
             "side": "right",
             "showgrid": False,
         }
     )
+
+    unsupervised_assignments = result["unsupervised"]["assignments"].copy()
+    unsupervised_assignments["floor_area_sqft"] = unsupervised_assignments["floor_area_sqm"] * 10.7639
+    fig_c_unsupervised_scatter = go.Figure()
+    color_sequence = theme.color_sequence
+    predicted_labels = sorted(
+        unsupervised_assignments["predicted_flat_type"].dropna().astype(str).unique().tolist()
+    )
+    hover_columns = _existing_columns(
+        unsupervised_assignments,
+        ["town", "flat_model", "recovered_segment"],
+    )
+    for index, predicted_label in enumerate(predicted_labels):
+        label_frame = unsupervised_assignments.loc[
+            unsupervised_assignments["predicted_flat_type"].astype(str).eq(predicted_label)
+        ]
+        base_color = color_sequence[index % len(color_sequence)]
+        customdata = label_frame[hover_columns].to_numpy() if hover_columns else None
+        hover_lines = [
+            f"Predicted flat type: {predicted_label}",
+            "Floor area: %{x:.1f} sqft",
+            "Resale price: SGD %{y:,.0f}",
+        ]
+        if "town" in hover_columns:
+            hover_lines.append(f"Town: %{{customdata[{hover_columns.index('town')}]}}")
+        if "flat_model" in hover_columns:
+            hover_lines.append(f"Flat model: %{{customdata[{hover_columns.index('flat_model')}]}}")
+        if "recovered_segment" in hover_columns:
+            hover_lines.append(f"Recovered segment: %{{customdata[{hover_columns.index('recovered_segment')}]}}")
+        fig_c_unsupervised_scatter.add_scatter(
+            x=label_frame["floor_area_sqft"],
+            y=label_frame["resale_price"],
+            mode="markers",
+            name=predicted_label,
+            marker={
+                "size": 6,
+                "color": theme.alpha(base_color, 0.48),
+                "line": {"color": base_color, "width": 0.6},
+            },
+            customdata=customdata,
+            hovertemplate="<br>".join(hover_lines) + "<extra></extra>",
+        )
+    apply_standard_theme(
+        fig_c_unsupervised_scatter,
+        title="Question 3 Predicted Flat Type: Floor Area vs Resale Price",
+        xaxis_title="Floor Area (sqft)",
+        yaxis_title="Resale Price (SGD)",
+    )
+    fig_c_unsupervised_scatter.update_layout(showlegend=True)
 
     distribution = result["flat_type_distribution_frame"].copy()
     fig_c_floor_area = go.Figure()
@@ -713,7 +1044,7 @@ def build_question_c_figures(result: dict[str, object]) -> dict[str, go.Figure]:
         distribution.groupby("flat_type", dropna=False)
         .size()
         .reset_index(name="transaction_count")
-        .sort_values("transaction_count", ascending=False)
+        .sort_values("transaction_count", ascending=True)
     )
     fig_c_flat_type_count = go.Figure()
     for index, (flat_type, group) in enumerate(distribution.groupby("flat_type", dropna=False)):
@@ -797,11 +1128,12 @@ def build_question_c_figures(result: dict[str, object]) -> dict[str, go.Figure]:
         "S2QcF1_unsupervised_confusion": fig_c_unsupervised_confusion,
         "S2QcF2_unsupervised_k_comparison": fig_c_unsupervised_k,
         "S2QcF3_unsupervised_segment_profile": fig_c_unsupervised,
-        "S2QcF4_flat_type_count": fig_c_flat_type_count,
-        "S2QcF5_flat_type_floor_area_distribution": fig_c_floor_area,
-        "S2QcF6_flat_type_resale_price_distribution": fig_c_resale_price,
-        "S2QcF7_supervised_model_summary": fig_c_supervised,
-        "S2QcF8_supervised_confusion": fig_c_supervised_confusion,
+        "S2QcF4_unsupervised_floor_area_price_scatter": fig_c_unsupervised_scatter,
+        "S2QcF5_flat_type_count": fig_c_flat_type_count,
+        "S2QcF6_flat_type_floor_area_distribution": fig_c_floor_area,
+        "S2QcF7_flat_type_resale_price_distribution": fig_c_resale_price,
+        "S2QcF8_supervised_model_summary": fig_c_supervised,
+        "S2QcF9_supervised_confusion": fig_c_supervised_confusion,
     }
 
 
@@ -820,15 +1152,17 @@ def build_question_c_summary_lines(result: dict[str, object]) -> list[str]:
         ),
         "",
         "### Unsupervised Track",
-        f"Recovered segments: **{result['unsupervised']['cluster_count']}** to align with the primary HDB flat categories.",
-        f"Unsupervised k candidates evaluated: **{len(result['unsupervised']['k_comparison'])}**.",
+        f"Recovered segments per method: **{result['unsupervised']['cluster_count']}**.",
+        f"Unsupervised methods evaluated: **{len(result['unsupervised']['method_comparison'])}**.",
+        f"Selected unsupervised method: **{result['unsupervised']['method_name']}**.",
         (
-            f"Mapped full-sample accuracy for the fixed **{result['unsupervised']['cluster_count']}-cluster** solution after segment-to-flat-type assignment: **{result['unsupervised']['accuracy']:.3f}**."
+            f"Mapped full-sample accuracy for the selected **{result['unsupervised']['method_name']}** solution after majority-vote cluster-to-flat-type assignment: **{result['unsupervised']['accuracy']:.3f}**."
             if not pd.isna(result['unsupervised']['accuracy'])
             else "Mapped full-sample accuracy is unavailable because no segment could be assigned to a flat type."
         ),
-        "The elbow plot is exported as a supporting diagnostic so the fixed 7-cluster choice can be compared against nearby k values.",
-        f"Downstream pricing still uses the time-aware holdout ({result['unsupervised']['holdout_period_start']} to {result['unsupervised']['holdout_period_end']}): RMSE with known flat type vs recovered segment is **{result['unsupervised']['pricing_with_known_flat_type_rmse']:,.0f} vs {result['unsupervised']['pricing_with_recovered_segment_rmse']:,.0f}**.",
+        "A segment-by-flat-type crosstab is exported so cluster purity can be inspected directly, separate from the majority-vote mapping used for accuracy.",
+        "The method comparison chart is exported so KMeans, Gaussian mixture, agglomerative clustering, and Birch can be compared directly on full-sample mapped accuracy, silhouette score, Davies-Bouldin score, and downstream pricing RMSE.",
+        f"Full-sample pricing RMSE with known flat type vs recovered segment is **{result['unsupervised']['pricing_with_known_flat_type_rmse']:,.0f} vs {result['unsupervised']['pricing_with_recovered_segment_rmse']:,.0f}**.",
         "",
         "### Supervised Track",
         f"Selected classifier: **{result['supervised']['best_model']}**.",
@@ -866,11 +1200,12 @@ def run_question_c_workflow(
         json.dump(
             {
                 **{key: value for key, value in result['unsupervised'].items() if
-                   key not in {'segment_summary', 'test_assignments', 'per_class_accuracy', 'k_comparison'}},
+                   key not in {'segment_summary', 'segment_flat_type_crosstab', 'assignments', 'per_class_accuracy', 'method_comparison'}},
                 'segment_summary': result['unsupervised']['segment_summary'].to_dict('records'),
-                'test_assignments': result['unsupervised']['test_assignments'].to_dict('records'),
+                'segment_flat_type_crosstab': result['unsupervised']['segment_flat_type_crosstab'].to_dict('records'),
+                'assignments': result['unsupervised']['assignments'].to_dict('records'),
                 'per_class_accuracy': result['unsupervised']['per_class_accuracy'].to_dict('records'),
-                'k_comparison': result['unsupervised']['k_comparison'].to_dict('records'),
+                'method_comparison': result['unsupervised']['method_comparison'].to_dict('records'),
             },
             handle,
             indent=2,
@@ -886,8 +1221,12 @@ def run_question_c_workflow(
         REPORTS / f"S2Qc_unsupervised_per_class_accuracy{artifact_suffix}.csv",
         index=False,
     )
-    result["unsupervised"]["k_comparison"].to_csv(
-        REPORTS / f"S2Qc_unsupervised_k_comparison{artifact_suffix}.csv",
+    result["unsupervised"]["segment_flat_type_crosstab"].to_csv(
+        REPORTS / f"S2Qc_unsupervised_segment_flat_type_crosstab{artifact_suffix}.csv",
+        index=False,
+    )
+    result["unsupervised"]["method_comparison"].to_csv(
+        REPORTS / f"S2Qc_unsupervised_method_comparison{artifact_suffix}.csv",
         index=False,
     )
     return {
@@ -925,9 +1264,9 @@ def main() -> None:
     REPORTS.mkdir(parents=True, exist_ok=True)
     frame = _load_frame()
     result = evaluate_question3_pricing_impact(frame)
+
     result["supervised"]["test_predictions"].to_csv(REPORTS / "S2Qc_supervised_eval_predictions.csv", index=False)
-    result["unsupervised"]["test_assignments"].to_csv(REPORTS / "S2Qc_unsupervised_eval_predictions.csv",
-                                                      index=False)
+    result["unsupervised"]["assignments"].to_csv(REPORTS / "S2Qc_unsupervised_eval_predictions.csv", index=False)
     result["supervised"]["per_class_accuracy"].to_csv(
         REPORTS / "S2Qc_supervised_per_class_accuracy.csv",
         index=False,
@@ -936,8 +1275,12 @@ def main() -> None:
         REPORTS / "S2Qc_unsupervised_per_class_accuracy.csv",
         index=False,
     )
-    result["unsupervised"]["k_comparison"].to_csv(
-        REPORTS / "S2Qc_unsupervised_k_comparison.csv",
+    result["unsupervised"]["segment_flat_type_crosstab"].to_csv(
+        REPORTS / "S2Qc_unsupervised_segment_flat_type_crosstab.csv",
+        index=False,
+    )
+    result["unsupervised"]["method_comparison"].to_csv(
+        REPORTS / "S2Qc_unsupervised_method_comparison.csv",
         index=False,
     )
     result["flat_type_distribution_summary"].to_csv(

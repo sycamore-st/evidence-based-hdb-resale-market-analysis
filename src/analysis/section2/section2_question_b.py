@@ -1415,6 +1415,7 @@ def score_transaction(
         catboost_tuning_iterations: int = DEFAULT_CATBOOST_TUNING_ITERATIONS,
 ) -> dict[str, object]:
     options = options or {}
+
     LOGGER.info("Question B start")
     normalized_subject = _normalize_subject(subject)
     min_year = int(options.get("min_year", DEFAULT_QUESTION_B_MIN_YEAR))
@@ -1423,6 +1424,7 @@ def score_transaction(
     run_random_split_validation = bool(options.get("run_random_split_validation", False))
     rebase_time_index_to_1990 = bool((options.get("adjustment_config") or {}).get("rebase_time_index_to_1990", False))
     time_rebase_lookup = _build_time_rebase_lookup(frame) if rebase_time_index_to_1990 else None
+
     evaluation_frame = _build_question_b_evaluation_frame(
         frame,
         min_year=min_year,
@@ -1436,6 +1438,7 @@ def score_transaction(
         baseline_only,
         min_year,
     )
+
     features, categorical, numeric = get_question_b_features(
         evaluation_frame,
         include_optional=not baseline_only,
@@ -1443,6 +1446,7 @@ def score_transaction(
     comparable_context = None
     if use_comparables:
         comparable_context = _build_comparable_context(comparable_frame)
+
     resolved_subject = resolve_subject_features(
         normalized_subject,
         evaluation_frame,
@@ -2309,6 +2313,7 @@ def run_question_b_workflow(
         artifact_suffix: str = "",
 ) -> dict[str, object]:
     question_b_options = question_b_options or {}
+
     result = score_transaction(
         TARGET_TRANSACTION,
         frame,
@@ -2318,8 +2323,10 @@ def run_question_b_workflow(
         tune_catboost=tune_catboost,
         catboost_tuning_iterations=catboost_tuning_iterations,
     )
-    pd.DataFrame(result['candidate_metrics']).to_csv(REPORTS / f"S2Qb_model_comparison{artifact_suffix}.csv",
-                                                     index=False)
+    pd.DataFrame(result['candidate_metrics']).to_csv(
+        REPORTS / f"S2Qb_model_comparison{artifact_suffix}.csv",
+        index=False
+    )
     pd.DataFrame([{
         "actual_price": result["actual_price"],
         "expected_price": result["expected_price"],

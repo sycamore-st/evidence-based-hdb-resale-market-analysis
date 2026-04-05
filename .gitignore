@@ -10,7 +10,7 @@ __pycache__/
 *.pyo
 *.pyd
 *.html
-#*.svg
+*.svg
 *.csv
 #*.png
 #*.txt
@@ -35,6 +35,9 @@ outputs/section1/results/*.twbx
 outputs/section1/results/final/town_indicator_svgs/
 outputs/section1/results/final/town_indicator_pngs/
 outputs/section3/charts/*.png
+outputs/section2/charts/*.svg
+outputs/section3/charts/*.svg
+outputs_submission/
 
 *.parquet
 

@@ -78,6 +78,22 @@ def _compact_amount(value: float) -> str:
     return f"{value:,.0f}"
 
 
+def _model_results_from_metrics(metrics: list[dict[str, object]]) -> list[ModelResult]:
+    return [
+        ModelResult(
+            name=str(metric["name"]),
+            mae=float(metric["mae"]),
+            rmse=float(metric["rmse"]),
+            mape=float(metric["mape"]),
+            r2=float(metric["r2"]),
+            fit_seconds=float(metric.get("fit_seconds", 0.0)),
+            predict_seconds=float(metric.get("predict_seconds", 0.0)),
+            total_seconds=float(metric.get("total_seconds", 0.0)),
+        )
+        for metric in metrics
+    ]
+
+
 def _build_question_a_candidates() -> dict[str, object]:
     return {
         "linear_regression": LinearRegression(),
@@ -112,6 +128,7 @@ def _question_a_age_bucket(value: object, *, width: int = 5) -> float:
 
 
 def _prepare_question_a_diagnostic_frame(frame: pd.DataFrame) -> pd.DataFrame:
+
     enriched = _augment_regression_features(frame)
     sample = enriched.loc[
         enriched["transaction_year"].eq(2014),
@@ -120,6 +137,7 @@ def _prepare_question_a_diagnostic_frame(frame: pd.DataFrame) -> pd.DataFrame:
     sample["flat_age_bucket"] = sample["flat_age"].map(_question_a_age_bucket)
     sample = sample.dropna(subset=["year", "town", "flat_type", "flat_age", "resale_price"]).copy()
     sample = _with_log_resale_target(sample)
+
     return _sample_if_needed(sample, MAX_REGRESSION_SAMPLE)
 
 
@@ -143,7 +161,10 @@ def _build_question_a_controlled_variation_summary(frame: pd.DataFrame, *, top_n
         lambda row: f"{row['town']} | {row['flat_type']} | age {int(row['flat_age_bucket'])}-{int(row['flat_age_bucket']) + 4}",
         axis=1,
     )
-    return summary.sort_values(["transaction_count", "price_iqr"], ascending=[False, False]).head(top_n).reset_index(drop=True)
+    return summary.sort_values(
+        ["transaction_count", "price_iqr"],
+        ascending=[False, False]
+    ).head(top_n).reset_index(drop=True)
 
 
 def _build_question_a_imputation_correlation(frame: pd.DataFrame) -> pd.DataFrame:
@@ -426,17 +447,18 @@ def _apply_question_a_imputation_scenario(
     return scenario_frame, reference_summary
 
 
-def build_question_a_frame(frame: pd.DataFrame) -> pd.DataFrame:
+def build_question_a_frame(
+        frame: pd.DataFrame, *,
+        include_transaction_month: bool = False
+) -> pd.DataFrame:
     sample = _prepare_question_a_diagnostic_frame(frame)
-    official = sample[QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price", "transaction_year"]].copy()
-    official = _with_log_resale_target(official)
-    return official
-
-
-def _build_question_a_model_frame(frame: pd.DataFrame) -> pd.DataFrame:
-    sample = _prepare_question_a_diagnostic_frame(frame)
-    official = sample[QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price", "transaction_month",
-                                                      "transaction_year"]].copy()
+    extra_columns = ["floor_area_sqm", "resale_price"]
+    if include_transaction_month:
+        extra_columns.append("transaction_month")
+    extra_columns.append("transaction_year")
+    official = sample[
+        QUESTION_A_OFFICIAL_FEATURES + extra_columns
+    ].copy()
     official = _with_log_resale_target(official)
     return official
 
@@ -453,13 +475,18 @@ def _build_question_a_temporal_split(
         *,
         window_label: str = QUESTION_A_MAIN_TRAINING_WINDOW,
 ) -> dict[str, object]:
+
     enriched = _augment_regression_features(frame)
+
     sample = enriched.loc[
         enriched["transaction_year"] <= 2014,
         QUESTION_A_DIAGNOSTIC_FEATURES + ["resale_price", "transaction_month", "transaction_year"],
     ].copy()
+
     sample["flat_age_bucket"] = sample["flat_age"].map(_question_a_age_bucket)
-    sample = sample.dropna(subset=["flat_type", "town", "flat_age", "floor_area_sqm", "resale_price"]).copy()
+    sample = sample.dropna(
+        subset=["flat_type", "town", "flat_age", "floor_area_sqm", "resale_price"]
+    ).copy()
     sample = _with_log_resale_target(sample)
 
     train_pool = sample.loc[sample["transaction_year"] < 2014].copy()
@@ -479,11 +506,13 @@ def _build_question_a_temporal_split(
 
     train_frame["holdout_row_id"] = np.arange(len(train_frame), dtype=int)
     test_frame["holdout_row_id"] = np.arange(len(test_frame), dtype=int)
+
     official_train_frame = _with_log_resale_target(
         train_frame[
             QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price", "transaction_month", "transaction_year"]
         ].copy()
     )
+
     official_test_frame = _with_log_resale_target(
         test_frame[
             QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price", "transaction_month", "transaction_year"]
@@ -565,18 +594,27 @@ def predict_simplified_price(
         subject: dict[str, object],
         frame: pd.DataFrame | None = None,
         *,
+        test_best_impute_method: bool = False,
+        refit_best_model: bool = False,
         tune_xgboost: bool = False,
         xgboost_tuning_iterations: int = DEFAULT_XGBOOST_TUNING_ITERATIONS,
 ) -> dict[str, object]:
+
     if frame is None:
         frame = _load_frame()
+
     LOGGER.info("Question A start")
     diagnostic_sample = _prepare_question_a_diagnostic_frame(frame)
-    temporal_split = _build_question_a_temporal_split(frame, window_label=QUESTION_A_MAIN_TRAINING_WINDOW)
+    temporal_split = _build_question_a_temporal_split(
+        frame,
+        window_label=QUESTION_A_MAIN_TRAINING_WINDOW
+    )
+
     controlled_variation_summary = _build_question_a_controlled_variation_summary(diagnostic_sample)
     imputation_correlation = _build_question_a_imputation_correlation(diagnostic_sample)
     floor_area_by_flat_type = _build_question_a_floor_area_by_flat_type_summary(diagnostic_sample)
     feature_handling_table = _build_question_a_feature_handling_table()
+
     LOGGER.info("Question A diagnostic sample prepared with %d rows", len(diagnostic_sample))
     train_frame = temporal_split["train_frame"].copy()
     test_frame = temporal_split["test_frame"].copy()
@@ -610,32 +648,41 @@ def predict_simplified_price(
         float(official_best_metrics["mae"]),
         float(official_best_metrics["r2"]),
     )
-    eval_log_predictions = official_fit["best_pipeline"].predict(split["test_frame"][QUESTION_A_OFFICIAL_FEATURES])
+    eval_log_predictions = official_fit["best_pipeline"].predict(
+        split["test_frame"][QUESTION_A_OFFICIAL_FEATURES]
+    )
     eval_predictions = _recover_direct_resale_price(eval_log_predictions)
-    eval_predictions_frame = split["test_frame"][
-        [column for column in ["transaction_month", "town", "flat_type", "flat_age", "resale_price"] if
-         column in split["test_frame"].columns]
-    ].copy()
+    eval_columns = [
+            column for column in ["transaction_month", "town", "flat_type", "flat_age", "resale_price"]
+            if column in split["test_frame"].columns
+        ]
+    eval_predictions_frame = split["test_frame"][eval_columns].copy()
     eval_predictions_frame["actual_price"] = eval_predictions_frame["resale_price"]
     eval_predictions_frame["predicted_price"] = eval_predictions
 
-    official_pipeline = Pipeline(
-        [
-            ("preprocessor", _price_preprocessor(["flat_type", "town"], ["flat_age"])),
-            ("model", _estimator_for_refit(official_fit["best_estimator"])),
-        ]
-    )
-    official_training_sample = _with_log_resale_target(
-        train_frame[QUESTION_A_OFFICIAL_FEATURES + ["resale_price"]].copy()
-    )
-    official_pipeline.fit(official_training_sample[QUESTION_A_OFFICIAL_FEATURES],
-                          official_training_sample["log_resale_price"])
+    if refit_best_model:
+        official_pipeline = Pipeline(
+            [
+                ("preprocessor", _price_preprocessor(["flat_type", "town"], ["flat_age"])),
+                ("model", _estimator_for_refit(official_fit["best_estimator"])),
+            ]
+        )
+        official_training_sample = _with_log_resale_target(
+            train_frame[QUESTION_A_OFFICIAL_FEATURES + ["resale_price"]].copy()
+        )
+        official_pipeline.fit(
+            official_training_sample[QUESTION_A_OFFICIAL_FEATURES],
+            official_training_sample["log_resale_price"],
+        )
+    else:
+        official_pipeline = official_fit["best_pipeline"]
     official_prediction = float(
         _recover_direct_resale_price(
             official_pipeline.predict(_subject_frame(subject, QUESTION_A_OFFICIAL_FEATURES)),
         )[0]
     )
 
+    # ----------------------------------------------------------------------------
     diagnostic_fit = _fit_direct_price_regression_models(
         train_frame,
         test_frame,
@@ -657,11 +704,16 @@ def predict_simplified_price(
         float(diagnostic_best_metrics["mae"]),
         float(diagnostic_best_metrics["r2"]),
     )
+
+    imputation_methods = QUESTION_A_IMPUTATION_METHODS if test_best_impute_method else ("baseline",)
+
     imputed_metrics: list[dict[str, object]] = []
     imputation_reference_frames: list[pd.DataFrame] = []
     diagnostic_eval_frames: list[pd.DataFrame] = []
-    for method in QUESTION_A_IMPUTATION_METHODS:
-        scenario_test_frame, reference_summary = _apply_question_a_imputation_scenario(test_frame, train_frame, method)
+    for method in imputation_methods:
+        scenario_test_frame, reference_summary = _apply_question_a_imputation_scenario(
+            test_frame, train_frame, method
+        )
         imputation_reference_frames.append(reference_summary)
         for metric in diagnostic_fit["candidate_metrics"]:
             model_name = str(metric["name"])
@@ -705,22 +757,29 @@ def predict_simplified_price(
         xgboost_tuning_iterations=xgboost_tuning_iterations,
     )
 
-    diagnostic_pipeline = Pipeline(
-        [
-            ("preprocessor", _price_preprocessor(["town", "flat_type"],
-                                                 ["year", "flat_age", "floor_area_sqm", "min_floor_level",
-                                                  "max_floor_level"])),
-            ("model", _estimator_for_refit(diagnostic_fit["best_estimator"])),
-        ]
-    )
-    diagnostic_pipeline.fit(train_frame[QUESTION_A_DIAGNOSTIC_FEATURES], train_frame["log_resale_price"])
+    if refit_best_model:
+        diagnostic_pipeline = Pipeline(
+            [
+                ("preprocessor", _price_preprocessor(["town", "flat_type"],
+                                                     ["year", "flat_age", "floor_area_sqm", "min_floor_level",
+                                                      "max_floor_level"])),
+                ("model", _estimator_for_refit(diagnostic_fit["best_estimator"])),
+            ]
+        )
+        diagnostic_pipeline.fit(
+            train_frame[QUESTION_A_DIAGNOSTIC_FEATURES],
+            train_frame["log_resale_price"]
+        )
+    else:
+        diagnostic_pipeline = diagnostic_fit["best_pipeline"]
     normalized_subject = _normalize_subject(subject)
     normalized_subject.setdefault("year", 2014.0)
     normalized_subject["flat_age_bucket"] = _question_a_age_bucket(normalized_subject.get("flat_age"))
     subject_reference = _build_question_a_imputation_reference(train_frame, normalized_subject)
+
     prediction_under_imputations: list[dict[str, object]] = []
     prediction_lookup: dict[str, float] = {}
-    for method in QUESTION_A_IMPUTATION_METHODS:
+    for method in imputation_methods:
         scenario_subject = dict(normalized_subject)
         for feature, value in subject_reference["values"][method].items():
             scenario_subject[feature] = value
@@ -781,21 +840,30 @@ def predict_simplified_price(
             float(imputation_range_backtest_summary["average_range_width_pct_of_actual"]) * 100.0,
             int(imputation_range_backtest_summary["sample_count"]),
         )
-    recommended_low_candidates = np.asarray(
-        [prediction_lookup.get("p25", np.nan), prediction_lookup.get("null", np.nan)], dtype=float)
-    recommended_high_candidates = np.asarray(
-        [prediction_lookup.get("p75", np.nan), prediction_lookup.get("most_frequent", np.nan)], dtype=float)
-    recommended_low = float(np.nanmin(recommended_low_candidates)) if np.isfinite(
-        recommended_low_candidates).any() else np.nan
-    recommended_mid = float(prediction_lookup.get("baseline", np.nan))
-    recommended_high = float(np.nanmax(recommended_high_candidates)) if np.isfinite(
-        recommended_high_candidates).any() else np.nan
-    uncertainty_summary = (
-        f"With only coarse attributes, practical backtest MAPE is around {backtest_error_low:.0%} to {backtest_error_high:.0%} "
-        "because many flats share the same visible attributes but differ in size and floor."
-        if np.isfinite(backtest_error_low) and np.isfinite(backtest_error_high)
-        else "Imputation-based uncertainty could not be summarized from the current holdout."
-    )
+    if test_best_impute_method:
+        recommended_low_candidates = np.asarray(
+            [prediction_lookup.get("p25", np.nan), prediction_lookup.get("null", np.nan)], dtype=float)
+        recommended_high_candidates = np.asarray(
+            [prediction_lookup.get("p75", np.nan), prediction_lookup.get("most_frequent", np.nan)], dtype=float)
+        recommended_low = float(np.nanmin(recommended_low_candidates)) if np.isfinite(
+            recommended_low_candidates).any() else np.nan
+        recommended_mid = float(prediction_lookup.get("baseline", np.nan))
+        recommended_high = float(np.nanmax(recommended_high_candidates)) if np.isfinite(
+            recommended_high_candidates).any() else np.nan
+        uncertainty_summary = (
+            f"With only coarse attributes, practical backtest MAPE is around {backtest_error_low:.0%} to {backtest_error_high:.0%} "
+            "because many flats share the same visible attributes but differ in size and floor."
+            if np.isfinite(backtest_error_low) and np.isfinite(backtest_error_high)
+            else "Imputation-based uncertainty could not be summarized from the current holdout."
+        )
+    else:
+        recommended_mid = float(prediction_lookup.get("baseline", np.nan))
+        recommended_low = recommended_mid
+        recommended_high = recommended_mid
+        uncertainty_summary = (
+            "Imputation stress testing was skipped; the baseline imputation profile was used for the hidden fields."
+        )
+
     LOGGER.info(
         "Question A complete | official_best_model=%s official_rmse=%.0f diagnostic_best_model=%s diagnostic_rmse=%.0f predicted_price=%.0f",
         official_fit["best_model"],
@@ -804,6 +872,7 @@ def predict_simplified_price(
         float(diagnostic_best_metrics["rmse"]),
         official_prediction,
     )
+
     return {
         "features": QUESTION_A_OFFICIAL_FEATURES,
         "diagnostic_features": QUESTION_A_DIAGNOSTIC_FEATURES,
@@ -822,6 +891,8 @@ def predict_simplified_price(
         "imputation_summaries": imputation_summaries,
         "prediction_under_imputations": prediction_under_imputations,
         "reference_imputation_values": subject_reference["values"],
+        "tested_imputation_methods": list(imputation_methods),
+        "test_best_impute_method": bool(test_best_impute_method),
         "recommended_prediction_range": {
             "low": recommended_low,
             "mid": recommended_mid,
@@ -840,6 +911,7 @@ def predict_simplified_price(
         "feature_handling_table": feature_handling_table,
         "split_holdout_months": [month.strftime("%Y-%m") for month in split["holdout_months"]],
         "split_method": f"temporal_holdout_train_before_2014_eval_2014_{QUESTION_A_MAIN_TRAINING_WINDOW}",
+        "refit_best_model": bool(refit_best_model),
         "model_pipeline": official_pipeline,
         "diagnostic_model_pipeline": diagnostic_pipeline,
         "eval_predictions_frame": eval_predictions_frame,
@@ -1758,19 +1830,7 @@ def _load_question_a_reports_bundle(*, artifact_suffix: str = "") -> dict[str, o
 
 
 def build_question_a_summary_lines(result: dict[str, object]) -> list[str]:
-    question_a_results = [
-        ModelResult(
-            name=str(metric["name"]),
-            mae=float(metric["mae"]),
-            rmse=float(metric["rmse"]),
-            mape=float(metric["mape"]),
-            r2=float(metric["r2"]),
-            fit_seconds=float(metric.get("fit_seconds", 0.0)),
-            predict_seconds=float(metric.get("predict_seconds", 0.0)),
-            total_seconds=float(metric.get("total_seconds", 0.0)),
-        )
-        for metric in result["candidate_metrics"]
-    ]
+    question_a_results = _model_results_from_metrics(result["candidate_metrics"])
     observed_table = pd.DataFrame(result["candidate_metrics_observed"])
     imputed_table = pd.DataFrame(result["candidate_metrics_imputed"])
     training_window_table = pd.DataFrame(result["training_window_sensitivity"])
@@ -1835,6 +1895,8 @@ def build_question_a_summary_lines(result: dict[str, object]) -> list[str]:
 def run_question_a_workflow(
         frame: pd.DataFrame,
         *,
+        test_best_impute_method: bool = False,
+        refit_best_model: bool = False,
         tune_xgboost: bool = False,
         xgboost_tuning_iterations: int = DEFAULT_XGBOOST_TUNING_ITERATIONS,
         artifact_suffix: str = "",
@@ -1847,24 +1909,15 @@ def run_question_a_workflow(
             "flat_age": 2017 - TARGET_TRANSACTION["lease_commence_date"],
         },
         frame=frame,
+        test_best_impute_method=test_best_impute_method,
+        refit_best_model=refit_best_model,
         tune_xgboost=tune_xgboost,
         xgboost_tuning_iterations=xgboost_tuning_iterations,
     )
 
-    question_a_results = [
-        ModelResult(
-            name=str(metric["name"]),
-            mae=float(metric["mae"]),
-            rmse=float(metric["rmse"]),
-            mape=float(metric["mape"]),
-            r2=float(metric["r2"]),
-            fit_seconds=float(metric.get("fit_seconds", 0.0)),
-            predict_seconds=float(metric.get("predict_seconds", 0.0)),
-            total_seconds=float(metric.get("total_seconds", 0.0)),
-        )
-        for metric in result["candidate_metrics"]
-    ]
-    
+    question_a_results = _model_results_from_metrics(result["candidate_metrics"])
+
+    # ----------------------------------------------------
     pd.DataFrame([asdict(row) for row in question_a_results]).to_csv(
         REPORTS / f"S2Qa_model_comparison{artifact_suffix}.csv", 
         index=False
@@ -1908,6 +1961,7 @@ def run_question_a_workflow(
                                                            index=False)
     result["diagnostic_eval_predictions_frame"].to_csv(
         REPORTS / f"S2Qa_imputed_holdout_predictions{artifact_suffix}.csv", index=False)
+
     return {
         "result": result,
         "summary_lines": build_question_a_summary_lines(result),
@@ -1921,7 +1975,6 @@ def run_question_a_workflow(
 __all__ = [
     "_build_question_a_candidates",
     "_build_question_a_imputation_reference",
-    "_build_question_a_model_frame",
     "_prepare_question_a_diagnostic_frame",
     "build_question_a_figures",
     "build_question_a_frame",
@@ -1933,6 +1986,7 @@ __all__ = [
 
 
 def main() -> None:
+
     parser = argparse.ArgumentParser(description="Run Section 2 Question A only.")
     parser.add_argument("--skip-plotly", action="store_true", help="Skip writing Plotly HTML artifacts.")
     parser.add_argument(
@@ -1941,6 +1995,16 @@ def main() -> None:
         help="Reuse saved Question A CSV outputs to rebuild charts without rerunning the models.",
     )
     parser.add_argument("--tune-xgboost", action="store_true", help="Enable lightweight XGBoost tuning.")
+    parser.add_argument(
+        "--test-best-impute-method",
+        action="store_true",
+        help="Run the full Question A imputation stress test instead of using only the baseline imputation.",
+    )
+    parser.add_argument(
+        "--refit-best-model",
+        action="store_true",
+        help="Refit the selected best model before producing the final subject-level predictions.",
+    )
     parser.add_argument(
         "--xgboost-tuning-iterations",
         type=int,
@@ -1961,11 +2025,15 @@ def main() -> None:
 
     else:
         frame = _load_frame()
+
         workflow = run_question_a_workflow(
             frame=frame,
+            test_best_impute_method=args.test_best_impute_method,
+            refit_best_model=args.refit_best_model,
             tune_xgboost=args.tune_xgboost,
             xgboost_tuning_iterations=args.xgboost_tuning_iterations,
         )
+
         result = workflow["result"]
         result["eval_predictions_frame"].to_csv(REPORTS / "S2Qa_eval_predictions.csv", index=False)
 

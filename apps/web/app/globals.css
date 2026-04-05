@@ -2088,6 +2088,21 @@ a {
 }
 
 .article-page-c {
+  --article-font-serif: Charter, Georgia, Arial, serif;
+  --article-font-mono: "JetBrains Mono", "SFMono-Regular", "Menlo", monospace;
+  --article-body-size: 1.06rem;
+  --article-body-line-height: 1.46;
+  --article-block-gap: 0.08rem;
+  --article-heading-gap-top: 1.5rem;
+  --article-heading-gap-bottom: 0rem;
+  --article-heading-line-height: 1.02;
+  --article-h2-size: clamp(1.16rem, 1.5vw, 1.38rem);
+  --article-h3-size: 1rem;
+  --article-h4-size: 0.94rem;
+  --article-block-margin: 0.2rem 0;
+  --article-code-size: 0.9rem;
+  --article-code-line-height: 1.32;
+  --article-table-size: 0.92rem;
   padding: 0;
   background: #f7f1e4;
 }
@@ -2105,8 +2120,8 @@ a {
   min-height: 100vh;
   display: grid;
   grid-template-rows: auto 1fr auto auto;
-  gap: 2rem;
-  padding: 2rem 2rem 1.6rem;
+  gap: 1.6rem;
+  padding: 1.7rem 1.8rem 1.4rem;
   color: rgba(255, 249, 238, 0.96);
   background:
     radial-gradient(circle at 62% 18%, rgba(244, 217, 171, 0.42), transparent 26%),
@@ -2148,26 +2163,26 @@ a {
 
 .article-panel-c-copy p {
   margin: 0 0 1rem;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: rgba(255, 248, 239, 0.62);
 }
 
 .article-panel-c-copy h1 {
   margin: 0;
   max-width: 11ch;
-  font-size: clamp(2rem, 3.2vw, 3.1rem);
-  line-height: 1.02;
+  font-size: clamp(1.72rem, 2.7vw, 2.55rem);
+  line-height: 1.01;
   letter-spacing: -0.06em;
-  font-family: Georgia, "Iowan Old Style", serif;
+  font-family: var(--article-font-serif);
   font-weight: 600;
 }
 
 .article-panel-c-copy span {
   display: block;
   max-width: 18rem;
-  margin-top: 1.4rem;
-  font-size: 0.9rem;
-  line-height: 1.78;
+  margin-top: 1rem;
+  font-size: 0.82rem;
+  line-height: 1.62;
   color: rgba(255, 249, 238, 0.72);
 }
 
@@ -2184,7 +2199,7 @@ a {
   border-radius: 0;
   border: 0;
   border-bottom: 1px solid rgba(255, 249, 238, 0.34);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: rgba(255, 249, 238, 0.88);
   background: transparent;
 }
@@ -2195,22 +2210,22 @@ a {
 }
 
 .article-panel-c-meta small {
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   color: rgba(255, 249, 238, 0.62);
 }
 
 .article-panel-c-meta strong {
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   color: rgba(255, 249, 238, 0.76);
   font-family: "Avenir Next", "Segoe UI", sans-serif;
 }
 
 .article-content-c {
   display: grid;
-  gap: 1.5rem;
+  gap: 1.15rem;
   min-height: 100vh;
   margin-left: min(30vw, 420px);
-  padding: 1.4rem 2rem 2.5rem;
+  padding: 1.15rem 1.8rem 2.1rem;
   background: rgba(250, 245, 236, 0.96);
 }
 
@@ -2230,7 +2245,7 @@ a {
 
 .article-content-c-topnav nav a,
 .article-content-c-home {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(65, 59, 49, 0.58);
@@ -2262,13 +2277,13 @@ a {
 .article-c-overview-copy p {
   margin: 0;
   max-width: 42rem;
-  font-size: 0.94rem;
-  line-height: 1.85;
+  font-size: var(--article-body-size);
+  line-height: var(--article-body-line-height);
   color: rgba(46, 43, 38, 0.78);
 }
 
 .article-c-overview-copy p + p {
-  margin-top: 1.1rem;
+  margin-top: 0.9rem;
 }
 
 .article-card-c {
@@ -2279,35 +2294,33 @@ a {
   border: 0;
 }
 
-.article-page-c .article-prose h2,
-.article-page-c .article-prose h3,
-.article-page-c .article-prose h4 {
-  font-family: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.04em;
-}
-
 .article-page-c .article-prose p,
 .article-page-c .article-prose li,
 .article-page-c .article-prose td,
 .article-page-c .article-prose th {
-  font-size: 0.87rem;
+  font-size: var(--article-body-size);
+  font-family: var(--article-font-serif);
   color: rgba(39, 36, 31, 0.84);
 }
 
 .article-page-c .article-prose h2,
 .article-page-c .article-prose h3,
 .article-page-c .article-prose h4 {
-  font-family: Georgia, "Iowan Old Style", serif;
-  font-weight: 600;
+  font-family: var(--article-font-serif);
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
 .article-page-c .article-prose h2 {
-  font-size: clamp(1.45rem, 2vw, 1.8rem);
+  font-size: var(--article-h2-size);
 }
 
 .article-page-c .article-prose h3 {
-  font-size: 1.12rem;
+  font-size: var(--article-h3-size);
+}
+
+.article-page-c .article-prose h4 {
+  font-size: var(--article-h4-size);
 }
 
 .article-page-c .article-inline-image {
@@ -2325,8 +2338,9 @@ a {
 
 .article-prose {
   display: grid;
-  gap: 1rem;
+  gap: var(--article-block-gap);
   color: rgba(44, 39, 33, 0.92);
+  font-family: var(--article-font-serif);
 }
 
 .article-prose > :first-child {
@@ -2337,51 +2351,78 @@ a {
 .article-prose h2,
 .article-prose h3,
 .article-prose h4 {
-  margin: 1.6rem 0 0.2rem;
+  margin: var(--article-heading-gap-top) 0 var(--article-heading-gap-bottom);
   color: rgba(31, 27, 22, 0.96);
-  font-family: Georgia, "Iowan Old Style", serif;
-  line-height: 1.08;
+  font-family: var(--article-font-serif);
+  line-height: var(--article-heading-line-height);
   letter-spacing: -0.03em;
 }
 
 .article-prose h2 {
-  font-size: clamp(1.7rem, 2.4vw, 2.2rem);
+  font-size: calc(var(--article-h2-size) * 1.14);
 }
 
 .article-prose h3 {
-  font-size: 1.32rem;
+  font-size: calc(var(--article-h3-size) * 1.09);
+}
+
+.article-prose h4 {
+  font-size: calc(var(--article-h4-size) * 1.07);
 }
 
 .article-prose p,
 .article-prose li,
 .article-prose td,
 .article-prose th {
-  font-size: 1rem;
-  line-height: 1.78;
+  margin-top: 0.8rem;
+  margin-bottom: 0.8rem;
+  font-size: var(--article-body-size);
+  line-height: var(--article-body-line-height);
+  font-family: var(--article-font-serif);
+}
+
+.article-prose li {
+  margin-block-start: 0;
+  margin-block-end: 0;
+  margin: 0.4rem;
+}
+
+.article-prose .katex-display {
+  margin: 0.14rem 0 0.18rem;
 }
 
 .article-prose ul,
 .article-prose ol {
   margin: 0;
-  padding-left: 1.35rem;
+  padding-left: 1.2rem;
+}
+
+.article-prose p + ul,
+.article-prose p + ol {
+  margin-top: -0.35rem;
+  margin-bottom: 0.8rem;
 }
 
 .article-prose code {
-  padding: 0.12rem 0.32rem;
+  display: inline-block;
+  padding: 0.2rem 0.32rem;
   border-radius: 6px;
-  font-size: 0.92em;
+  font-size: 0.75em;
+  line-height: 1.35;
+  vertical-align: baseline;
   background: rgba(127, 147, 156, 0.12);
+  font-family: var(--article-font-mono);
 }
 
 .article-link {
-  color: #3f6774;
+  color: #7b61ff;
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.16em;
 }
 
 .article-figure {
-  margin: 1rem 0;
+  margin: var(--article-block-margin);
   padding: 1rem;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.72);
@@ -2397,8 +2438,9 @@ a {
 }
 
 .article-figure figcaption {
-  margin-top: 0.75rem;
-  font-size: 0.88rem;
+  margin-top: 0.35rem;
+  font-size: calc(var(--article-body-size) * 0.9);
+  line-height: var(--article-body-line-height);
   color: rgba(79, 72, 61, 0.64);
 }
 
@@ -2406,11 +2448,11 @@ a {
   display: block;
   width: 100%;
   height: auto;
-  margin: 1rem 0;
+  margin: var(--article-block-margin);
 }
 
 .article-embed-shell {
-  margin: 1rem 0;
+  margin: var(--article-block-margin);
 }
 
 .article-embed-frame {
@@ -2422,15 +2464,23 @@ a {
 }
 
 .article-quote {
-  margin: 0.4rem 0;
-  padding: 1rem 1.1rem;
+  margin: var(--article-block-margin);
+  margin-block: 0.8rem;
+  padding: 0.7rem 0.9rem;
   border-left: 3px solid rgba(122, 139, 124, 0.48);
   border-radius: 0 18px 18px 0;
   background: rgba(122, 139, 124, 0.08);
 }
 
+.article-quote p {
+  margin: 0;
+  font-size: var(--article-body-size);
+  line-height: var(--article-body-line-height);
+  font-family: var(--article-font-serif);
+}
+
 .article-code-shell {
-  margin: 0.9rem 0;
+  margin: var(--article-block-margin);
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid rgba(28, 23, 18, 0.08);
@@ -2441,7 +2491,7 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.7rem 0.9rem;
+  padding: 0.5rem 0.68rem;
   border-bottom: 1px solid rgba(28, 23, 18, 0.08);
   background: #ece7df;
 }
@@ -2454,8 +2504,8 @@ a {
 }
 
 .article-code-header-chip {
-  font-family: "JetBrains Mono", "SFMono-Regular", "Menlo", monospace;
-  font-size: 0.72rem;
+  font-family: var(--article-font-mono);
+  font-size: 0.68rem;
   color: rgba(73, 67, 59, 0.66);
   text-transform: lowercase;
 }
@@ -2469,16 +2519,16 @@ a {
 
 .article-code-block {
   margin: 0 !important;
-  padding: 0.95rem 0.95rem 1rem !important;
+  padding: 0.72rem 0.78rem 0.76rem !important;
   background: transparent !important;
-  font-size: 0.82rem !important;
-  line-height: 1.72 !important;
-  font-family: "JetBrains Mono", "SFMono-Regular", "Menlo", monospace !important;
+  font-size: var(--article-code-size) !important;
+  line-height: var(--article-code-line-height) !important;
+  font-family: var(--article-font-mono) !important;
 }
 
 .article-code-block code,
 .article-code-block-inner {
-  font-family: "JetBrains Mono", "SFMono-Regular", "Menlo", monospace !important;
+  font-family: var(--article-font-mono) !important;
 }
 
 .article-page-c .article-code-shell {
@@ -2496,7 +2546,7 @@ a {
 
 .article-table-wrap {
   overflow-x: auto;
-  margin: 0.8rem 0;
+  margin: var(--article-block-margin);
   border-top: 1px solid rgba(124, 112, 96, 0.16);
   border-bottom: 1px solid rgba(124, 112, 96, 0.16);
   background: transparent;
@@ -2509,14 +2559,16 @@ a {
 
 .article-table-wrap th,
 .article-table-wrap td {
-  padding: 0.8rem 0.9rem;
+  padding: 0.56rem 0.68rem;
   border-bottom: 1px solid rgba(124, 112, 96, 0.08);
   text-align: left;
+  font-size: var(--article-table-size);
+  line-height: var(--article-body-line-height);
 }
 
 .article-table-wrap th {
-  font-family: Georgia, "Iowan Old Style", serif;
-  font-size: 0.84rem;
+  font-family: var(--article-font-serif);
+  font-size: var(--article-table-size);
   font-weight: 600;
   letter-spacing: -0.02em;
   text-transform: none;

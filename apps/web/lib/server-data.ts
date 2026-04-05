@@ -40,8 +40,12 @@ export function resolvePublicAssetUrl(relativePath: string): string {
     return toRemoteUrl(normalizedPath)
   }
 
-  if (normalizedPath.startsWith("outputs/") || normalizedPath.startsWith("docs/")) {
-    return resolveRepositoryRawUrl(normalizedPath)
+  if (
+    normalizedPath.startsWith("outputs/") ||
+    normalizedPath.startsWith("artifacts/") ||
+    normalizedPath.startsWith("docs/")
+  ) {
+    return `/${normalizedPath}`
   }
 
   return resolveRepositoryBlobUrl(normalizedPath)
