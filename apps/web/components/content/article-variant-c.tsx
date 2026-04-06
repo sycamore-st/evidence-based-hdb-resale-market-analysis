@@ -1,6 +1,7 @@
 import Link from "next/link"
 
 import { ArticlePager } from "@/components/content/article-shell"
+import { ArticleScrollspy } from "@/components/content/article-scrollspy"
 import { MarkdownArticleBody } from "@/components/content/markdown-article-body"
 import type { ArticleDocument, ArticleMeta, ArticleSection } from "@/lib/content"
 
@@ -24,7 +25,6 @@ export function ArticleVariantC({
           <div className="article-panel-c-copy">
             <p>{article.meta.kicker}</p>
             <h1>{article.meta.title}</h1>
-            <span>{article.meta.description}</span>
           </div>
 
           <div className="article-panel-c-actions">
@@ -50,20 +50,13 @@ export function ArticleVariantC({
             </Link>
           </div>
 
-          <div className="article-c-overview">
-            <div className="article-c-overview-copy">
-              <p>{article.meta.description}</p>
-              <p>
-                This version treats the markdown as a designed editorial case page: a fixed narrative panel on the
-                left, and a lighter analysis surface on the right for outputs, figures, and the long-form writeup.
-              </p>
-            </div>
+          <div className="article-reading-layout">
+            <article className="article-card article-card-c">
+              <MarkdownArticleBody body={article.body} />
+              <ArticlePager section={section} previous={previous} next={next} />
+            </article>
+            <ArticleScrollspy />
           </div>
-
-          <article className="article-card article-card-c">
-            <MarkdownArticleBody body={article.body} />
-            <ArticlePager section={section} previous={previous} next={next} />
-          </article>
         </div>
       </section>
     </main>

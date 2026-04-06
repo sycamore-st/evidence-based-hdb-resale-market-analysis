@@ -11,67 +11,86 @@ order: 1
 
 ## Business Context
 
-The business ask is practical and constrained: estimate 2014 HDB resale prices using only three visible attributes:
+This study addresses a specific, constrained objective: estimating 2014 HDB resale prices using only three visible attributes: **town**, **flat type**, and **flat age**.
 
-- town
-- flat type
-- flat age
+While a comprehensive valuation would typically incorporate variables such as floor area, storey level, and precise geographic coordinates, this analysis intentionally restricts the feature set. The goal is to determine the predictive ceiling of these foundational variables and quantify the level of uncertainty that persists when more granular data is unavailable.
 
-This is intentionally restrictive. In real valuation work, we would also include floor area, storey level, and finer location details. Here, the goal is to understand what is possible under limited information, and how much uncertainty remains.
+## Constraints and Requirements
 
-## Constraints And Requirements
+To ensure the model's practical utility, the analysis utilizes a forward-looking temporal split:
 
-The analysis is evaluated in a forward-looking setup:
+- **Training Set:** Transactions occurring prior to 2014.
+- **Testing Set:** Transactions occurring within 2014.
+    
 
-- train on pre-2014 transactions
-- test on 2014 transactions
+This methodology is superior to a random train-test split for real estate applications, as it accounts for shifts in market conditions and policy changes over time.
 
-This design mirrors real usage better than random splitting because resale market conditions shift over time.
-
-## EDA: What The Three Inputs Can Explain
+## EDA: Explanatory Power of the Input Features
 
 <iframe src="/outputs/section2/charts/S2QaF1_controlled_variation.html" title="Price dispersion under same visible features"></iframe>
 
-Even when transactions share the same visible fields, price ranges remain wide. This means hidden attributes still drive substantial variation.
+Exploratory Data Analysis (EDA) reveals significant price dispersion even among transactions sharing identical visible attributes. This variation suggests that "hidden" factors—such as interior condition or proximity to specific amenities—continue to exert substantial influence on market value.
 
 ## Candidate Models
 
-Three models were compared:
+The study evaluated three distinct modeling approaches to identify the most effective predictive architecture:
 
-- linear regression
-- random forest
+- Linear Regression
+    
+- Random Forest
+    
 - XGBoost
+    
 
 <iframe src="/outputs/section2/charts/S2QaF2_model_tradeoff.html" title="Model tradeoff comparison"></iframe>
 
-## What The Results Say
+## Model Comparison and Selection
 
-Holdout performance on 2014 transactions:
+Three models were implemented to satisfy the requirement for a comparative technical analysis:
 
-- XGBoost: RMSE `SGD 51,425`, MAPE `8.44%`, R² `0.826`
-- Linear regression: RMSE `SGD 55,463`, MAPE `8.51%`, R² `0.797`
-- Random forest: RMSE `SGD 53,894`, MAPE `8.87%`, R² `0.809`
+1. **Linear Regression:** Serves as the statistical baseline. It assesses whether the relationship between the features and price is primarily linear and provides a high degree of interpretability.
+    
+    Documentation: [LinearRegression (scikit-learn)](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html)
+    
+2. **Random Forest Regressor:** A bagging-based ensemble method. It is utilized to capture non-parametric, nonlinear relationships and feature interactions without extensive hyperparameter tuning.
+    
+    Documentation: [RandomForestRegressor (scikit-learn)](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html)
+    
+3. **XGBoost Regressor:** A gradient-boosted decision tree framework. It is designed to iteratively minimize residual errors and typically yields high accuracy for tabular data.
+    
+    Documentation: [XGBRegressor (XGBoost Python API)](https://xgboost.readthedocs.io/en/stable/python/python_api.html?highlight=XGBRegressor)
+    
 
-XGBoost is the best overall choice because it consistently outperforms alternatives across all key error metrics while staying computationally efficient.
+### Performance on 2014 Holdout Set
 
-## Why Training Window Choice Matters
+|**Model**|**RMSE**|**MAPE**|**R²**|**Evaluation Summary**|
+|---|---|---|---|---|
+|**Linear Regression**|SGD 55,463|8.51%|0.797|Efficient baseline; fails to account for nonlinear complexities.|
+|**Random Forest**|SGD 53,894|8.87%|0.809|Captures nonlinearity but exhibits higher MAPE and lower efficiency.|
+|**XGBoost**|**SGD 51,425**|**8.44%**|**0.826**|**Optimal performance across all metrics with strong runtime efficiency.**|
+
+**Selected Model:** XGBoost. It achieved the lowest error rates (RMSE and MAPE) and the highest explanatory power (R²) while effectively modeling the nonlinear interactions inherent in the data.
+
+## Impact of Training Window Selection
 
 <iframe src="/outputs/section2/charts/S2QaF4_training_window_sensitivity.html" title="Training window sensitivity"></iframe>
 
-Using all historical years performs much worse than using recent years. The best balance is a recent 3-year window, which is both representative of 2014 market conditions and large enough for stable training.
+The analysis indicates that the selection of the training period is critical. Models trained on all available historical data performed significantly worse than those using a more focused temporal window. A **3-year recent window** was identified as the optimal balance, providing sufficient volume for stable training while remaining representative of 2014 market dynamics.
 
-## Interpretation
+## Interpretation of Results
 
 <iframe src="/outputs/section2/charts/S2QaF3_actual_vs_predicted.html" title="Actual vs predicted resale prices"></iframe>
 
-The model is strong for a three-field setup, but it cannot separate properties that look identical on these visible fields. That residual uncertainty is expected, not a modeling bug.
+The model demonstrates strong predictive performance given the data constraints. However, the residual error represents the "limit of information"; the model cannot distinguish between properties that appear identical based only on town, type, and age. This uncertainty is an expected outcome of the restricted feature set.
 
-## Recommended Decision
+## Recommended Implementation
 
-Use XGBoost with a recent-window training strategy for this constrained prediction task.
+For constrained prediction tasks of this nature, the **XGBoost** model paired with a **recent-window training strategy** is recommended.
 
-Business takeaway:
+**Key Findings:**
 
-- pricing can be estimated reasonably well with minimal inputs
-- a non-trivial error band remains because key property details are intentionally excluded
-- this model is suitable for directional pricing support, not full valuation-grade underwriting
+- HDB resale prices can be estimated with reasonable accuracy using minimal inputs.
+    
+- A persistent error margin exists due to the exclusion of detailed property attributes.
+    
+- The model is appropriate for directional pricing analysis and high-level support, rather than precision valuation-grade underwriting.

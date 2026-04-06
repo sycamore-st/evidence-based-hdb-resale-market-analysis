@@ -6,7 +6,6 @@ export default function Section3Page() {
     <SectionLanding
       section="section3"
       title="Policy and town-level case writeups for Section 3."
-      description="Structured markdown pages for the Section 3 questions, designed as readable web articles with linked figures and outputs."
       articles={listSectionArticles("section3")}
     />
   )
