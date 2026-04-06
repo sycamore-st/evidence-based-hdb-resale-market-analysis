@@ -11,29 +11,28 @@ order: 1
 
 ## Business Context
 
-This study addresses a specific, constrained objective: estimating 2014 HDB resale prices using only three visible attributes: **town**, **flat type**, and **flat age**.
+The task works within a constraint: estimate 2014 HDB resale prices using only three visible attributes: town, flat type, and flat age.
 
-While a comprehensive valuation would typically incorporate variables such as floor area, storey level, and precise geographic coordinates, this analysis intentionally restricts the feature set. The goal is to determine the predictive ceiling of these foundational variables and quantify the level of uncertainty that persists when more granular data is unavailable.
+A real valuation would also use floor area, storey level, and finer location data. This analysis is scoped to the three fields above. The aim is to see how well they perform on their own, and to measure how much uncertainty remains without the additional detail.
 
 ## Constraints and Requirements
 
-To ensure the model's practical utility, the analysis utilizes a forward-looking temporal split:
+The model is trained and tested in a forward-looking setup:
 
-- **Training Set:** Transactions occurring prior to 2014.
-- **Testing Set:** Transactions occurring within 2014.
-    
+- Training set: transactions before 2014
+- Test set: transactions within 2014
 
-This methodology is superior to a random train-test split for real estate applications, as it accounts for shifts in market conditions and policy changes over time.
+This is more appropriate than a random split for real estate, because market conditions change over time. Testing on a later period reflects how the model would actually be used.
 
 ## EDA: Explanatory Power of the Input Features
 
 <iframe src="/outputs/section2/charts/S2QaF1_controlled_variation.html" title="Price dispersion under same visible features"></iframe>
 
-Exploratory Data Analysis (EDA) reveals significant price dispersion even among transactions sharing identical visible attributes. This variation suggests that "hidden" factors—such as interior condition or proximity to specific amenities—continue to exert substantial influence on market value.
+Even among transactions with the same town, flat type, and flat age, prices vary widely. This indicates that unobserved factors — such as interior condition or proximity to specific amenities — still account for a meaningful share of the price difference.
 
 ## Candidate Models
 
-The study evaluated three distinct modeling approaches to identify the most effective predictive architecture:
+Three models were compared:
 
 - Linear Regression
     
@@ -46,18 +45,16 @@ The study evaluated three distinct modeling approaches to identify the most effe
 
 ## Model Comparison and Selection
 
-Three models were implemented to satisfy the requirement for a comparative technical analysis:
+1. **Linear Regression:** The simplest baseline. Assumes a straight-line relationship between the inputs and price. Easy to interpret, and useful for checking whether a linear model is sufficient.
 
-1. **Linear Regression:** Serves as the statistical baseline. It assesses whether the relationship between the features and price is primarily linear and provides a high degree of interpretability.
-    
     Documentation: [LinearRegression (scikit-learn)](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html)
-    
-2. **Random Forest Regressor:** A bagging-based ensemble method. It is utilized to capture non-parametric, nonlinear relationships and feature interactions without extensive hyperparameter tuning.
-    
+
+2. **Random Forest Regressor:** A tree ensemble where each tree is trained on a random subset of the data. Handles nonlinear patterns and interactions between features without much hyperparameter tuning.
+
     Documentation: [RandomForestRegressor (scikit-learn)](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html)
-    
-3. **XGBoost Regressor:** A gradient-boosted decision tree framework. It is designed to iteratively minimize residual errors and typically yields high accuracy for tabular data.
-    
+
+3. **XGBoost Regressor:** A gradient boosting model that builds trees one at a time, each correcting the errors of the previous. Generally performs well on structured tabular data.
+
     Documentation: [XGBRegressor (XGBoost Python API)](https://xgboost.readthedocs.io/en/stable/python/python_api.html?highlight=XGBRegressor)
     
 
@@ -65,32 +62,30 @@ Three models were implemented to satisfy the requirement for a comparative techn
 
 |**Model**|**RMSE**|**MAPE**|**R²**|**Evaluation Summary**|
 |---|---|---|---|---|
-|**Linear Regression**|SGD 55,463|8.51%|0.797|Efficient baseline; fails to account for nonlinear complexities.|
-|**Random Forest**|SGD 53,894|8.87%|0.809|Captures nonlinearity but exhibits higher MAPE and lower efficiency.|
-|**XGBoost**|**SGD 51,425**|**8.44%**|**0.826**|**Optimal performance across all metrics with strong runtime efficiency.**|
+|**Linear Regression**|SGD 55,463|8.51%|0.797|Interpretable baseline; does not capture nonlinear patterns.|
+|**Random Forest**|SGD 53,894|8.87%|0.809|Handles nonlinearity, but has the highest MAPE of the three.|
+|**XGBoost**|SGD 51,425|8.44%|0.826|Lowest RMSE, lowest MAPE, and highest R² across all three models.|
 
-**Selected Model:** XGBoost. It achieved the lowest error rates (RMSE and MAPE) and the highest explanatory power (R²) while effectively modeling the nonlinear interactions inherent in the data.
+Selected model: XGBoost. It produces the lowest RMSE and MAPE, and the highest R², on the 2014 holdout set.
 
 ## Impact of Training Window Selection
 
 <iframe src="/outputs/section2/charts/S2QaF4_training_window_sensitivity.html" title="Training window sensitivity"></iframe>
 
-The analysis indicates that the selection of the training period is critical. Models trained on all available historical data performed significantly worse than those using a more focused temporal window. A **3-year recent window** was identified as the optimal balance, providing sufficient volume for stable training while remaining representative of 2014 market dynamics.
+The training period matters. Models trained on all available historical data performed worse than those using a shorter, more recent window. A 3-year recent window works best here — it is close enough to 2014 to reflect current market conditions, and large enough to train on without instability.
 
 ## Interpretation of Results
 
 <iframe src="/outputs/section2/charts/S2QaF3_actual_vs_predicted.html" title="Actual vs predicted resale prices"></iframe>
 
-The model demonstrates strong predictive performance given the data constraints. However, the residual error represents the "limit of information"; the model cannot distinguish between properties that appear identical based only on town, type, and age. This uncertainty is an expected outcome of the restricted feature set.
+The model produces reasonable estimates given only three inputs. The remaining error comes from what these fields cannot capture — the model has no way to tell apart two properties that look the same on town, type, and age. This is expected when the feature set is this limited.
 
 ## Recommended Implementation
 
-For constrained prediction tasks of this nature, the **XGBoost** model paired with a **recent-window training strategy** is recommended.
+Use XGBoost with a recent 3-year training window for this constrained task.
 
-**Key Findings:**
+Key takeaways:
 
-- HDB resale prices can be estimated with reasonable accuracy using minimal inputs.
-    
-- A persistent error margin exists due to the exclusion of detailed property attributes.
-    
-- The model is appropriate for directional pricing analysis and high-level support, rather than precision valuation-grade underwriting.
+- Reasonable price estimates are possible with just three fields.
+- A persistent error margin remains because key property details are excluded.
+- This model is suited for directional pricing support, not full valuation-grade precision.
