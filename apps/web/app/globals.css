@@ -2099,7 +2099,7 @@ a {
   --article-h2-size: clamp(1.16rem, 1.5vw, 1.38rem);
   --article-h3-size: 1rem;
   --article-h4-size: 0.94rem;
-  --article-block-margin: 0.2rem 0;
+  --article-block-margin: 0.9rem 0;
   --article-code-size: 0.9rem;
   --article-code-line-height: 1.32;
   --article-table-size: 0.92rem;
@@ -2345,6 +2345,7 @@ a {
 
 .article-prose > :first-child {
   margin-top: 0;
+  margin-bottom: 1rem;
 }
 
 .article-prose h1,
@@ -2434,7 +2435,7 @@ a {
   width: 100%;
   height: auto;
   border-radius: 14px;
-  background: rgba(251, 247, 240, 0.9);
+  background: transparent;
 }
 
 .article-figure figcaption {
@@ -2457,10 +2458,20 @@ a {
 
 .article-embed-frame {
   display: block;
-  width: 100%;
-  min-height: 240px;
+  /*width: 100%;*/
+  height: clamp(360px, 58vw, 560px);
+  width: clamp(360px, 58vw, 760px);
+  min-height: 360px;
   border: 0;
+  border-radius: 14px;
   background: transparent;
+}
+
+@media (max-width: 768px) {
+  .article-embed-frame {
+    height: clamp(320px, 88vw, 560px);
+    min-height: 320px;
+  }
 }
 
 .article-quote {
