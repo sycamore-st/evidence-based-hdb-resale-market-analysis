@@ -59,8 +59,17 @@ const ARTICLE_REGISTRY: Record<ArticleSection, ArticleMeta[]> = {
       title: "Question C: Can hidden flat type be recovered reliably?",
       kicker: "Section 2 / Question C",
       description: "A classification and clustering study on whether flat-type recovery preserves downstream pricing quality.",
-      order: 3,
+      order: 4,
       readingLabel: "Recovery of hidden categories",
+    },
+    {
+      section: "section2",
+      slug: "question-b-extended",
+      title: "Question B Extended: Interactive Valuation Workbench",
+      kicker: "Section 2 / Question B (Extended)",
+      description: "An interactive valuation sandbox for transaction-level expected price, local distribution, and comparables.",
+      order: 3,
+      readingLabel: "Interactive valuation workflow",
     },
   ],
   section3: [

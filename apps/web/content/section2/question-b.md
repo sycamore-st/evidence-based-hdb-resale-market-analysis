@@ -11,7 +11,7 @@ order: 2
 
 ## Business Context
 
-We need to evaluate whether a specific resale transaction should be treated as fairly priced or overpriced relative to comparable market behavior.
+The task is to assess whether one specific HDB resale transaction is reasonably priced, underpriced, or overpriced relative to what we would expect from similar transactions.
 
 Subject transaction profile:
 
@@ -23,46 +23,50 @@ Subject transaction profile:
 - transaction month: 2017-11
 - actual price: `SGD 550,800`
 
-## Constraints And Decision Framing
+## Constraints And Requirement
 
-The goal is not to prove causality. The goal is valuation judgment under uncertainty, combining:
+This is a valuation decision problem, not a causal inference exercise. The decision uses three evidence lenses:
 
 - model-based expected price
-- local market distribution context
-- outlier diagnostics
+- comparable-sales context
+- local empirical outlier checks
 
 ## EDA: Local Market Positioning
 
-> Interactive chart pending export: Distribution context around subject transaction.
+<iframe src="/outputs/section2/charts/S2QbF1_distribution_contexts.html" title="Distribution context around subject transaction"></iframe>
 
-> Interactive chart pending export: Local empirical resale distribution.
+In the local cohort around the subject flat (same town and type, with area/age filters), the empirical 95% band is about `SGD 291,000` to `SGD 425,000` (`n=209`), while the realized transaction is `SGD 550,800`.
 
-The transaction sits well above the local empirical high-percentile band, signaling unusual pricing before any model is applied.
+## Solution
 
-## Proposed Solution
+The expected-price model uses richer structural features than Question A, including flat type, town, flat model, floor area, age and remaining lease, storey bounds, and optional location amenities when available.
 
-A supervised expected-price model was trained using richer structural features (type, model, area, age/lease, storey, and location context where available), then evaluated with a temporal holdout.
+Evaluation is done with a temporal holdout split (earlier months for training, later months for testing), which is more realistic than a random split for drifting housing markets.
 
-> Interactive chart pending export: Model accuracy benchmark.
+<iframe src="/outputs/section2/charts/S2QbF4_model_accuracy.html" title="Question B model accuracy comparison"></iframe>
 
 ## Results
 
 Key outputs:
 
-- model expected price: about `SGD 345,182`
-- model 95% interval: about `SGD 283,016` to `SGD 407,347`
+- selected model: `XGBoost`
+- holdout RMSE: about `SGD 31,871`
+- holdout MAPE: about `3.87%`
+- holdout R^2: about `0.979`
+- model expected price for subject: about `SGD 339,332`
+- model-based 95% interval: about `SGD 277,037` to `SGD 401,627`
 - actual transaction: `SGD 550,800`
 
-The gap is large and materially above both model expectation and local historical range.
+Deviation from expected price is about `SGD 211,468` (`+62.3%`). The subject transaction sits outside the model interval and above the local empirical 97.5th percentile.
 
 ## Interpretation
 
-The evidence stack points in one direction:
+All major evidence points in the same direction:
 
-- the subject deal is substantially above expected market value
-- local-distribution evidence reinforces the same conclusion
-- direct comparable support is thinner than ideal, so confidence is best labeled moderate rather than absolute
+- model expectation flags the transaction as materially above expected value
+- local-distribution diagnostics flag it as an outlier (`modified z-score ~ 5.69`)
+- direct comparable-sales support is limited in this run (`0` retained comparables), so confidence should be framed as moderate
 
 ## Recommended Decision
 
-Classify this transaction as likely overpriced, and treat it as a high-priority exception for manual review or negotiation challenge.
+Classify this transaction as likely overpriced and treat it as a high-priority exception for manual review or negotiation challenge, with confidence labeled `Moderate` due to weak comparable coverage.

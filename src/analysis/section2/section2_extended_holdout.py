@@ -47,8 +47,6 @@ EXTENDED_HOLDOUT_CATEGORICAL_CANDIDATES = [
     "month",
     "town",
     "flat_type",
-    "block",
-    "street_name",
     "storey_range",
     "flat_model",
     "remaining_lease",
@@ -59,7 +57,6 @@ EXTENDED_HOLDOUT_CATEGORICAL_CANDIDATES = [
     "nearest_mrt_line",
     "nearest_bus_stop_num",
     "nearest_school_name",
-    "building_key",
     "building_match_status",
 ]
 

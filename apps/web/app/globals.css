@@ -2834,3 +2834,194 @@ a {
 .article-page-c .article-prose .article-link {
   color: #000 !important;
 }
+
+.valuation-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f4f7f9 0%, #ffffff 40%);
+  padding: 2rem 1rem 3rem;
+}
+
+.valuation-shell {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 1.2rem;
+}
+
+.valuation-header {
+  border: 1px solid #d8e1e8;
+  border-radius: 1rem;
+  padding: 1.2rem 1.3rem;
+  background: #ffffff;
+}
+
+.valuation-header p:first-child {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #356682;
+}
+
+.valuation-header h1 {
+  margin: 0.35rem 0;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+}
+
+.valuation-header p {
+  margin: 0;
+  color: #425363;
+}
+
+.valuation-links {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.valuation-links a {
+  color: #0f4f72;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.valuation-workbench {
+  border: 1px solid #d8e1e8;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #ffffff;
+  display: grid;
+  gap: 1rem;
+}
+
+.valuation-scope,
+.valuation-note {
+  margin: 0;
+  color: #445567;
+  font-size: 0.92rem;
+}
+
+.valuation-input-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.7rem;
+}
+
+.valuation-input-grid label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.valuation-input-grid span {
+  font-size: 0.8rem;
+  color: #3f5568;
+}
+
+.valuation-input-grid select,
+.valuation-input-grid input {
+  border: 1px solid #cdd8e0;
+  border-radius: 0.6rem;
+  padding: 0.48rem 0.56rem;
+  font-size: 0.92rem;
+  background: #fff;
+}
+
+.valuation-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.7rem;
+}
+
+.valuation-metric-grid article {
+  border: 1px solid #dbe3ea;
+  border-radius: 0.85rem;
+  padding: 0.75rem 0.82rem;
+  background: #fbfdff;
+}
+
+.valuation-metric-grid p,
+.valuation-metric-grid h3,
+.valuation-metric-grid small {
+  margin: 0;
+}
+
+.valuation-metric-grid p {
+  font-size: 0.8rem;
+  color: #5d6d7b;
+}
+
+.valuation-metric-grid h3 {
+  margin-top: 0.25rem;
+  font-size: 1.05rem;
+}
+
+.valuation-metric-grid small {
+  margin-top: 0.22rem;
+  display: block;
+  color: #617283;
+}
+
+.valuation-chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.valuation-chart-grid article {
+  border: 1px solid #dbe3ea;
+  border-radius: 0.85rem;
+  padding: 0.7rem;
+}
+
+.valuation-chart-grid h3 {
+  margin: 0 0 0.55rem;
+  font-size: 0.95rem;
+}
+
+.valuation-comps {
+  border: 1px solid #dbe3ea;
+  border-radius: 0.85rem;
+  padding: 0.75rem;
+}
+
+.valuation-comps h3,
+.valuation-comps p {
+  margin: 0;
+}
+
+.valuation-comps p {
+  margin-top: 0.35rem;
+  color: #506273;
+  font-size: 0.88rem;
+}
+
+.valuation-table-wrap {
+  margin-top: 0.6rem;
+  overflow-x: auto;
+}
+
+.valuation-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.valuation-table-wrap th,
+.valuation-table-wrap td {
+  border-bottom: 1px solid #edf1f5;
+  text-align: left;
+  padding: 0.42rem 0.3rem;
+}
+
+.valuation-loading,
+.valuation-error {
+  margin: 0;
+  color: #415568;
+}
+
+@media (max-width: 940px) {
+  .valuation-chart-grid {
+    grid-template-columns: 1fr;
+  }
+}
