@@ -11,46 +11,65 @@ order: 1
 
 ## Business Context
 
-Yishun is often viewed as a lower-priced town. The business question is whether that discount is real, or just a byproduct of transacting a different mix of flats.
+Yishun is often viewed as a lower-priced town. The key question is whether that discount is real after controls, or whether it only appears because Yishun transacts a different mix of flats.
 
-## Constraint
+## Constraints And Requirement
 
-A fair comparison must isolate location effect from composition effects. That means controlling for:
+A fair comparison needs to isolate location effect from composition effects. The model therefore controls for:
 
 - flat type
 - flat age
-- transaction period
+- transaction month
+
+EDA is used to build intuition, not to claim a final answer.
 
 ## EDA: Descriptive Signals Before Controls
 
-> Interactive chart pending export: Yishun versus candidate towns.
+<iframe src="/outputs/section3/charts/S3QaF1_yishun_candidate_towns_boxplot.html" title="Yishun versus candidate towns by flat type"></iframe>
 
-> Interactive chart pending export: Price versus space by town.
+<iframe src="/outputs/section3/charts/S3QaF3_yishun_price_vs_space.html" title="Price versus space by town"></iframe>
 
-Yishun appears in the lower-price cluster and offers strong space-for-price value. But EDA alone cannot separate true location discount from composition.
+These views show Yishun in the lower-price cluster with favorable space-for-price positioning, but they cannot separate location discount from transaction composition.
 
-## Proposed Solution
+## Solution
 
-Use controlled regression with town and time controls, then test heterogeneity by flat type.
+The implementation in `section3_question_a.py` uses two related regressions:
 
-> Interactive chart pending export: Controlled coefficient view.
+- baseline fixed-effects-style hedonic model: `log(price_per_sqm) ~ C(town) + C(flat_type) + flat_age + C(year_month)`
+- interaction model: `log(price_per_sqm) ~ C(town) * C(flat_type) + flat_age + C(year_month)`
+
+The baseline model answers whether Yishun is still cheaper after controls. The interaction model checks whether that discount is broad across flat types or concentrated in specific segments.
+
+<iframe src="/outputs/section3/charts/S3QaF2_yishun_simple_regression_coefficients.html" title="Controlled coefficient view"></iframe>
+
+<iframe src="/outputs/section3/charts/S3QaF4_yishun_interaction_effects_by_flat_type.html" title="Yishun interaction effects by flat type"></iframe>
+
+<iframe src="/outputs/section3/charts/S3QaF5_yishun_all_town_dummy_coefficients.html" title="All-town adjusted coefficient comparison"></iframe>
 
 ## Results
 
-Key controlled finding:
+Baseline controlled finding:
 
-- Yishun coefficient is about `-0.237` in log price-per-sqm
-- implied discount is roughly `-21%` versus reference town, after controls
+- Yishun coefficient is about `-0.237` (log points)
+- implied effect is about `-21.1%` versus reference town (`ANG MO KIO`)
+- 95% CI is about `[-21.4%, -20.9%]`
 
-The sign is stable and economically large.
+Interaction model finding (by flat type):
+
+- 4-room: about `-26.2%`
+- 5-room: about `-30.1%`
+- 3-room: about `-11.5%`
+
+The discount is broad-based but strongest in larger flats.
 
 ## Interpretation
 
-The evidence supports the location-value story, not just a mix story:
+The evidence supports a structural value-town story, not only a composition story:
 
-- Yishun remains materially cheaper even after controlling for major observable drivers
-- this makes it a structurally value-oriented town in the resale market context
+- Yishun remains materially cheaper after controlling for flat type, flat age, and month effects
+- the discount is visible across major flat types, not limited to one segment
+- larger flat segments show the strongest value signal in this run
 
 ## Recommended Decision
 
-Frame Yishun as a genuine value location in market communication, while still segmenting by flat type for finer positioning.
+Frame Yishun as a genuine value location in market communication, and segment the message by flat type because the discount magnitude differs across 3-room, 4-room, and 5-room units.

@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from sklearn.cluster import AgglomerativeClustering, Birch, MiniBatchKMeans
+from sklearn.neural_network import BernoulliRBM
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
@@ -15,11 +16,11 @@ from sklearn.metrics import (
     confusion_matrix,
     davies_bouldin_score,
     mean_squared_error,
-    silhouette_score,
 )
 from sklearn.metrics.pairwise import pairwise_distances_argmin
 from sklearn.mixture import GaussianMixture
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 from src.analysis.common.plotly_standard import apply_standard_theme, load_plotly_theme
 from src.analysis.section2.S2_config import (
@@ -56,17 +57,19 @@ REPORTS = SECTION2_OUTPUT_RESULTS
 QUESTION_C_UNSUPERVISED_MAX_TRAIN_SAMPLE = None
 QUESTION_C_UNSUPERVISED_METHOD_TRAIN_SAMPLE = {
     "kmeans": None,
-    "gaussian_mixture": 5_000,
+    "rbm_kmeans": None,
+    "gaussian_mixture": None,
     "agglomerative": 2_000,
     "birch": 5_000,
 }
 QUESTION_C_UNSUPERVISED_METHODS = (
     "kmeans",
-    # "gaussian_mixture",
+    "rbm_kmeans",
+    "gaussian_mixture",
     # "agglomerative",
     # "birch",
 )
-QUESTION_C_UNSUPERVISED_METRIC_SAMPLE = 5_000
+QUESTION_C_UNSUPERVISED_METRIC_SAMPLE: int | None = None
 QUESTION_C_UNSUPERVISED_CATEGORICAL_FEATURES = [
     # "town",
     # "block",
@@ -285,8 +288,10 @@ def _sample_cluster_metric_inputs(
         transformed_features,
         labels: np.ndarray,
         *,
-        max_sample: int = QUESTION_C_UNSUPERVISED_METRIC_SAMPLE,
+        max_sample: int | None = QUESTION_C_UNSUPERVISED_METRIC_SAMPLE,
 ) -> tuple[object, np.ndarray]:
+    if max_sample is None:
+        return transformed_features, labels
     if transformed_features.shape[0] <= max_sample:
         return transformed_features, labels
     sampled_indices = np.random.default_rng(RANDOM_STATE).choice(
@@ -609,6 +614,8 @@ def recover_flat_type_segments_unsupervised(
 
     preprocessor = _classifier_preprocessor(categorical, numeric)
     transformed_full = preprocessor.fit_transform(analysis_frame[features])
+    transformed_feature_scaler = StandardScaler(with_mean=False)
+    transformed_full = transformed_feature_scaler.fit_transform(transformed_full)
     to_dense = lambda values: values.toarray() if hasattr(values, "toarray") else np.asarray(values)
     base_cluster_limit = len(analysis_frame["flat_type"].dropna().astype(str).unique().tolist())
     _ = (tune_xgboost, xgboost_tuning_iterations)
@@ -625,7 +632,7 @@ def recover_flat_type_segments_unsupervised(
                 QUESTION_C_UNSUPERVISED_MAX_TRAIN_SAMPLE,
             ),
         )
-        transformed_fit = preprocessor.transform(method_fit_frame[features])
+        transformed_fit = transformed_feature_scaler.transform(preprocessor.transform(method_fit_frame[features]))
         fit_on_full_data = len(method_fit_frame) == len(analysis_frame)
         max_feasible_clusters = max(
             2,
@@ -649,6 +656,36 @@ def recover_flat_type_segments_unsupervised(
                 model.predict,
                 densify=False,
             )
+            metric_space = transformed_fit
+        elif method_name == "rbm_kmeans":
+            transformed_fit_dense = to_dense(transformed_fit)
+            rbm_input_scaler = MinMaxScaler()
+            fit_scaled = rbm_input_scaler.fit_transform(transformed_fit_dense)
+            rbm_components = int(min(64, max(8, fit_scaled.shape[1] // 2)))
+            rbm = BernoulliRBM(
+                n_components=rbm_components,
+                learning_rate=0.01,
+                batch_size=256,
+                n_iter=20,
+                random_state=RANDOM_STATE,
+                verbose=False,
+            )
+            fit_latent = rbm.fit_transform(fit_scaled)
+            latent_clusterer = MiniBatchKMeans(
+                n_clusters=n_clusters,
+                n_init=5,
+                random_state=RANDOM_STATE,
+                batch_size=2048,
+            )
+            fit_labels = latent_clusterer.fit_predict(fit_latent)
+            full_labels = fit_labels if fit_on_full_data else _predict_clusters_in_chunks(
+                transformed_full,
+                lambda chunk: latent_clusterer.predict(
+                    rbm.transform(rbm_input_scaler.transform(chunk))
+                ),
+                densify=True,
+            )
+            metric_space = fit_latent
         elif method_name == "gaussian_mixture":
             transformed_fit_dense = to_dense(transformed_fit)
             model = GaussianMixture(
@@ -662,6 +699,7 @@ def recover_flat_type_segments_unsupervised(
                 model.predict,
                 densify=True,
             )
+            metric_space = transformed_fit_dense
         elif method_name == "agglomerative":
             transformed_fit_dense = to_dense(transformed_fit)
             model = AgglomerativeClustering(n_clusters=n_clusters, linkage="ward")
@@ -671,6 +709,7 @@ def recover_flat_type_segments_unsupervised(
                 lambda chunk: _assign_clusters_by_centroid(transformed_fit_dense, fit_labels, to_dense(chunk)),
                 densify=False,
             )
+            metric_space = transformed_fit_dense
         elif method_name == "birch":
             transformed_fit_dense = to_dense(transformed_fit)
             model = Birch(n_clusters=n_clusters)
@@ -680,12 +719,12 @@ def recover_flat_type_segments_unsupervised(
                 model.predict,
                 densify=True,
             )
+            metric_space = transformed_fit_dense
         else:
             continue
 
-        metric_features, metric_labels = _sample_cluster_metric_inputs(transformed_fit, np.asarray(fit_labels))
+        metric_features, metric_labels = _sample_cluster_metric_inputs(metric_space, np.asarray(fit_labels))
         metric_features_dense = to_dense(metric_features)
-        silhouette = float(silhouette_score(metric_features_dense, metric_labels)) if len(np.unique(metric_labels)) > 1 else np.nan
         dbi = float(davies_bouldin_score(metric_features_dense, metric_labels)) if len(np.unique(metric_labels)) > 1 else np.nan
         full_segmented = analysis_frame.copy()
         full_segmented["recovered_segment"] = pd.Series(full_labels, index=full_segmented.index).map(lambda value: f"SEGMENT_{value}")
@@ -740,16 +779,13 @@ def recover_flat_type_segments_unsupervised(
             "fit_sample_size": int(len(method_fit_frame)),
             "metric_sample_size": int(len(metric_labels)),
             "accuracy": unsupervised_accuracy,
-            "silhouette_score": silhouette,
             "davies_bouldin_score": dbi,
         }
         method_rows.append(method_row)
         accuracy_for_sort = -np.inf if pd.isna(unsupervised_accuracy) else float(unsupervised_accuracy)
-        silhouette_for_sort = -np.inf if pd.isna(silhouette) else float(silhouette)
         dbi_for_sort = np.inf if pd.isna(dbi) else float(dbi)
         sort_key = (
             -accuracy_for_sort,
-            -silhouette_for_sort,
             dbi_for_sort,
         )
         if best_sort_key is None or sort_key < best_sort_key:
@@ -760,7 +796,6 @@ def recover_flat_type_segments_unsupervised(
                 "fit_sample_size": int(len(method_fit_frame)),
                 "metric_sample_size": int(len(metric_labels)),
                 "accuracy": unsupervised_accuracy,
-                "silhouette_score": silhouette,
                 "davies_bouldin_score": dbi,
                 "segment_to_flat_type_mapping": segment_to_flat_type,
                 "segment_area_order_mapping": area_order_mapping,
@@ -788,15 +823,14 @@ def recover_flat_type_segments_unsupervised(
 
     method_comparison = (
         pd.DataFrame(method_rows)
-        .sort_values(["accuracy", "silhouette_score", "davies_bouldin_score"], ascending=[False, False, True])
+        .sort_values(["accuracy", "davies_bouldin_score"], ascending=[False, True])
         .reset_index(drop=True)
     )
     best_method_name = str(best_result["method_name"])
     LOGGER.info(
-        "Question C unsupervised complete | best_method=%s mapped_accuracy=%.3f silhouette=%.3f dbi=%.3f",
+        "Question C unsupervised complete | best_method=%s mapped_accuracy=%.3f dbi=%.3f",
         best_method_name,
         float(best_result["accuracy"]),
-        float(best_result["silhouette_score"]),
         float(best_result["davies_bouldin_score"]),
     )
     return {
@@ -940,17 +974,17 @@ def build_question_c_figures(result: dict[str, object]) -> dict[str, go.Figure]:
     if not method_comparison.empty:
         fig_c_unsupervised_k.add_bar(
             x=method_comparison["method_name"],
-            y=method_comparison["silhouette_score"],
-            name="Silhouette Score",
+            y=method_comparison["davies_bouldin_score"],
+            name="Davies-Bouldin Score",
             marker_color=theme.alpha(theme.secondary, 0.58),
             marker_line={"color": theme.secondary, "width": 1.2},
-            text=[f"{value:.3f}" for value in method_comparison["silhouette_score"]],
+            text=[f"{value:.3f}" for value in method_comparison["davies_bouldin_score"]],
             textposition="outside",
             cliponaxis=False,
-            customdata=method_comparison[["accuracy", "davies_bouldin_score", "metric_sample_size"]].to_numpy(),
+            customdata=method_comparison[["accuracy", "metric_sample_size"]].to_numpy(),
             hovertemplate=(
-                "Method: %{x}<br>Silhouette score: %{y:.3f}<br>Mapped full-sample accuracy: %{customdata[0]:.3f}"
-                "<br>Davies-Bouldin: %{customdata[1]:.3f}<br>Metric sample size: %{customdata[2]:,.0f}<extra></extra>"
+                "Method: %{x}<br>Davies-Bouldin score: %{y:.3f}<br>Mapped full-sample accuracy: %{customdata[0]:.3f}"
+                "<br>Metric sample size: %{customdata[1]:,.0f}<extra></extra>"
             ),
         )
         fig_c_unsupervised_k.add_scatter(
@@ -968,7 +1002,7 @@ def build_question_c_figures(result: dict[str, object]) -> dict[str, go.Figure]:
         if not selected_row.empty:
             fig_c_unsupervised_k.add_annotation(
                 x=selected_method,
-                y=float(selected_row["silhouette_score"].iloc[0]),
+                y=float(selected_row["davies_bouldin_score"].iloc[0]),
                 text=f"Selected: {selected_method}",
                 showarrow=True,
                 arrowhead=2,
@@ -982,7 +1016,7 @@ def build_question_c_figures(result: dict[str, object]) -> dict[str, go.Figure]:
         fig_c_unsupervised_k,
         title="Question 3 Unsupervised Method Comparison",
         xaxis_title="Unsupervised Method",
-        yaxis_title="Silhouette Score",
+        yaxis_title="Davies-Bouldin Score (Lower Better)",
     )
     fig_c_unsupervised_k.update_layout(
         margin={"l": 72, "r": 96, "t": 112, "b": 96},
@@ -1104,8 +1138,8 @@ def build_question_c_figures(result: dict[str, object]) -> dict[str, go.Figure]:
     fig_c_flat_type_count.add_bar(
         x=flat_type_counts["flat_type"].astype(str),
         y=flat_type_counts["transaction_count"],
-        marker_color=theme.blue,
-        marker_line={"color": theme.primary_dark, "width": 1},
+        marker_color=theme.alpha(theme.secondary, 0.35),
+        marker_line={"color": theme.secondary, "width": 1.2},
         text=[f"{int(value):,}" for value in flat_type_counts["transaction_count"]],
         textposition="outside",
         cliponaxis=False,
@@ -1163,14 +1197,14 @@ def build_question_c_summary_lines(result: dict[str, object]) -> list[str]:
         f"Unsupervised methods evaluated: **{len(result['unsupervised']['method_comparison'])}**.",
         f"Selected unsupervised method: **{result['unsupervised']['method_name']}**.",
         f"Cluster fit sample size: **{result['unsupervised']['fit_sample_size']:,}**.",
-        f"Silhouette / Davies-Bouldin metric sample size: **{result['unsupervised']['metric_sample_size']:,}**.",
+        f"Davies-Bouldin metric sample size: **{result['unsupervised']['metric_sample_size']:,}**.",
         (
             f"Mapped full-sample accuracy for the selected **{result['unsupervised']['method_name']}** solution after majority-vote cluster-to-flat-type assignment: **{result['unsupervised']['accuracy']:.3f}**."
             if not pd.isna(result['unsupervised']['accuracy'])
             else "Mapped full-sample accuracy is unavailable because no segment could be assigned to a flat type."
         ),
         "A segment-by-flat-type crosstab is exported so cluster purity can be inspected directly, separate from the majority-vote mapping used for accuracy.",
-        "The method comparison chart is exported so KMeans, Gaussian mixture, agglomerative clustering, and Birch can be compared directly on full-sample mapped accuracy, silhouette score, and Davies-Bouldin score.",
+        "The method comparison chart is exported so KMeans, RBM+KMeans, Gaussian mixture, agglomerative clustering, and Birch can be compared directly on full-sample mapped accuracy and Davies-Bouldin score.",
         "",
         "### Supervised Track",
         f"Selected classifier: **{result['supervised']['best_model']}**.",

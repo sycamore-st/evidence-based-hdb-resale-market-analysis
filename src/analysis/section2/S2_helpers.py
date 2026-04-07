@@ -61,6 +61,7 @@ class ModelResult:
     mae: float
     rmse: float
     mape: float
+    mdape: float
     r2: float
     fit_seconds: float = 0.0
     predict_seconds: float = 0.0
@@ -227,6 +228,7 @@ def _build_model_metric_row(
         "name": name,
         "mae": float(metrics_bundle["mae"]),
         "mape": float(metrics_bundle["mape"]),
+        "mdape": float(metrics_bundle["mdape"]),
         "rmse": float(metrics_bundle["rmse"]),
         "r2": float(metrics_bundle["r2"]),
         "fit_seconds": fit_seconds,
@@ -913,9 +915,15 @@ def evaluate_predictions(actual: np.ndarray | pd.Series, predicted: np.ndarray |
     predicted_array = predicted_array[valid_mask]
     if len(actual_array) == 0:
         raise ValueError("No valid prediction rows remain after removing NaN/inf values.")
+    ape = np.where(
+        actual_array != 0.0,
+        np.abs((actual_array - predicted_array) / actual_array),
+        np.nan,
+    )
     return {
         "mae": float(mean_absolute_error(actual_array, predicted_array)),
         "mape": float(mean_absolute_percentage_error(actual_array, predicted_array)),
+        "mdape": float(np.nanmedian(ape)) if np.isfinite(ape).any() else np.nan,
         "rmse": float(np.sqrt(mean_squared_error(actual_array, predicted_array))),
         "r2": float(r2_score(actual_array, predicted_array)),
         "sample_count": int(len(actual_array)),

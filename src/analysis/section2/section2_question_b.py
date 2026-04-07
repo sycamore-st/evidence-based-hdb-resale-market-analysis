@@ -252,6 +252,7 @@ def _evaluate_question_b_random_split(
             "mae": float(best_metrics["mae"]),
             "rmse": float(best_metrics["rmse"]),
             "mape": float(best_metrics["mape"]),
+            "mdape": float(best_metrics.get("mdape", np.nan)),
             "r2": float(best_metrics["r2"]),
             "sample_count": int(len(test_frame)),
         },
@@ -947,16 +948,19 @@ def _evaluate_blended_holdout(
         return {
             "mae": np.nan,
             "mape": np.nan,
+            "mdape": np.nan,
             "rmse": np.nan,
             "r2": np.nan,
             "sample_size": 0,
             "ml_mae": np.nan,
             "ml_mape": np.nan,
+            "ml_mdape": np.nan,
             "ml_rmse": np.nan,
             "ml_r2": np.nan,
             "ml_sample_count": 0,
             "blended_mae": np.nan,
             "blended_mape": np.nan,
+            "blended_mdape": np.nan,
             "blended_rmse": np.nan,
             "blended_r2": np.nan,
             "blended_sample_count": 0,
@@ -996,11 +1000,13 @@ def _evaluate_blended_holdout(
             "sample_size": metrics["sample_count"],
             "ml_mae": metrics["mae"],
             "ml_mape": metrics["mape"],
+            "ml_mdape": metrics.get("mdape", np.nan),
             "ml_rmse": metrics["rmse"],
             "ml_r2": metrics["r2"],
             "ml_sample_count": metrics["sample_count"],
             "blended_mae": np.nan,
             "blended_mape": np.nan,
+            "blended_mdape": np.nan,
             "blended_rmse": np.nan,
             "blended_r2": np.nan,
             "blended_sample_count": 0,
@@ -1152,7 +1158,7 @@ def _evaluate_blended_holdout(
             np.asarray(blended_predictions, dtype=float),
         )
     else:
-        blended_metrics = {"mae": np.nan, "mape": np.nan, "rmse": np.nan, "r2": np.nan, "sample_count": 0}
+        blended_metrics = {"mae": np.nan, "mape": np.nan, "mdape": np.nan, "rmse": np.nan, "r2": np.nan, "sample_count": 0}
     coverage_rate = (
         float(blended_metrics["sample_count"]) / float(ml_metrics["sample_count"])
         if ml_metrics["sample_count"]
@@ -1161,16 +1167,19 @@ def _evaluate_blended_holdout(
     return {
         "mae": blended_metrics["mae"],
         "mape": blended_metrics["mape"],
+        "mdape": blended_metrics.get("mdape", np.nan),
         "rmse": blended_metrics["rmse"],
         "r2": blended_metrics["r2"],
         "sample_size": blended_metrics["sample_count"],
         "ml_mae": ml_metrics["mae"],
         "ml_mape": ml_metrics["mape"],
+        "ml_mdape": ml_metrics.get("mdape", np.nan),
         "ml_rmse": ml_metrics["rmse"],
         "ml_r2": ml_metrics["r2"],
         "ml_sample_count": ml_metrics["sample_count"],
         "blended_mae": blended_metrics["mae"],
         "blended_mape": blended_metrics["mape"],
+        "blended_mdape": blended_metrics.get("mdape", np.nan),
         "blended_rmse": blended_metrics["rmse"],
         "blended_r2": blended_metrics["r2"],
         "blended_sample_count": blended_metrics["sample_count"],
@@ -1528,16 +1537,19 @@ def score_transaction(
     LOGGER.info(
         (
             "Question B holdout metrics | "
-            "ml_sample=%d ml_rmse=%.0f ml_mape=%.2f%% | "
-            "blended_sample=%d blended_rmse=%.0f blended_mape=%.2f%% | "
+            "ml_sample=%d ml_rmse=%.0f ml_mape=%.2f%% ml_mdape=%.2f%% | "
+            "blended_sample=%d blended_rmse=%.0f blended_mape=%.2f%% blended_mdape=%.2f%% | "
             "coverage=%.2f%%"
         ),
         int(blended_validation["ml_sample_count"]),
         float(blended_validation["ml_rmse"]) if not pd.isna(blended_validation["ml_rmse"]) else float("nan"),
         float(blended_validation["ml_mape"]) * 100 if not pd.isna(blended_validation["ml_mape"]) else float("nan"),
+        float(blended_validation["ml_mdape"]) * 100 if not pd.isna(blended_validation["ml_mdape"]) else float("nan"),
         int(blended_validation["blended_sample_count"]),
         float(blended_validation["blended_rmse"]) if not pd.isna(blended_validation["blended_rmse"]) else float("nan"),
         float(blended_validation["blended_mape"]) * 100 if not pd.isna(blended_validation["blended_mape"]) else float(
+            "nan"),
+        float(blended_validation["blended_mdape"]) * 100 if not pd.isna(blended_validation["blended_mdape"]) else float(
             "nan"),
         float(blended_validation["comparable_coverage_rate"]) * 100,
     )
@@ -1554,11 +1566,12 @@ def score_transaction(
             catboost_tuning_iterations=catboost_tuning_iterations,
         )
         LOGGER.info(
-            "Question B random-split metrics | best_model=%s sample=%d rmse=%.0f mape=%.2f%% mae=%.0f r2=%.3f",
+            "Question B random-split metrics | best_model=%s sample=%d rmse=%.0f mape=%.2f%% mdape=%.2f%% mae=%.0f r2=%.3f",
             random_split_validation["best_model"],
             int(random_split_validation["metrics"]["sample_count"]),
             float(random_split_validation["metrics"]["rmse"]),
             float(random_split_validation["metrics"]["mape"]) * 100.0,
+            float(random_split_validation["metrics"].get("mdape", np.nan)) * 100.0,
             float(random_split_validation["metrics"]["mae"]),
             float(random_split_validation["metrics"]["r2"]),
         )
@@ -2252,21 +2265,23 @@ def build_question_b_summary_lines(result: dict[str, object]) -> list[str]:
         f"Shared holdout months: `{', '.join(result['split_holdout_months'])}`.",
         f"Feature source for the subject: **{result['feature_source']}**.",
         "",
-        "| Model | MAE | RMSE | MAPE | R2 |",
-        "| --- | ---: | ---: | ---: | ---: |",
-        *[f"| {metric['name']} | {metric['mae']:,.0f} | {metric['rmse']:,.0f} | {metric['mape']:.2%} | {metric['r2']:.3f} |" for metric in
+        "| Model | MAE | RMSE | MAPE | MdAPE | R2 |",
+        "| --- | ---: | ---: | ---: | ---: | ---: |",
+        *[f"| {metric['name']} | {metric['mae']:,.0f} | {metric['rmse']:,.0f} | {metric['mape']:.2%} | {metric.get('mdape', np.nan):.2%} | {metric['r2']:.3f} |" for metric in
           result['candidate_metrics']],
         "",
         f"Expected price from the model: **SGD {result['expected_price']:,.0f}**.",
         f"Actual price: **SGD {result['actual_price']:,.0f}**.",
         f"Deviation from expected price: **SGD {result['absolute_deviation']:,.0f}** ({result['percentage_deviation']:.1%}).",
         f"Holdout RMSE for the selected model: **SGD {next(metric['rmse'] for metric in result['candidate_metrics'] if metric['name'] == result['best_model']):,.0f}**.",
+        f"Holdout MdAPE for the selected model: **{next(metric.get('mdape', np.nan) for metric in result['candidate_metrics'] if metric['name'] == result['best_model']):.2%}**.",
         (
             (
                 "Notebook-style random 75/25 split benchmark: "
                 f"**{result['random_split_validation']['best_model']}** with "
                 f"RMSE **SGD {result['random_split_validation']['metrics']['rmse']:,.0f}**, "
                 f"MAPE **{result['random_split_validation']['metrics']['mape']:.2%}**, "
+                f"MdAPE **{result['random_split_validation']['metrics'].get('mdape', np.nan):.2%}**, "
                 f"R2 **{result['random_split_validation']['metrics']['r2']:.3f}**."
             )
             if result.get("random_split_validation") is not None

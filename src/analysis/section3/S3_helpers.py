@@ -79,6 +79,7 @@ def format_chart_list(paths: list[str]) -> str:
 
 
 def write_chart_html(image_path: Path, title: str) -> Path:
+    image_path.parent.mkdir(parents=True, exist_ok=True)
     html_path = image_path.with_suffix(".html")
     if not WRITE_HTML:
         return html_path
@@ -110,6 +111,7 @@ def write_chart_html(image_path: Path, title: str) -> Path:
 
 
 def write_plotly_chart_html(stem: str, fig: go.Figure, *, title: str | None = None) -> str:
+    CHARTS.mkdir(parents=True, exist_ok=True)
     html_path = CHARTS / f"{stem}.html"
     if not WRITE_HTML:
         return str(html_path)
@@ -135,6 +137,7 @@ def save_plotly_figure(
         title: str | None,
         data: pd.DataFrame | None = None,
 ) -> tuple[str, str, str | None]:
+    CHARTS.mkdir(parents=True, exist_ok=True)
     svg_path = CHARTS / f"{stem}.svg"
     png_path = CHARTS / f"{stem}.png"
     existing_layout = fig.layout.to_plotly_json()
@@ -207,6 +210,7 @@ def style_policy_figure(fig) -> None:
 
 
 def save_svg_and_html(stem: str, title: str, data: pd.DataFrame | None = None) -> tuple[str, str, str | None]:
+    CHARTS.mkdir(parents=True, exist_ok=True)
     svg_path = CHARTS / f"{stem}.svg"
     png_path = CHARTS / f"{stem}.png"
     fig = plt.gcf()

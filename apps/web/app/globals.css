@@ -2546,7 +2546,8 @@ a {
 .article-embed-frame {
   display: block;
   height: clamp(360px, 58vw, 560px);
-  width: clamp(360px, 58vw, 760px);
+  width: 100%;
+  max-width: 100%;
   min-height: 360px;
   border: 0;
   border-radius: 14px;
@@ -2555,7 +2556,7 @@ a {
 
 @media (max-width: 768px) {
   .article-embed-frame {
-    height: clamp(340px, 92vw, 620px);
+    height: clamp(340px, 92vw, 680px);
     min-height: 340px;
   }
 }

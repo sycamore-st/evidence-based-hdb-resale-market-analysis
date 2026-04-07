@@ -357,6 +357,7 @@ def run_extended_holdout_workflow(
                 "mae": float(monthly_metrics["mae"]),
                 "rmse": float(monthly_metrics["rmse"]),
                 "mape": float(monthly_metrics["mape"]),
+                "mdape": float(monthly_metrics.get("mdape", np.nan)),
                 "r2": float(monthly_metrics["r2"]),
                 "tuned_for_month": bool(should_tune),
                 "tuned_params": json.dumps(active_tuned_params, sort_keys=True) if active_tuned_params else "",
@@ -389,6 +390,7 @@ def run_extended_holdout_workflow(
         "mae": float(metrics["mae"]),
         "rmse": float(metrics["rmse"]),
         "mape": float(metrics["mape"]),
+        "mdape": float(metrics.get("mdape", np.nan)),
         "r2": float(metrics["r2"]),
     }
     return {
@@ -457,10 +459,11 @@ def main() -> None:
     (REPORTS / "S2ExtendedHoldout_accuracy_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
     LOGGER.info(
-        "Section 2 extended holdout complete | RMSE=%.0f MAE=%.0f MAPE=%.2f%% R2=%.3f",
+        "Section 2 extended holdout complete | RMSE=%.0f MAE=%.0f MAPE=%.2f%% MdAPE=%.2f%% R2=%.3f",
         float(summary["rmse"]),
         float(summary["mae"]),
         float(summary["mape"]) * 100.0,
+        float(summary.get("mdape", np.nan)) * 100.0,
         float(summary["r2"]),
     )
 
