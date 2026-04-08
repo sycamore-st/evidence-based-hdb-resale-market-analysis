@@ -17,6 +17,7 @@ from src.analysis.section2.S2_config import (
     QUESTION_A_MAIN_TRAINING_WINDOW,
     DEFAULT_XGBOOST_TUNING_ITERATIONS,
     MAX_REGRESSION_SAMPLE,
+    QUESTION_B_XGBOOST_BEST_PARAMS,
     QUESTION_A_DIAGNOSTIC_FEATURES,
     QUESTION_A_FEATURES,
     QUESTION_A_IMPUTATION_FEATURES,
@@ -31,6 +32,7 @@ from src.analysis.section2.S2_helpers import (
     LOGGER,
     ModelResult,
     _augment_regression_features,
+    _build_time_rebase_lookup,
     _estimator_for_refit,
     _fit_direct_price_regression_models,
     _fit_regression_models,
@@ -72,6 +74,7 @@ QUESTION_A_BUILDING_MAX_HEIGHT_FEATURE = "building_max_floor_level_1990_2023"
 QUESTION_A_BUILDING_HISTORY_AVG_FEATURE = "history_3y_building_avg_price"
 QUESTION_A_BUILDING_HISTORY_MEDIAN_FEATURE = "history_3y_building_median_price"
 QUESTION_A_BUILDING_HISTORY_COUNT_FEATURE = "history_3y_building_txn_count"
+QUESTION_A_DIAGNOSTIC_REBASE_TO_1990 = True
 QUESTION_A_POI_CATEGORICAL_FEATURES = [
     "flat_model",
     "storey_range",
@@ -95,6 +98,21 @@ QUESTION_A_POI_NUMERIC_FEATURES = [
     "building_longitude",
     "bus_stop_count_within_1km",
     "school_count_within_1km",
+]
+QUESTION_A_DIAGNOSTIC_SELECTED_POI_CATEGORICAL_FEATURES = [
+    "flat_model",
+    "storey_range",
+    "transaction_quarter",
+    "data_segment",
+    "nearest_mrt_station",
+    "nearest_bus_stop_num",
+    "nearest_school_name",
+]
+QUESTION_A_DIAGNOSTIC_SELECTED_POI_NUMERIC_FEATURES = [
+    "distance_to_cbd_km",
+    "nearest_mrt_distance_km",
+    "nearest_bus_stop_distance_km",
+    "nearest_school_distance_km",
 ]
 
 
@@ -203,7 +221,7 @@ def _prepare_question_a_diagnostic_source(frame: pd.DataFrame) -> pd.DataFrame:
 
 def _question_a_diagnostic_feature_spec(frame: pd.DataFrame) -> tuple[list[str], list[str], list[str]]:
     features = QUESTION_A_DIAGNOSTIC_FEATURES.copy()
-    for feature in QUESTION_A_POI_CATEGORICAL_FEATURES + QUESTION_A_POI_NUMERIC_FEATURES:
+    for feature in QUESTION_A_DIAGNOSTIC_SELECTED_POI_CATEGORICAL_FEATURES + QUESTION_A_DIAGNOSTIC_SELECTED_POI_NUMERIC_FEATURES:
         if feature in frame.columns and feature not in features:
             features.append(feature)
     for extra_feature in [
@@ -214,7 +232,7 @@ def _question_a_diagnostic_feature_spec(frame: pd.DataFrame) -> tuple[list[str],
     ]:
         if extra_feature in frame.columns and extra_feature not in features:
             features.append(extra_feature)
-    categorical = [column for column in ["town", "flat_type", *QUESTION_A_POI_CATEGORICAL_FEATURES] if column in features]
+    categorical = [column for column in ["town", "flat_type", *QUESTION_A_DIAGNOSTIC_SELECTED_POI_CATEGORICAL_FEATURES] if column in features]
     numeric = [column for column in features if column not in categorical]
     return features, categorical, numeric
 
@@ -277,6 +295,18 @@ def _build_question_a_candidates() -> dict[str, object]:
 
 def _build_question_a_xgboost_only_candidate() -> dict[str, object]:
     return {"xgboost": _build_question_a_candidates()["xgboost"]}
+
+
+def _build_question_a_diagnostic_candidates() -> dict[str, object]:
+    return {
+        "xgb_extended_like": XGBRegressor(
+            objective="reg:squarederror",
+            **QUESTION_B_XGBOOST_BEST_PARAMS,
+            random_state=RANDOM_STATE,
+            n_jobs=-1,
+            tree_method="hist",
+        )
+    }
 
 
 def _question_a_age_bucket(value: object, *, width: int = 5) -> float:
@@ -645,7 +675,8 @@ def _build_question_a_temporal_split(
     sample = sample.dropna(
         subset=["flat_type", "town", "flat_age", "floor_area_sqm", "resale_price"]
     ).copy()
-    sample = _with_log_price_target(sample)
+    time_rebase_lookup = _build_time_rebase_lookup(sample) if QUESTION_A_DIAGNOSTIC_REBASE_TO_1990 else None
+    sample = _with_log_price_target(sample, time_rebase_lookup=time_rebase_lookup)
 
     train_pool = sample.loc[sample["transaction_year"] < 2014].copy()
     test_frame = sample.loc[sample["transaction_year"] == 2014].copy()
@@ -855,7 +886,7 @@ def predict_simplified_price(
         features=diagnostic_features,
         categorical=diagnostic_categorical,
         numeric=diagnostic_numeric,
-        candidates=_build_question_a_candidates(),
+        candidates=_build_question_a_diagnostic_candidates(),
         tune_xgboost=tune_xgboost,
         xgboost_tuning_iterations=xgboost_tuning_iterations,
     )
@@ -884,7 +915,7 @@ def predict_simplified_price(
         imputation_reference_frames.append(reference_summary)
         for metric in diagnostic_fit["candidate_metrics"]:
             model_name = str(metric["name"])
-            candidate_estimator = _build_question_a_candidates()[model_name]
+            candidate_estimator = _build_question_a_diagnostic_candidates()[model_name]
             scenario_pipeline = Pipeline(
                 [
                     ("preprocessor", _price_preprocessor(diagnostic_categorical, diagnostic_numeric)),
