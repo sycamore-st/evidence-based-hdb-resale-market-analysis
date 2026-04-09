@@ -2,3 +2,10 @@ artifacts
 outputs
 outputs_submission
 src/analysis/section3/outputs
+apps/web/public/outputs
+node_modules
+apps/web/node_modules
+.venv
+.git
+data
+deck
