@@ -2,7 +2,11 @@ import { readFile } from "node:fs/promises"
 import path from "node:path"
 
 const REPO_ROOT = path.resolve(process.cwd(), "../..")
-const SECTION1_DATA_BASE_URL = process.env.SECTION1_DATA_BASE_URL?.replace(/\/+$/, "")
+const ASSET_BASE_URL = (
+  process.env.ASSET_BASE_URL ??
+  process.env.NEXT_PUBLIC_ASSET_BASE_URL ??
+  process.env.SECTION1_DATA_BASE_URL
+) ?.replace(/\/+$/, "")
 const GITHUB_REPO_BASE = "https://github.com/sycamore-st/evidence-based-hdb-resale-market-analysis/blob/production"
 const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/sycamore-st/evidence-based-hdb-resale-market-analysis/production"
 
@@ -21,10 +25,10 @@ function toSubmissionFallbackPath(relativePath: string): string | null {
 }
 
 function toRemoteUrl(relativePath: string): string {
-  if (!SECTION1_DATA_BASE_URL) {
-    throw new Error("SECTION1_DATA_BASE_URL is not configured")
+  if (!ASSET_BASE_URL) {
+    throw new Error("ASSET_BASE_URL is not configured")
   }
-  return `${SECTION1_DATA_BASE_URL}/${relativePath.replace(/^\/+/, "")}`
+  return `${ASSET_BASE_URL}/${relativePath.replace(/^\/+/, "")}`
 }
 
 function sanitizeRepoPath(relativePath: string): string {
@@ -32,7 +36,7 @@ function sanitizeRepoPath(relativePath: string): string {
 }
 
 export function isRemoteSection1DataEnabled(): boolean {
-  return Boolean(SECTION1_DATA_BASE_URL)
+  return Boolean(ASSET_BASE_URL)
 }
 
 export function resolveRepositoryBlobUrl(relativePath: string): string {
@@ -46,7 +50,7 @@ export function resolveRepositoryRawUrl(relativePath: string): string {
 export function resolvePublicAssetUrl(relativePath: string): string {
   const normalizedPath = sanitizeRepoPath(relativePath)
 
-  if (SECTION1_DATA_BASE_URL && (normalizedPath.startsWith("outputs/section1/") || normalizedPath.startsWith("artifacts/web/"))) {
+  if (ASSET_BASE_URL && (normalizedPath.startsWith("outputs/") || normalizedPath.startsWith("artifacts/"))) {
     return toRemoteUrl(normalizedPath)
   }
 
@@ -62,7 +66,9 @@ export function resolvePublicAssetUrl(relativePath: string): string {
 }
 
 export async function readTextAsset(relativePath: string): Promise<string> {
-  if (!SECTION1_DATA_BASE_URL) {
+  const normalizedPath = sanitizeRepoPath(relativePath)
+
+  if (!ASSET_BASE_URL || (!normalizedPath.startsWith("outputs/") && !normalizedPath.startsWith("artifacts/"))) {
     try {
       return await readFile(toLocalPath(relativePath), "utf8")
     } catch (error) {
@@ -76,7 +82,7 @@ export async function readTextAsset(relativePath: string): Promise<string> {
     }
   }
 
-  const response = await fetch(toRemoteUrl(relativePath), {
+  const response = await fetch(toRemoteUrl(normalizedPath), {
     cache: "no-store",
   })
 

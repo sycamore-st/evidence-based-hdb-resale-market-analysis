@@ -1,4 +1,9 @@
 const GITHUB_REPO_BASE = "https://github.com/sycamore-st/evidence-based-hdb-resale-market-analysis/blob/production"
+const ASSET_BASE_URL = (
+  process.env.NEXT_PUBLIC_ASSET_BASE_URL ??
+  process.env.ASSET_BASE_URL ??
+  process.env.SECTION1_DATA_BASE_URL
+) ?.replace(/\/+$/, "")
 
 function sanitizeRepoPath(relativePath: string): string {
   return relativePath.replace(/^\/+/, "")
@@ -10,6 +15,10 @@ function resolveRepositoryBlobUrl(relativePath: string): string {
 
 function resolvePublicAssetUrl(relativePath: string): string {
   const normalizedPath = sanitizeRepoPath(relativePath)
+
+  if (ASSET_BASE_URL && (normalizedPath.startsWith("outputs/") || normalizedPath.startsWith("artifacts/"))) {
+    return `${ASSET_BASE_URL}/${normalizedPath}`
+  }
 
   if (
     normalizedPath.startsWith("outputs/") ||
