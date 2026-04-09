@@ -187,7 +187,7 @@ export function DashboardTwoExplorer({ data }: { data: DashboardTwoData }) {
           </p>
         </div>
         <div className="dashboard2-header-actions">
-          <SectionDashboardNav current="dashboard-2" className="dashboard2-header-actions-links" />
+          <SectionDashboardNav className="dashboard2-header-actions-links" />
         </div>
       </header>
 

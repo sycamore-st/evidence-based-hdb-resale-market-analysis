@@ -1,4 +1,4 @@
-import { readTextAsset, resolveRepositoryRawUrl } from "@/lib/server-data"
+import { readJsonAsset, readTextAsset, resolveRepositoryRawUrl } from "@/lib/server-data"
 
 interface DistributionRow {
   flat_type: string
@@ -24,18 +24,14 @@ interface DistributionRow {
   resale_price: number
   transaction_month: string
   lease_commence_date: number
+  predicted_price: number
+  predicted_price_per_sqm: number
 }
 
-interface SubjectSummaryRow {
-  town: string
-  flat_type: string
-  flat_model: string
-  storey_range: string
-  floor_area_sqm: number
-  lease_commence_date: number
-  transaction_month: string
-  actual_price: number
-  expected_price: number
+interface FinalWindowSummary {
+  train_start_month: string
+  train_end_month: string
+  lookback_months: number
 }
 
 export interface ValuationOptions {
@@ -138,8 +134,8 @@ interface ValuationDataset {
 }
 
 const RESULTS_BASE = "outputs/section2/results"
-const DISTRIBUTION_CONTEXTS_CSV = `${RESULTS_BASE}/S2Qb_distribution_contexts.csv`
-const SUBJECT_SUMMARY_CSV = `${RESULTS_BASE}/S2Qb_subject_summary.csv`
+const FINAL_WINDOW_PREDICTIONS_CSV = `${RESULTS_BASE}/S2ExtendedFinalWindow_predictions.csv`
+const FINAL_WINDOW_SUMMARY_JSON = `${RESULTS_BASE}/S2ExtendedFinalWindow_accuracy_summary.json`
 
 let cachedDataset: Promise<ValuationDataset> | null = null
 
@@ -212,7 +208,7 @@ function formatMonth(value: string): string {
   return value.slice(0, 7)
 }
 
-function buildDefaultOptions(rows: DistributionRow[], subject: SubjectSummaryRow): ValuationOptions {
+function buildDefaultOptions(rows: DistributionRow[], summary: FinalWindowSummary): ValuationOptions {
   const months = Array.from(new Set(rows.map((row) => row.transaction_month.slice(0, 7)))).sort()
   const flatModels = Array.from(new Set(rows.map((row) => row.flat_model))).sort((left, right) => left.localeCompare(right))
   const buildings = Array.from(
@@ -230,33 +226,39 @@ function buildDefaultOptions(rows: DistributionRow[], subject: SubjectSummaryRow
       .values()
   ).sort((left, right) => left.label.localeCompare(right.label))
 
+  const defaultRow =
+    [...rows]
+      .sort((left, right) => right.transaction_month.localeCompare(left.transaction_month))
+      .find((row) => row.building_key === "790|760790") ??
+    [...rows].sort((left, right) => right.transaction_month.localeCompare(left.transaction_month))[0]
+
   const defaultBuilding =
-    buildings.find((item) => item.buildingKey === "790|760790") ??
+    buildings.find((item) => item.buildingKey === defaultRow?.building_key) ??
     buildings.find((item) => item.label.includes("YISHUN")) ??
     buildings[0]
 
   return {
-    scope: "Question B extended cohort: Yishun 4-room transactions (2015-2018) from Section 2 artifacts.",
-    towns: ["YISHUN"],
-    flatTypes: ["4 ROOM"],
+    scope: `Final 36-month valuation model trained on all available resale records from ${summary.train_start_month} to ${summary.train_end_month}.`,
+    towns: Array.from(new Set(rows.map((row) => row.town))).sort((left, right) => left.localeCompare(right)),
+    flatTypes: Array.from(new Set(rows.map((row) => row.flat_type))).sort((left, right) => left.localeCompare(right)),
     flatModels,
     months,
     buildings,
     defaults: {
-      transactionMonth: subject.transaction_month.slice(0, 7),
+      transactionMonth: defaultRow?.transaction_month.slice(0, 7) ?? months[months.length - 1] ?? "",
       buildingKey: defaultBuilding?.buildingKey ?? "",
-      floorAreaSqm: subject.floor_area_sqm,
-      leaseCommenceDate: subject.lease_commence_date,
-      minFloorLevel: 10,
-      maxFloorLevel: 12,
-      flatModel: subject.flat_model,
-      actualPrice: subject.actual_price,
+      floorAreaSqm: defaultRow?.floor_area_sqm ?? 90,
+      leaseCommenceDate: defaultRow?.lease_commence_date ?? 1990,
+      minFloorLevel: defaultRow?.min_floor_level ?? 10,
+      maxFloorLevel: defaultRow?.max_floor_level ?? 12,
+      flatModel: defaultRow?.flat_model ?? flatModels[0] ?? "",
+      actualPrice: defaultRow?.resale_price ?? 0,
     },
   }
 }
 
 async function loadRowsFromCsv(): Promise<DistributionRow[]> {
-  const raw = await readSectionTextAsset(DISTRIBUTION_CONTEXTS_CSV)
+  const raw = await readSectionTextAsset(FINAL_WINDOW_PREDICTIONS_CSV)
   const lines = raw.split(/\r?\n/).filter((line) => line.length > 0)
   if (lines.length <= 1) {
     return []
@@ -296,29 +298,11 @@ async function loadRowsFromCsv(): Promise<DistributionRow[]> {
       resale_price: toNumber(row.resale_price),
       transaction_month: row.transaction_month,
       lease_commence_date: toNumber(row.lease_commence_date),
+      predicted_price: toNumber(row.predicted_price),
+      predicted_price_per_sqm: toNumber(row.predicted_price_per_sqm),
     })
   }
   return records
-}
-
-async function loadSubjectSummary(): Promise<SubjectSummaryRow> {
-  const raw = await readSectionTextAsset(SUBJECT_SUMMARY_CSV)
-  const lines = raw.split(/\r?\n/).filter((line) => line.length > 0)
-  const headers = parseCsvLine(lines[0])
-  const values = parseCsvLine(lines[1] ?? "")
-  const row = Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ""]))
-
-  return {
-    town: row.town,
-    flat_type: row.flat_type,
-    flat_model: row.flat_model,
-    storey_range: row.storey_range,
-    floor_area_sqm: toNumber(row.floor_area_sqm),
-    lease_commence_date: toNumber(row.lease_commence_date),
-    transaction_month: row.transaction_month,
-    actual_price: toNumber(row.actual_price),
-    expected_price: toNumber(row.expected_price),
-  }
 }
 
 async function readSectionTextAsset(relativePath: string): Promise<string> {
@@ -340,7 +324,10 @@ async function readSectionTextAsset(relativePath: string): Promise<string> {
 async function loadDataset(): Promise<ValuationDataset> {
   if (!cachedDataset) {
     cachedDataset = (async () => {
-      const [rows, subject] = await Promise.all([loadRowsFromCsv(), loadSubjectSummary()])
+      const [rows, summary] = await Promise.all([
+        loadRowsFromCsv(),
+        readJsonAsset<FinalWindowSummary>(FINAL_WINDOW_SUMMARY_JSON),
+      ])
       const byBuilding = rows.reduce((memo, row) => {
         const current = memo.get(row.building_key) ?? []
         current.push(row)
@@ -351,7 +338,7 @@ async function loadDataset(): Promise<ValuationDataset> {
       return {
         rows,
         byBuilding,
-        options: buildDefaultOptions(rows, subject),
+        options: buildDefaultOptions(rows, summary),
       }
     })()
   }
@@ -366,14 +353,19 @@ function findAnchorRow(dataset: ValuationDataset, request: ValuationRequest): Di
     throw new Error(`Unknown building key: ${request.buildingKey}`)
   }
 
-  const exactMonth = buildingRows.find((row) => formatMonth(row.transaction_month) === request.transactionMonth)
-  if (exactMonth) {
-    return exactMonth
+  const targetMidFloor = (request.minFloorLevel + request.maxFloorLevel) / 2
+  const scoreRow = (row: DistributionRow) => {
+    const rowMidFloor = (row.min_floor_level + row.max_floor_level) / 2
+    const modelPenalty = row.flat_model === request.flatModel ? 0 : 3
+    return (
+      monthDiff(row.transaction_month, monthStart) +
+      Math.abs(row.floor_area_sqm - request.floorAreaSqm) / 10 +
+      Math.abs(rowMidFloor - targetMidFloor) / 5 +
+      modelPenalty
+    )
   }
 
-  return [...buildingRows].sort(
-    (left, right) => monthDiff(left.transaction_month, monthStart) - monthDiff(right.transaction_month, monthStart)
-  )[0]
+  return [...buildingRows].sort((left, right) => scoreRow(left) - scoreRow(right))[0]
 }
 
 function buildComparableScore(
@@ -412,7 +404,7 @@ export async function evaluateValuation(request: ValuationRequest): Promise<Valu
   const transactionMonth = request.transactionMonth
 
   const candidateRows = dataset.rows
-    .filter((row) => monthDiff(row.transaction_month, `${transactionMonth}-01`) <= 24)
+    .filter((row) => row.flat_type === anchorRow.flat_type && monthDiff(row.transaction_month, `${transactionMonth}-01`) <= 24)
     .map((row) => ({
       row,
       score: buildComparableScore(row, anchorRow, request, transactionMonth),
@@ -425,13 +417,11 @@ export async function evaluateValuation(request: ValuationRequest): Promise<Valu
     }))
     .sort((left, right) => left.score - right.score)
 
-  const modelPool = candidateRows.slice(0, 160)
-  const modelWeights = modelPool.map((item) => Math.exp(-item.score * 0.7))
-  const modelWeightSum = modelWeights.reduce((sum, value) => sum + value, 0)
-  const modelEstimate =
-    modelWeightSum > 0
-      ? modelPool.reduce((sum, item, index) => sum + item.row.resale_price * modelWeights[index], 0) / modelWeightSum
-      : Number.NaN
+  const modelEstimate = Number.isFinite(anchorRow.predicted_price_per_sqm)
+    ? anchorRow.predicted_price_per_sqm * request.floorAreaSqm
+    : Number.isFinite(anchorRow.predicted_price)
+      ? anchorRow.predicted_price
+      : anchorRow.resale_price
 
   const comparablePool = candidateRows
     .filter((item) => item.geoDistanceKm <= 3.2 && Math.abs(item.row.floor_area_sqm - request.floorAreaSqm) <= 14)
@@ -467,6 +457,9 @@ export async function evaluateValuation(request: ValuationRequest): Promise<Valu
   const comparablesEstimate = comparables.length > 0 ? quantile(comparableAdjustedPrices, 0.5) : null
 
   const localPool = dataset.rows.filter((row) => {
+    if (row.flat_type !== anchorRow.flat_type) {
+      return false
+    }
     const nearby = haversineKm(
       anchorRow.building_latitude,
       anchorRow.building_longitude,
@@ -547,7 +540,7 @@ export async function evaluateValuation(request: ValuationRequest): Promise<Valu
       note:
         confidence === "Limited"
           ? "Comparable and local support are thin. Treat this as directional only."
-          : "Evidence is internally consistent across expected price, local distribution, and comparables.",
+          : "",
     },
     comparables,
     chartData: {

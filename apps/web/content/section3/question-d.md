@@ -19,11 +19,11 @@ The right test is differential sensitivity, not raw co-movement. Both groups can
 
 ## EDA: Relative Movement Signals
 
-> Interactive chart pending export: Indexed COE and resale trend.
+<iframe src="/outputs/section3/charts/S3QdF1_indexed_coe_and_resale_trends.html" title="Indexed COE and resale trend"></iframe>
 
-> Interactive chart pending export: Adjusted indexed trend.
+<iframe src="/outputs/section3/charts/S3QdF1b_adjusted_indexed_coe_and_resale_trends.html" title="Adjusted indexed COE and resale trend"></iframe>
 
-> Interactive chart pending export: Adjusted far-versus-central spread.
+<iframe src="/outputs/section3/charts/S3QdF2b_adjusted_far_vs_central_index_spread.html" title="Adjusted far-versus-central spread"></iframe>
 
 The adjusted index view is more decision-relevant than raw price levels because it controls for changing transaction mix.
 
@@ -31,9 +31,9 @@ The adjusted index view is more decision-relevant than raw price levels because 
 
 Use an interaction regression to estimate whether far towns (Sengkang/Punggol) have higher COE sensitivity than central controls, then cross-check with adjusted-index regression.
 
-> Interactive chart pending export: Raw model coefficients.
+<iframe src="/outputs/section3/charts/S3QdF4_coe_regression_coefficients.html" title="Raw model coefficients"></iframe>
 
-> Interactive chart pending export: Adjusted model coefficients.
+<iframe src="/outputs/section3/charts/S3QdF5_adjusted_index_regression_coefficients.html" title="Adjusted model coefficients"></iframe>
 
 ## Results
 

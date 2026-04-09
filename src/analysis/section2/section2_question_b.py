@@ -1932,13 +1932,25 @@ def build_question_b_figures(result: dict[str, object]) -> dict[str, go.Figure]:
     fig_b_distribution = go.Figure()
     if not local_distribution.empty:
         bins = 20
-        fig_b_distribution.add_histogram(
-            x=local_distribution["resale_price"],
-            nbinsx=bins,
+        prices = pd.to_numeric(local_distribution["resale_price"], errors="coerce").dropna()
+        counts, edges = np.histogram(prices, bins=bins)
+        centers = 0.5 * (edges[:-1] + edges[1:])
+        q25 = float(prices.quantile(0.25))
+        q75 = float(prices.quantile(0.75))
+        colors = [
+            theme.alpha(theme.blue, 0.35) if q25 <= center <= q75 else theme.alpha(theme.orange, 0.35)
+            for center in centers
+        ]
+        line_colors = [theme.blue if q25 <= center <= q75 else theme.orange for center in centers]
+        fig_b_distribution.add_bar(
+            x=centers,
+            y=counts,
+            width=np.diff(edges),
             name="Local Transactions",
-            opacity=1.0,
-            marker_color=theme.blue,
-            marker_line={"color": theme.blue, "width": 1},
+            marker_color=colors,
+            marker_line={"color": line_colors, "width": 1.2},
+            showlegend=False,
+            hovertemplate="Price bin center: SGD %{x:,.0f}<br>Count: %{y}<extra></extra>",
         )
         for value, label, color in [
             (result["actual_price"], "Actual", theme.primary_dark),
@@ -1962,25 +1974,42 @@ def build_question_b_figures(result: dict[str, object]) -> dict[str, go.Figure]:
         xaxis_title="Resale Price (SGD)",
         yaxis_title="Transaction Count",
     )
-    fig_b_distribution.update_layout(bargap=0.05)
+    fig_b_distribution.update_layout(
+        bargap=0.02,
+        showlegend=False,
+        annotations=list(fig_b_distribution.layout.annotations) + [
+            {
+                "xref": "paper",
+                "yref": "paper",
+                "x": 0.02,
+                "y": 1.1,
+                "text": "Orange bins are outside the 25th to 75th percentile range for the local window.",
+                "showarrow": False,
+                "xanchor": "left",
+                "font": {"size": 14, "color": "#000000"},
+            }
+        ],
+    )
     if not local_distribution.empty:
         max_bin_count = max(1, int(np.histogram(local_distribution["resale_price"], bins=bins)[0].max()))
         if not pd.isna(result["actual_price"]):
+            percentile = float((prices.le(float(result["actual_price"]))).mean())
+            percentile_text = "100%" if float(result["actual_price"]) >= float(prices.max()) else f"{percentile * 100.0:.1f}%"
             fig_b_distribution.add_annotation(
                 x=float(result["actual_price"]),
                 y=max_bin_count * 0.86,
-                text=f"Subject transaction<br>SGD {result['actual_price']:,.0f}",
+                text=f"Subject<br>{percentile_text}",
                 showarrow=True,
                 arrowhead=2,
                 arrowsize=1,
-                arrowwidth=1.6,
-                arrowcolor=theme.orange,
-                ax=70,
-                ay=-60,
-                bgcolor=theme.alpha(theme.surface, 0.96),
-                bordercolor=theme.orange,
+                arrowwidth=1.4,
+                arrowcolor=theme.primary_dark,
+                ax=45,
+                ay=-40,
+                bgcolor=theme.alpha(theme.surface, 0.95),
+                bordercolor=theme.primary_dark,
                 borderwidth=1,
-                font={"size": 16, "color": "#000000"},
+                font={"size": 13, "color": "#000000"},
             )
         fig_b_distribution.add_annotation(
             x=float(local_distribution["resale_price"].median()),

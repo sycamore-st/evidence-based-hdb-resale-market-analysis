@@ -8,12 +8,22 @@ function formatSectionLabel(section: ArticleSection): string {
 
 export function ArticleTopNav({ section }: { section: ArticleSection }) {
   return (
-    <div className="article-topnav">
-      <Link href="/">Back to index</Link>
-      <Link href="/section1/dashboard-1">Section 1</Link>
-      <Link href="/section2">Section 2</Link>
-      <Link href="/section3">Section 3</Link>
-      <span>{formatSectionLabel(section)}</span>
+    <div className="article-topnav site-topnav">
+      <div className="site-topnav-links">
+        <Link href="/section1" className="site-topnav-link">
+          Section 1
+        </Link>
+        <Link href="/section2" className="site-topnav-link">
+          Section 2
+        </Link>
+        <Link href="/section3" className="site-topnav-link">
+          Section 3
+        </Link>
+        <span className="site-topnav-current">{formatSectionLabel(section)}</span>
+      </div>
+      <Link href="/#menu" className="site-topnav-action">
+        Menu
+      </Link>
     </div>
   )
 }

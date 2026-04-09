@@ -40,6 +40,44 @@ The implementation in `section3_question_a.py` uses two related regressions:
 
 The baseline model answers whether Yishun is still cheaper after controls. The interaction model checks whether that discount is broad across flat types or concentrated in specific segments.
 
+Written out more explicitly, the baseline specification is:
+
+$$ 
+\begin{aligned}
+\log(\text{price\_per\_sqm}_i)
+=\;&\alpha
++ \sum_{t \neq \text{ref town}} \beta_t \mathbf{1}\{\text{town}_i=t\} \\
+&+ \sum_{f \neq \text{ref flat type}} \gamma_f \mathbf{1}\{\text{flat type}_i=f\} \\
+&+ \delta \,\text{flat\_age}_i
++ \sum_m \lambda_m \mathbf{1}\{\text{year\_month}_i=m\}
++ \varepsilon_i
+\end{aligned}
+$$
+
+For the reported Yishun effect, the key coefficient is the town dummy for Yishun relative to the reference town, which in this run is `ANG MO KIO`.
+
+The interaction specification adds town-by-flat-type terms:
+
+$$ 
+\begin{aligned}
+\log(\text{price\_per\_sqm}_i)
+=\;&\alpha
++ \sum_{t \neq \text{ref town}} \beta_t \mathbf{1}\{\text{town}_i=t\} \\
+&+ \sum_{f \neq \text{ref flat type}} \gamma_f \mathbf{1}\{\text{flat type}_i=f\} \\
+&+ \sum_{t \neq \text{ref town}} \sum_{f \neq \text{ref flat type}}
+\theta_{tf}\,\mathbf{1}\{\text{town}_i=t\}\mathbf{1}\{\text{flat type}_i=f\} \\
+&+ \delta \,\text{flat\_age}_i
++ \sum_m \lambda_m \mathbf{1}\{\text{year\_month}_i=m\}
++ \varepsilon_i
+\end{aligned}
+$$
+
+Because the dependent variable is in logs, the town effect is converted back to a percentage discount using:
+
+$$
+\text{effect \%} = \left(e^{\beta}-1\right)\times 100
+$$
+
 <iframe src="/outputs/section3/charts/S3QaF2_yishun_simple_regression_coefficients.html" title="Controlled coefficient view"></iframe>
 
 <iframe src="/outputs/section3/charts/S3QaF4_yishun_interaction_effects_by_flat_type.html" title="Yishun interaction effects by flat type"></iframe>

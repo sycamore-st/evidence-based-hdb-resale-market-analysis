@@ -212,6 +212,61 @@ def _build_prediction_frame(test_frame: pd.DataFrame, predictions: np.ndarray) -
     return predictions_frame
 
 
+def _build_final_window_prediction_frame(
+        frame: pd.DataFrame,
+        predictions: np.ndarray,
+) -> pd.DataFrame:
+    prediction_frame = frame[
+        [
+            column
+            for column in [
+                "transaction_month",
+                "year",
+                "age",
+                "remaining_lease_years",
+                "town",
+                "flat_type",
+                "flat_model",
+                "block",
+                "street_name",
+                "building_key",
+                "storey_range",
+                "floor_area_sqm",
+                "lease_commence_date",
+                "min_floor_level",
+                "max_floor_level",
+                "building_latitude",
+                "building_longitude",
+                "distance_to_cbd_km",
+                "nearest_mrt_distance_km",
+                "nearest_bus_stop_distance_km",
+                "nearest_school_distance_km",
+                "bus_stop_count_within_1km",
+                "school_count_within_1km",
+                "history_3y_group_avg_price",
+                "history_3y_group_median_price",
+                "history_3y_group_txn_count",
+                "resale_price",
+            ]
+            if column in frame.columns
+        ]
+    ].copy()
+    prediction_frame["actual_price"] = frame["resale_price"].astype(float)
+    prediction_frame["predicted_price"] = predictions
+    prediction_frame["predicted_price_per_sqm"] = np.where(
+        frame["floor_area_sqm"].astype(float) > 0,
+        prediction_frame["predicted_price"] / frame["floor_area_sqm"].astype(float),
+        np.nan,
+    )
+    prediction_frame["absolute_error"] = (prediction_frame["predicted_price"] - prediction_frame["actual_price"]).abs()
+    prediction_frame["absolute_percentage_error"] = np.where(
+        prediction_frame["actual_price"].astype(float) > 0,
+        prediction_frame["absolute_error"] / prediction_frame["actual_price"].astype(float),
+        np.nan,
+    )
+    return prediction_frame
+
+
 def _build_feature_importance_frame(pipeline: Pipeline) -> pd.DataFrame:
     preprocessor = pipeline.named_steps["preprocessor"]
     model = pipeline.named_steps["model"]
@@ -404,6 +459,95 @@ def run_extended_holdout_workflow(
     }
 
 
+def run_final_window_fit(
+    *,
+    lookback_months: int = EXTENDED_HOLDOUT_LOOKBACK_MONTHS,
+    tune_xgboost: bool = False,
+    xgboost_tuning_iterations: int = DEFAULT_XGBOOST_TUNING_ITERATIONS,
+) -> dict[str, object]:
+    frame = _load_frame()
+    enriched = _augment_regression_features(frame)
+    enriched["transaction_month"] = pd.to_datetime(enriched["transaction_month"]).dt.to_period("M").dt.to_timestamp()
+    enriched = _build_extended_holdout_history_features(enriched, lookback_months=lookback_months)
+    enriched = _with_log_price_target(enriched)
+
+    latest_month = pd.Timestamp(enriched["transaction_month"].max()).to_period("M").to_timestamp()
+    train_start_month = latest_month - pd.DateOffset(months=max(0, int(lookback_months) - 1))
+    train_frame = enriched.loc[
+        (enriched["transaction_month"] >= train_start_month) &
+        (enriched["transaction_month"] <= latest_month)
+    ].copy()
+    if train_frame.empty:
+        raise ValueError("Final 36-month training window is empty.")
+
+    features, categorical, numeric = get_extended_holdout_features(train_frame)
+    estimator = XGBRegressor(
+        objective="reg:squarederror",
+        **QUESTION_B_XGBOOST_BEST_PARAMS,
+        random_state=RANDOM_STATE,
+        n_jobs=-1,
+        tree_method="hist",
+    )
+    tuned_params: dict[str, float | int] = {}
+    active_estimator = estimator
+    if tune_xgboost:
+        active_estimator, tuned_params = _tune_xgboost_estimator(
+            estimator,
+            train_frame,
+            features=features,
+            categorical=categorical,
+            numeric=numeric,
+            tune_enabled=True,
+            tuning_iterations=xgboost_tuning_iterations,
+            tuning_folds=DEFAULT_XGBOOST_TUNING_FOLDS,
+        )
+
+    pipeline = Pipeline(
+        [
+            ("preprocessor", _price_preprocessor(categorical, numeric)),
+            ("model", _estimator_for_refit(active_estimator)),
+        ]
+    )
+    pipeline.fit(train_frame[features], train_frame["log_price_per_sqm"])
+    log_predictions = pipeline.predict(train_frame[features])
+    predictions = _recover_resale_price(
+        log_predictions,
+        train_frame["floor_area_sqm"],
+        train_frame["time_rebase_factor_1990"] if "time_rebase_factor_1990" in train_frame.columns else None,
+    )
+    predictions_frame = _build_final_window_prediction_frame(train_frame, predictions)
+    metrics = evaluate_predictions(predictions_frame["actual_price"], predictions_frame["predicted_price"])
+    feature_importance = _build_feature_importance_frame(pipeline)
+
+    summary = {
+        "model": "xgboost",
+        "train_start_month": train_start_month.strftime("%Y-%m"),
+        "train_end_month": latest_month.strftime("%Y-%m"),
+        "lookback_months": int(lookback_months),
+        "history_feature_lookback_months": int(lookback_months),
+        "train_rows": int(len(train_frame)),
+        "feature_count": int(len(features)),
+        "categorical_feature_count": int(len(categorical)),
+        "numeric_feature_count": int(len(numeric)),
+        "tuned_xgboost": bool(tune_xgboost),
+        "xgboost_tuning_iterations": int(xgboost_tuning_iterations if tune_xgboost else 0),
+        "tuned_params": tuned_params,
+        "mae": float(metrics["mae"]),
+        "rmse": float(metrics["rmse"]),
+        "mape": float(metrics["mape"]),
+        "mdape": float(metrics.get("mdape", np.nan)),
+        "r2": float(metrics["r2"]),
+    }
+    return {
+        "summary": summary,
+        "features": features,
+        "categorical": categorical,
+        "numeric": numeric,
+        "predictions_frame": predictions_frame,
+        "feature_importance": feature_importance,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the Section 2 rolling monthly XGBoost benchmark.")
     parser.add_argument(
@@ -458,6 +602,18 @@ def main() -> None:
     workflow["feature_importance"].to_csv(REPORTS / "S2ExtendedHoldout_feature_importance.csv", index=False)
     (REPORTS / "S2ExtendedHoldout_accuracy_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
+    final_workflow = run_final_window_fit(
+        lookback_months=args.lookback_months,
+        tune_xgboost=args.tune_xgboost,
+        xgboost_tuning_iterations=args.xgboost_tuning_iterations,
+    )
+    final_summary = final_workflow["summary"]
+    pd.DataFrame([final_summary]).to_csv(REPORTS / "S2ExtendedFinalWindow_accuracy_summary.csv", index=False)
+    pd.DataFrame({"feature": final_workflow["features"]}).to_csv(REPORTS / "S2ExtendedFinalWindow_feature_list.csv", index=False)
+    final_workflow["predictions_frame"].to_csv(REPORTS / "S2ExtendedFinalWindow_predictions.csv", index=False)
+    final_workflow["feature_importance"].to_csv(REPORTS / "S2ExtendedFinalWindow_feature_importance.csv", index=False)
+    (REPORTS / "S2ExtendedFinalWindow_accuracy_summary.json").write_text(json.dumps(final_summary, indent=2), encoding="utf-8")
+
     LOGGER.info(
         "Section 2 extended holdout complete | RMSE=%.0f MAE=%.0f MAPE=%.2f%% MdAPE=%.2f%% R2=%.3f",
         float(summary["rmse"]),
@@ -465,6 +621,16 @@ def main() -> None:
         float(summary["mape"]) * 100.0,
         float(summary.get("mdape", np.nan)) * 100.0,
         float(summary["r2"]),
+    )
+    LOGGER.info(
+        "Section 2 final 36-month fit complete | train_window=%s to %s RMSE=%.0f MAE=%.0f MAPE=%.2f%% MdAPE=%.2f%% R2=%.3f",
+        str(final_summary["train_start_month"]),
+        str(final_summary["train_end_month"]),
+        float(final_summary["rmse"]),
+        float(final_summary["mae"]),
+        float(final_summary["mape"]) * 100.0,
+        float(final_summary.get("mdape", np.nan)) * 100.0,
+        float(final_summary["r2"]),
     )
 
 

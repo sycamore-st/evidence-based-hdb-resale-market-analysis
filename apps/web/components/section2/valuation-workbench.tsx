@@ -193,24 +193,41 @@ export function ValuationWorkbench() {
 
   const distributionLayout = useMemo(
     () => ({
-      margin: { l: 45, r: 20, t: 12, b: 45 },
-      xaxis: { title: "Resale Price (SGD)" },
-      yaxis: { title: "Count" },
-      paper_bgcolor: "white",
-      plot_bgcolor: "white",
-      font: { family: "ui-sans-serif, system-ui, sans-serif", size: 12 },
+      margin: { l: 52, r: 20, t: 18, b: 54 },
+      bargap: 0.12,
+      xaxis: {
+        title: "Resale Price (SGD)",
+        showgrid: false,
+        zeroline: false,
+      },
+      yaxis: {
+        title: "Count",
+        showgrid: false,
+        zeroline: false,
+      },
+      paper_bgcolor: "rgba(0,0,0,0)",
+      plot_bgcolor: "rgba(0,0,0,0)",
+      font: { family: '"Avenir Next", "Segoe UI", sans-serif', size: 12, color: "rgba(46, 42, 35, 0.88)" },
     }),
     []
   )
 
   const comparablesLayout = useMemo(
     () => ({
-      margin: { l: 45, r: 20, t: 12, b: 45 },
-      xaxis: { title: "Floor Area (sqm)" },
-      yaxis: { title: "Resale Price (SGD)" },
-      paper_bgcolor: "white",
-      plot_bgcolor: "white",
-      font: { family: "ui-sans-serif, system-ui, sans-serif", size: 12 },
+      margin: { l: 52, r: 20, t: 18, b: 54 },
+      xaxis: {
+        title: "Price per sqft (SGD)",
+        showgrid: false,
+        zeroline: false,
+      },
+      yaxis: {
+        title: "Transaction Price (SGD)",
+        showgrid: false,
+        zeroline: false,
+      },
+      paper_bgcolor: "rgba(0,0,0,0)",
+      plot_bgcolor: "rgba(0,0,0,0)",
+      font: { family: '"Avenir Next", "Segoe UI", sans-serif', size: 12, color: "rgba(46, 42, 35, 0.88)" },
     }),
     []
   )
@@ -383,7 +400,10 @@ export function ValuationWorkbench() {
                   {
                     type: "histogram",
                     x: result.chartData.histogramPrices,
-                    marker: { color: "#2f7a72", opacity: 0.75 },
+                    marker: {
+                      color: "rgba(201, 117, 47, 0.38)",
+                      line: { color: "#c9752f", width: 1.2 },
+                    },
                     nbinsx: 24,
                     name: "Local prices",
                   },
@@ -401,11 +421,29 @@ export function ValuationWorkbench() {
                   {
                     type: "scatter",
                     mode: "markers",
-                    x: result.chartData.comparableArea,
-                    y: result.chartData.comparablePrice,
-                    text: result.chartData.comparableLabels,
-                    marker: { color: "#20374f", size: 10, opacity: 0.8 },
+                    x: result.comparables.map((item) => item.resalePrice / (item.floorAreaSqm * 10.7639)),
+                    y: result.comparables.map((item) => item.resalePrice),
+                    text: result.comparables.map(
+                      (item) =>
+                        `${item.block} ${item.streetName}<br>${item.transactionMonth}<br>${item.floorAreaSqm.toFixed(1)} sqm`
+                    ),
+                    marker: {
+                      color: result.comparables.map((item) => item.floorAreaSqm),
+                      colorscale: [
+                        [0, "#d7c1a0"],
+                        [0.5, "#c9752f"],
+                        [1, "#4f6e8a"],
+                      ],
+                      colorbar: {
+                        title: { text: "Floor area (sqm)" },
+                      },
+                      line: { color: "rgba(79, 110, 138, 0.55)", width: 0.9 },
+                      size: 10,
+                    },
                     name: "Comparables",
+                    customdata: result.comparables.map((item) => [item.floorAreaSqm, item.adjustedPrice]),
+                    hovertemplate:
+                      "%{text}<br>PSF: SGD %{x:.0f}<br>Transaction Price: SGD %{y:,.0f}<br>Adjusted Price: SGD %{customdata[1]:,.0f}<extra></extra>",
                   },
                 ]}
                 layout={comparablesLayout}

@@ -10,6 +10,16 @@ function toLocalPath(relativePath: string): string {
   return path.join(REPO_ROOT, relativePath)
 }
 
+function toSubmissionFallbackPath(relativePath: string): string | null {
+  const normalizedPath = sanitizeRepoPath(relativePath)
+
+  if (!normalizedPath.startsWith("outputs/")) {
+    return null
+  }
+
+  return path.join(REPO_ROOT, normalizedPath.replace(/^outputs\//, "outputs_submission/"))
+}
+
 function toRemoteUrl(relativePath: string): string {
   if (!SECTION1_DATA_BASE_URL) {
     throw new Error("SECTION1_DATA_BASE_URL is not configured")
@@ -53,7 +63,17 @@ export function resolvePublicAssetUrl(relativePath: string): string {
 
 export async function readTextAsset(relativePath: string): Promise<string> {
   if (!SECTION1_DATA_BASE_URL) {
-    return readFile(toLocalPath(relativePath), "utf8")
+    try {
+      return await readFile(toLocalPath(relativePath), "utf8")
+    } catch (error) {
+      const fallbackPath = toSubmissionFallbackPath(relativePath)
+
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT" || !fallbackPath) {
+        throw error
+      }
+
+      return readFile(fallbackPath, "utf8")
+    }
   }
 
   const response = await fetch(toRemoteUrl(relativePath), {

@@ -74,6 +74,8 @@ QUESTION_A_BUILDING_MAX_HEIGHT_FEATURE = "building_max_floor_level_1990_2023"
 QUESTION_A_BUILDING_HISTORY_AVG_FEATURE = "history_3y_building_avg_price"
 QUESTION_A_BUILDING_HISTORY_MEDIAN_FEATURE = "history_3y_building_median_price"
 QUESTION_A_BUILDING_HISTORY_COUNT_FEATURE = "history_3y_building_txn_count"
+QUESTION_A_BUILDING_HISTORY_START = pd.Timestamp("2021-01-01")
+QUESTION_A_BUILDING_HISTORY_END = pd.Timestamp("2023-12-31")
 QUESTION_A_DIAGNOSTIC_REBASE_TO_1990 = True
 QUESTION_A_POI_CATEGORICAL_FEATURES = [
     "flat_model",
@@ -151,8 +153,6 @@ def _attach_question_a_building_max_height_feature(
 
 def _attach_question_a_building_history_features(
         frame: pd.DataFrame,
-        *,
-        lookback_months: int = QUESTION_A_DIAGNOSTIC_HISTORY_LOOKBACK_MONTHS,
 ) -> pd.DataFrame:
     enriched = frame.copy()
     group_columns = [column for column in QUESTION_A_DIAGNOSTIC_GROUP_COLUMNS if column in enriched.columns]
@@ -170,45 +170,45 @@ def _attach_question_a_building_history_features(
             monthly_txn_count=("resale_price", "size"),
         )
         .reset_index()
-        .sort_values(group_columns + ["transaction_month"])
     )
     if monthly.empty:
         enriched[QUESTION_A_BUILDING_HISTORY_AVG_FEATURE] = np.nan
         enriched[QUESTION_A_BUILDING_HISTORY_MEDIAN_FEATURE] = np.nan
         enriched[QUESTION_A_BUILDING_HISTORY_COUNT_FEATURE] = np.nan
         return enriched
+    history_window = monthly.loc[
+        monthly["transaction_month"].between(QUESTION_A_BUILDING_HISTORY_START, QUESTION_A_BUILDING_HISTORY_END, inclusive="both")
+    ].copy()
+    if history_window.empty:
+        enriched[QUESTION_A_BUILDING_HISTORY_AVG_FEATURE] = np.nan
+        enriched[QUESTION_A_BUILDING_HISTORY_MEDIAN_FEATURE] = np.nan
+        enriched[QUESTION_A_BUILDING_HISTORY_COUNT_FEATURE] = np.nan
+        return enriched
 
-    def _rolling(group: pd.DataFrame) -> pd.DataFrame:
-        ordered = group.sort_values("transaction_month").copy()
-        group_key = group.name if isinstance(group.name, tuple) else (group.name,)
-        for column, value in zip(group_columns, group_key):
-            if column not in ordered.columns:
-                ordered[column] = value
-        shifted_count = ordered["monthly_txn_count"].shift(1)
-        shifted_weighted_mean = (ordered["monthly_avg_price"] * ordered["monthly_txn_count"]).shift(1)
-        rolling_count = shifted_count.rolling(lookback_months, min_periods=1).sum()
-        rolling_weighted_sum = shifted_weighted_mean.rolling(lookback_months, min_periods=1).sum()
-        ordered[QUESTION_A_BUILDING_HISTORY_COUNT_FEATURE] = rolling_count
-        ordered[QUESTION_A_BUILDING_HISTORY_AVG_FEATURE] = rolling_weighted_sum / rolling_count
-        ordered[QUESTION_A_BUILDING_HISTORY_MEDIAN_FEATURE] = ordered["monthly_median_price"].shift(1).rolling(
-            lookback_months, min_periods=1
-        ).median()
-        return ordered[
-            group_columns
-            + [
-                "transaction_month",
-                QUESTION_A_BUILDING_HISTORY_AVG_FEATURE,
-                QUESTION_A_BUILDING_HISTORY_MEDIAN_FEATURE,
-                QUESTION_A_BUILDING_HISTORY_COUNT_FEATURE,
-            ]
-        ]
-
+    history_window["monthly_weighted_sum"] = history_window["monthly_avg_price"] * history_window["monthly_txn_count"]
     history = (
-        monthly.groupby(group_columns, dropna=False, group_keys=False)
-        .apply(_rolling)
-        .reset_index(drop=True)
+        history_window.groupby(group_columns, dropna=False)
+        .agg(
+            monthly_weighted_sum=("monthly_weighted_sum", "sum"),
+            monthly_median_price_history=("monthly_median_price", "median"),
+            monthly_txn_count_history=("monthly_txn_count", "sum"),
+        )
+        .reset_index()
     )
-    return enriched.merge(history, on=group_columns + ["transaction_month"], how="left")
+    history[QUESTION_A_BUILDING_HISTORY_COUNT_FEATURE] = history["monthly_txn_count_history"]
+    history[QUESTION_A_BUILDING_HISTORY_AVG_FEATURE] = (
+        history["monthly_weighted_sum"] / history["monthly_txn_count_history"]
+    )
+    history[QUESTION_A_BUILDING_HISTORY_MEDIAN_FEATURE] = history["monthly_median_price_history"]
+    history = history[
+        group_columns
+        + [
+            QUESTION_A_BUILDING_HISTORY_AVG_FEATURE,
+            QUESTION_A_BUILDING_HISTORY_MEDIAN_FEATURE,
+            QUESTION_A_BUILDING_HISTORY_COUNT_FEATURE,
+        ]
+    ]
+    return enriched.merge(history, on=group_columns, how="left")
 
 
 def _prepare_question_a_diagnostic_source(frame: pd.DataFrame) -> pd.DataFrame:

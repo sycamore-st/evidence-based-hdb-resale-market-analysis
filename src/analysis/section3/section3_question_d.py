@@ -61,7 +61,7 @@ def _rgba_string(color: str, alpha: float) -> str:
     return f"rgba({int(rgba[0]*255)}, {int(rgba[1]*255)}, {int(rgba[2]*255)}, {rgba[3]:.2f})"
 
 
-def _indexed_trends_plotly_figure(data: pd.DataFrame, *, title: str) -> go.Figure:
+def _indexed_trends_plotly_figure(data: pd.DataFrame) -> go.Figure:
     fig = go.Figure()
     town_data = data.loc[data["series"].ne("COE index")].copy()
     coe_data = data.loc[data["series"].eq("COE index")].copy()
@@ -104,13 +104,14 @@ def _indexed_trends_plotly_figure(data: pd.DataFrame, *, title: str) -> go.Figur
                 hovertemplate="COE index<br>%{x|%Y-%m}<br>Index: %{y:.1f}<extra></extra>",
             )
         )
-    fig.update_layout(
-        title=title,
-        xaxis_title="Month",
-        yaxis={"title": "Housing Index (Start = 100)"},
-        yaxis2={"title": "COE Index (Start = 100)", "overlaying": "y", "side": "right"},
-        legend={"title": None, "bgcolor": "rgba(0,0,0,0)"},
-    )
+    fig.update_xaxes(title_text="Month")
+    fig.update_yaxes(title_text="Housing Index (Start = 100)")
+    fig.layout["yaxis2"] = {
+        "title": {"text": "COE Index (Start = 100)"},
+        "overlaying": "y",
+        "side": "right",
+    }
+    fig.layout["legend"] = {"title": None, "bgcolor": "rgba(0,0,0,0)"}
     return fig
 
 
@@ -146,13 +147,14 @@ def _spread_plotly_figure(spread: pd.DataFrame) -> go.Figure:
             )
         )
     fig.add_hline(y=0, line_dash="dash", line_color=GRAY, line_width=1)
-    fig.update_layout(
-        title="Far-town vs central-town resale price spread",
-        xaxis_title="Month",
-        yaxis={"title": "Resale Price Spread (SGD)"},
-        yaxis2={"title": "COE Index (Start = 100)", "overlaying": "y", "side": "right"},
-        legend={"title": None, "bgcolor": "rgba(0,0,0,0)"},
-    )
+    fig.update_xaxes(title_text="Month")
+    fig.update_yaxes(title_text="Resale Price Spread (SGD)")
+    fig.layout["yaxis2"] = {
+        "title": {"text": "COE Index (Start = 100)"},
+        "overlaying": "y",
+        "side": "right",
+    }
+    fig.layout["legend"] = {"title": None, "bgcolor": "rgba(0,0,0,0)"}
     return fig
 
 
@@ -188,13 +190,14 @@ def _indexed_spread_plotly_figure(spread: pd.DataFrame) -> go.Figure:
             )
         )
     fig.add_hline(y=0, line_dash="dash", line_color=GRAY, line_width=1)
-    fig.update_layout(
-        title="Adjusted far-town vs central-town housing index spread",
-        xaxis_title="Month",
-        yaxis={"title": "Adjusted Housing Index Spread"},
-        yaxis2={"title": "COE Index (Start = 100)", "overlaying": "y", "side": "right"},
-        legend={"title": None, "bgcolor": "rgba(0,0,0,0)"},
-    )
+    fig.update_xaxes(title_text="Month")
+    fig.update_yaxes(title_text="Adjusted Housing Index Spread")
+    fig.layout["yaxis2"] = {
+        "title": {"text": "COE Index (Start = 100)"},
+        "overlaying": "y",
+        "side": "right",
+    }
+    fig.layout["legend"] = {"title": None, "bgcolor": "rgba(0,0,0,0)"}
     return fig
 
 
@@ -238,16 +241,13 @@ def _scatter_regression_plotly_figure(scatter_df: pd.DataFrame) -> go.Figure:
             )
         )
     fig.add_hline(y=0, line_dash="dash", line_color=GRAY, line_width=1)
-    fig.update_layout(
-        title="COE premium and far-town price spread",
-        xaxis_title="COE Premium (SGD)",
-        yaxis_title="Resale Price Spread (SGD)",
-        legend={"title": None, "bgcolor": "rgba(0,0,0,0)"},
-    )
+    fig.update_xaxes(title_text="COE Premium (SGD)")
+    fig.update_yaxes(title_text="Resale Price Spread (SGD)")
+    fig.layout["legend"] = {"title": None, "bgcolor": "rgba(0,0,0,0)"}
     return fig
 
 
-def _partial_regression_plotly_figure(partial_df: pd.DataFrame, *, title: str) -> go.Figure:
+def _partial_regression_plotly_figure(partial_df: pd.DataFrame) -> go.Figure:
     plot_df = partial_df.sort_values("display_order", ascending=False).copy()
     color_map = {
         "Central towns COE elasticity": BLUE,
@@ -282,7 +282,7 @@ def _partial_regression_plotly_figure(partial_df: pd.DataFrame, *, title: str) -
                 x=[row["effect_pct_ci_low"], row["effect_pct_ci_high"]],
                 y=[row["label"], row["label"]],
                 mode="lines",
-                line={"color": color, "width": 5},
+                line={"color": color, "width": 3},
                 showlegend=False,
                 hoverinfo="skip",
             )
@@ -293,7 +293,11 @@ def _partial_regression_plotly_figure(partial_df: pd.DataFrame, *, title: str) -
                 y=[row["label"]],
                 mode="markers",
                 name=row["label"],
-                marker={"size": 18, "color": _rgba_string(color, 0.18), "line": {"color": color, "width": 2.6}},
+                marker={
+                    "size": 10,
+                    "color": _rgba_string(color, 0.18),
+                    "line": {"color": color, "width": 2.6}
+                },
                 hovertemplate=(
                     f"{row['label']}<br>"
                     "Effect: %{x:.2f}%<br>"
@@ -308,7 +312,7 @@ def _partial_regression_plotly_figure(partial_df: pd.DataFrame, *, title: str) -
                 "text": label_text,
                 "showarrow": False,
                 "xshift": 44,
-                "font": {"size": 18, "color": "#000000"},
+                "font": {"size": 12, "color": "#000000"},
                 "xanchor": "left",
                 "yanchor": "middle",
                 "bgcolor": "rgba(255,255,255,0.96)",
@@ -316,33 +320,26 @@ def _partial_regression_plotly_figure(partial_df: pd.DataFrame, *, title: str) -
             }
         )
     fig.add_vline(x=0, line_dash="dash", line_color=GRAY, line_width=1)
-    fig.update_layout(
-        title=title,
-        xaxis_title="Approx. % resale-price change for a 1% COE increase",
-        yaxis_title="",
-        width=1180,
-        height=780,
-        showlegend=False,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        margin={"t": 120, "b": 130, "l": 240, "r": 120},
-        annotations=point_annotations + [
-            {
-                "x": 0.01,
-                "y": -0.18,
-                "xref": "paper",
-                "yref": "paper",
-                "text": "Each row shows the point estimate and 95% confidence interval. Stars mark significance: * p<0.10, ** p<0.05, *** p<0.01.",
-                "showarrow": False,
-                "xanchor": "left",
-                "yanchor": "bottom",
-                "font": {"size": 14, "color": "#000000"},
-                "bgcolor": "rgba(0,0,0,0)",
-            }
-        ],
-    )
-    fig.update_xaxes(tickfont={"size": 16}, title_font={"size": 17})
-    fig.update_yaxes(tickfont={"size": 18})
+    fig.layout.showlegend = False
+    fig.layout.paper_bgcolor = "rgba(0,0,0,0)"
+    fig.layout.plot_bgcolor = "rgba(0,0,0,0)"
+    fig.layout.margin = {"t": 120, "b": 130, "l": 240, "r": 120}
+    fig.layout.annotations = point_annotations + [
+        {
+            "x": 0.01,
+            "y": -0.25,
+            "xref": "paper",
+            "yref": "paper",
+            "text": "Each row shows the point estimate and 95% confidence interval. Stars mark significance: * p<0.10, ** p<0.05, *** p<0.01.",
+            "showarrow": False,
+            "xanchor": "left",
+            "yanchor": "bottom",
+            "font": {"size": 12, "color": "#000000"},
+            "bgcolor": "rgba(0,0,0,0)",
+        }
+    ]
+    fig.update_xaxes(title_text="Approx. % resale-price change for a 1% COE increase")
+    fig.update_yaxes(title_text="")
     return fig
 
 
@@ -364,8 +361,8 @@ def _rebuild_s3qd_f1() -> None:
         data = pd.concat([town_data, coe_data], ignore_index=True, sort=False)
     save_plotly_figure(
         "S3QdF1_indexed_coe_and_resale_trends",
-        _indexed_trends_plotly_figure(data, title="Indexed COE and resale price trends"),
-        title="Indexed COE and resale price trends",
+        _indexed_trends_plotly_figure(data),
+        title=None,
         data=data,
     )
 
@@ -386,8 +383,8 @@ def _month_effect_index(model: object, months: list[str]) -> pd.DataFrame:
 def _plot_adjusted_index_chart(index_df: pd.DataFrame) -> tuple[str, str, str | None]:
     return save_plotly_figure(
         "S3QdF1b_adjusted_indexed_coe_and_resale_trends",
-        _indexed_trends_plotly_figure(index_df, title="Adjusted housing price indices vs COE"),
-        title="Adjusted housing price indices vs COE",
+        _indexed_trends_plotly_figure(index_df),
+        title=None,
         data=index_df,
     )
 
@@ -397,7 +394,7 @@ def _rebuild_s3qd_f2() -> None:
     save_plotly_figure(
         "S3QdF2_far_vs_central_price_spread",
         _spread_plotly_figure(spread),
-        title="Far-town vs central-town resale price spread",
+        title=None,
         data=spread,
     )
 
@@ -407,7 +404,7 @@ def _rebuild_s3qd_f2b() -> None:
     save_plotly_figure(
         "S3QdF2b_adjusted_far_vs_central_index_spread",
         _indexed_spread_plotly_figure(spread),
-        title="Adjusted far-town vs central-town housing index spread",
+        title=None,
         data=spread,
     )
 
@@ -417,7 +414,7 @@ def _rebuild_s3qd_f3() -> None:
     save_plotly_figure(
         "S3QdF3_coe_vs_price_spread",
         _scatter_regression_plotly_figure(scatter_df),
-        title="COE premium and far-town price spread",
+        title=None,
         data=scatter_df,
     )
 
@@ -425,11 +422,8 @@ def _rebuild_s3qd_f3() -> None:
 def _plot_partial_regression(partial_df: pd.DataFrame) -> tuple[str, str, str | None]:
     return save_plotly_figure(
         "S3QdF4_coe_regression_coefficients",
-        _partial_regression_plotly_figure(
-            partial_df,
-            title="What the raw-price regression says about COE sensitivity",
-        ),
-        title="What the raw-price regression says about COE sensitivity",
+        _partial_regression_plotly_figure(partial_df),
+        title=None,
         data=partial_df.sort_values("display_order", ascending=False).copy(),
     )
 
@@ -442,11 +436,8 @@ def _rebuild_s3qd_f4() -> None:
 def _plot_adjusted_partial_regression(partial_df: pd.DataFrame) -> tuple[str, str, str | None]:
     return save_plotly_figure(
         "S3QdF5_adjusted_index_regression_coefficients",
-        _partial_regression_plotly_figure(
-            partial_df,
-            title="What the adjusted-index regression says about COE sensitivity",
-        ),
-        title="What the adjusted-index regression says about COE sensitivity",
+        _partial_regression_plotly_figure(partial_df),
+        title=None,
         data=partial_df.sort_values("display_order", ascending=False).copy(),
     )
 
@@ -689,7 +680,7 @@ def analyze_coe_link(frame: pd.DataFrame, refresh: bool = False) -> dict[str, ob
     coe_f2_svg, coe_f2_html, coe_f2_data = save_plotly_figure(
         "S3QdF2_far_vs_central_price_spread",
         _spread_plotly_figure(spread.copy()),
-        title="Far-town vs central-town resale price spread",
+        title=None,
         data=spread.copy(),
     )
 
@@ -697,7 +688,7 @@ def analyze_coe_link(frame: pd.DataFrame, refresh: bool = False) -> dict[str, ob
     coe_f3_svg, coe_f3_html, coe_f3_data = save_plotly_figure(
         "S3QdF3_coe_vs_price_spread",
         _scatter_regression_plotly_figure(scatter_df.copy()),
-        title="COE premium and far-town price spread",
+        title=None,
         data=scatter_df.copy(),
     )
 
@@ -710,8 +701,8 @@ def analyze_coe_link(frame: pd.DataFrame, refresh: bool = False) -> dict[str, ob
     indexed_chart_data = pd.concat([indexed_plot_data, coe_index_plot_data], ignore_index=True, sort=False)
     coe_f1_svg, coe_f1_html, coe_f1_data = save_plotly_figure(
         "S3QdF1_indexed_coe_and_resale_trends",
-        _indexed_trends_plotly_figure(indexed_chart_data, title="Indexed COE and resale price trends"),
-        title="Indexed COE and resale price trends",
+        _indexed_trends_plotly_figure(indexed_chart_data),
+        title=None,
         data=indexed_chart_data,
     )
     coe_f1b_svg, coe_f1b_html, coe_f1b_data = _plot_adjusted_index_chart(adjusted_index_plot.copy())
@@ -719,7 +710,7 @@ def analyze_coe_link(frame: pd.DataFrame, refresh: bool = False) -> dict[str, ob
     coe_f2b_svg, coe_f2b_html, coe_f2b_data = save_plotly_figure(
         "S3QdF2b_adjusted_far_vs_central_index_spread",
         _indexed_spread_plotly_figure(adjusted_index_spread.copy()),
-        title="Adjusted far-town vs central-town housing index spread",
+        title=None,
         data=adjusted_index_spread.copy(),
     )
     coe_f4_svg, coe_f4_html, coe_f4_data = _plot_partial_regression(raw_coefficient_df.copy())

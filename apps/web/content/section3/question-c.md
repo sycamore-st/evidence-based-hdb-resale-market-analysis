@@ -19,11 +19,11 @@ This is a corridor study, not a whole-island causal claim. Treated homes are nea
 
 ## EDA: Treatment Visibility And Trend Shape
 
-> Interactive chart pending export: Treated vs control trend.
+<iframe src="/outputs/section3/charts/S3QcF1_dtl2_treated_vs_control.html" title="DTL2 treated versus control trend"></iframe>
 
-> Interactive chart pending export: Price gradient by station distance.
+<iframe src="/outputs/section3/charts/S3QcF3_dtl2_mrt_proximity_bands.html" title="Price gradient by station distance"></iframe>
 
-> Interactive chart pending export: Treatment assignment map.
+<iframe src="/outputs/section3/charts/S3QcF4_dtl2_treatment_map.html" title="DTL2 treatment assignment map"></iframe>
 
 These views suggest stronger post-opening performance near stations, but descriptive trends alone are not sufficient for causal interpretation.
 
@@ -31,7 +31,7 @@ These views suggest stronger post-opening performance near stations, but descrip
 
 Use a difference-in-differences framework, then validate assumptions with event-study diagnostics.
 
-> Interactive chart pending export: Event-study coefficients.
+<iframe src="/outputs/section3/charts/S3QcF2_dtl2_event_study_coefficients.html" title="DTL2 event-study coefficients"></iframe>
 
 ## Results
 

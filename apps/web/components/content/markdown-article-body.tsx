@@ -1,3 +1,5 @@
+"use client"
+
 import ReactMarkdown from "react-markdown"
 import rehypeKatex from "rehype-katex"
 import rehypeRaw from "rehype-raw"
@@ -6,7 +8,7 @@ import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism"
 import remarkGfm from "remark-gfm"
 import remarkMath from "remark-math"
 
-import { resolveMarkdownUrl } from "@/lib/content"
+import { resolveMarkdownUrl } from "@/lib/markdown-url"
 
 export function MarkdownArticleBody({ body }: { body: string }) {
   return (

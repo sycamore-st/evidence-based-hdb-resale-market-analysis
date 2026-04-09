@@ -19,11 +19,11 @@ A raw average can mislead because flat-type mix and town mix change over time. W
 
 ## EDA: What The Raw Patterns Suggest
 
-> Interactive chart pending export: Average floor area over time.
+<iframe src="/outputs/section3/charts/S3QbF1_floor_area_over_time.html" title="Average floor area over time"></iframe>
 
-> Interactive chart pending export: Common flat types trend.
+<iframe src="/outputs/section3/charts/S3QbF1a_floor_area_over_time.html" title="Common flat types floor area trend"></iframe>
 
-> Interactive chart pending export: Sparse flat types trend.
+<iframe src="/outputs/section3/charts/S3QbF1b_floor_area_over_time.html" title="Sparse flat types floor area trend"></iframe>
 
 Descriptively, the decline is not uniform. Larger flat types show clearer shrinkage than smaller types.
 
@@ -31,7 +31,7 @@ Descriptively, the decline is not uniform. Larger flat types show clearer shrink
 
 Estimate controlled trend models, then allow completion-year effects to vary by flat type to capture nonlinear and segment-specific design changes.
 
-> Interactive chart pending export: Adjusted completion-year trend by type.
+<iframe src="/outputs/section3/charts/S3QbF4_adjusted_year_trend_by_type.html" title="Adjusted completion-year trend by flat type"></iframe>
 
 ## Results
 

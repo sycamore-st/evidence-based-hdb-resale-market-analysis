@@ -7,8 +7,6 @@ slug: "question-b-extended"
 order: 3
 ---
 
-# Question B Extended: Interactive Valuation Workbench
-
 This page extends the static writeup with a playable valuation workflow.
 
 You can choose a building and transaction profile, then generate:
@@ -17,5 +15,4 @@ You can choose a building and transaction profile, then generate:
 - local transaction distribution context
 - candidate comparable transactions
 
-<iframe src="/section2/question-b-extended-tool" title="Question B interactive valuation workbench"></iframe>
-
+The interactive workbench now lives directly inside this page, so the controls, charts, and comparable table follow the same dashboard rhythm as the rest of the site.

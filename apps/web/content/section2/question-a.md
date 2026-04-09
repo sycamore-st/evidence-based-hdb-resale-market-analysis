@@ -89,3 +89,28 @@ Key takeaways:
 - Reasonable price estimates are possible with just three fields.
 - A persistent error margin remains because key property details are excluded.
 - This model is suited for directional pricing support, not full valuation-grade precision.
+
+## Latest Rerun Notes
+
+The latest rerun kept the official constrained result unchanged:
+
+- Best model: XGBoost
+- RMSE: SGD 51,425
+- MAE: SGD 37,408
+- MAPE: 8.44%
+- R²: 0.826
+
+The 2014 holdout comparison remains:
+
+|**Model**|**RMSE**|**MAPE**|**R²**|
+|---|---|---|---|
+|**Linear Regression**|SGD 55,463|8.51%|0.797|
+|**Random Forest**|SGD 53,894|8.87%|0.809|
+|**XGBoost**|SGD 51,425|8.44%|0.826|
+
+The diagnostic rerun changed more materially:
+
+- Observed hidden-feature benchmark: RMSE SGD 27,972, MAE SGD 19,708, MAPE 4.27%, R² 0.948
+- Baseline imputed benchmark: RMSE SGD 392,790, MAE SGD 378,505, MAPE 85.52%, R² -9.172
+
+This means the main answer is still the same, but the richer diagnostic path now shows an even larger gap between observed structural information and proxy-filled substitutes.

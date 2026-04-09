@@ -1,9 +1,11 @@
+import type { Route } from "next"
 import { readFile } from "node:fs/promises"
 import path from "node:path"
 
 import matter from "gray-matter"
 
-import { resolvePublicAssetUrl, resolveRepositoryBlobUrl } from "@/lib/server-data"
+import { resolveMarkdownUrl } from "@/lib/markdown-url"
+import type { SectionLandingItem } from "@/lib/sections"
 
 export type ArticleSection = "section2" | "section3"
 
@@ -145,6 +147,17 @@ export function listSectionArticles(section: ArticleSection): ArticleMeta[] {
   return [...ARTICLE_REGISTRY[section]].sort((left, right) => left.order - right.order)
 }
 
+export function listArticleLandingItems(section: ArticleSection): SectionLandingItem[] {
+  return listSectionArticles(section).map((article) => ({
+    slug: article.slug,
+    title: article.title,
+    kicker: article.kicker,
+    description: article.description,
+    href: `/${section}/${article.slug}` as Route,
+    ctaLabel: "Read article",
+  }))
+}
+
 export async function readArticle(section: ArticleSection, slug: string): Promise<ArticleDocument> {
   const raw = await readFile(getContentPath(section, slug), "utf8")
   const parsed = matter(raw)
@@ -152,28 +165,6 @@ export async function readArticle(section: ArticleSection, slug: string): Promis
     meta: normalizeMeta(section, slug, parsed.data as ArticleFrontmatter, getRegistryMeta(section, slug)),
     body: parsed.content,
   }
-}
-
-export function resolveMarkdownUrl(href: string): string {
-  if (/^https?:\/\//.test(href)) {
-    return href
-  }
-
-  const repoPrefix = "/Users/claire/PycharmProjects/evidence-based-hdb-resale-market-analysis/"
-
-  if (href.startsWith(repoPrefix)) {
-    return resolveRepositoryBlobUrl(href.slice(repoPrefix.length))
-  }
-
-  if (href.startsWith("/outputs/") || href.startsWith("/artifacts/") || href.startsWith("/docs/")) {
-    return resolvePublicAssetUrl(href)
-  }
-
-  if (href.startsWith("/src/")) {
-    return resolveRepositoryBlobUrl(href)
-  }
-
-  return href
 }
 
 export function getSiblingArticles(section: ArticleSection, slug: string): {
