@@ -24,12 +24,6 @@ export const SECTION1_CONTROL_LABELS = {
   selectedBuilding: "Selected building",
 } as const
 
-const DASHBOARD_ROUTES = [
-  { key: "dashboard-1", href: "/section1/dashboard-1", label: "Dashboard 1" },
-  { key: "dashboard-2", href: "/section1/dashboard-2", label: "Dashboard 2" },
-  { key: "dashboard-3", href: "/section1/dashboard-3", label: "Dashboard 3" },
-] as const
-
 export function formatSectionCurrency(value: number): string {
   return new Intl.NumberFormat("en-SG", {
     style: "currency",
@@ -43,21 +37,25 @@ export function formatSectionCount(value: number): string {
 }
 
 export function SectionDashboardNav({
-  current,
   className,
 }: {
-  current: (typeof DASHBOARD_ROUTES)[number]["key"]
   className: string
 }) {
   return (
-    <div className={className}>
-      {DASHBOARD_ROUTES.filter((item) => item.key !== current).map((item) => (
-        <Link key={item.key} href={item.href} className="section1-nav-link">
-          {item.label}
+    <div className={`${className} site-topnav`}>
+      <div className="site-topnav-links">
+        <Link href="/section1" className="site-topnav-link">
+          Section 1
         </Link>
-      ))}
-      <Link href="/" className="section1-nav-link">
-        Back to index
+        <Link href="/section2" className="site-topnav-link">
+          Section 2
+        </Link>
+        <Link href="/section3" className="site-topnav-link">
+          Section 3
+        </Link>
+      </div>
+      <Link href="/#menu" className="site-topnav-action">
+        Menu
       </Link>
     </div>
   )

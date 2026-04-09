@@ -61,6 +61,7 @@ class ModelResult:
     mae: float
     rmse: float
     mape: float
+    mdape: float
     r2: float
     fit_seconds: float = 0.0
     predict_seconds: float = 0.0
@@ -77,11 +78,14 @@ def _configure_logging(level: str = "INFO") -> None:
         root_logger.setLevel(getattr(logging, level.upper(), logging.INFO))
 
 def _load_frame() -> pd.DataFrame:
+
     path = DATA_PROCESSED / "hdb_resale_processed.parquet"
     if not path.exists():
         raise FileNotFoundError("Processed dataset missing. Run `python -m src.pipeline.build_resale_analysis_dataset` first.")
+
     LOGGER.info("Loading processed resale frame from %s", path)
     frame = pd.read_parquet(path)
+
     LOGGER.info("Loaded resale frame with %d rows and %d columns", len(frame), len(frame.columns))
     if "building_key" not in frame.columns:
         LOGGER.info("No building_key in resale frame; skipping building-level enrichment merge")
@@ -106,27 +110,33 @@ def _load_frame() -> pd.DataFrame:
         "distance_to_cbd_km",
         "building_match_status",
     ]
+
     building_master = pd.read_parquet(building_path, columns=building_columns)
     if "building_key" not in building_master.columns:
         LOGGER.warning("Building POI master is missing building_key; skipping enrichment merge")
         return frame
+
     building_master = building_master.drop_duplicates(subset=["building_key"])
+
     LOGGER.info("Merging building POI master with %d unique building rows", len(building_master))
     merged = frame.drop(
         columns=[column for column in building_columns if column != "building_key" and column in frame.columns],
         errors="ignore",
     ).merge(building_master, on="building_key", how="left")
+
     if "distance_to_cbd_km" not in merged.columns and "distance_to_cbd_km_x" in merged.columns:
         merged["distance_to_cbd_km"] = merged["distance_to_cbd_km_x"].where(
             merged["distance_to_cbd_km_x"].notna(),
             merged["distance_to_cbd_km_y"],
         )
+
     if "distance_to_cbd_km_y" in merged.columns:
         merged["distance_to_cbd_km"] = merged["distance_to_cbd_km"].where(
             merged["distance_to_cbd_km"].notna(),
             merged["distance_to_cbd_km_y"],
         )
     drop_columns = [column for column in merged.columns if column.endswith("_x") or column.endswith("_y")]
+
     if drop_columns:
         merged = merged.drop(columns=drop_columns)
     LOGGER.info("Finished building enrichment merge; frame now has %d columns", len(merged.columns))
@@ -205,6 +215,52 @@ def _direct_regression_metric_bundle(test_frame: pd.DataFrame, log_predictions: 
         **metrics,
     }
 
+
+def _build_model_metric_row(
+        *,
+        name: str,
+        metrics_bundle: dict[str, object],
+        fit_seconds: float,
+        predict_seconds: float,
+        tuned_params: dict[str, float | int] | None = None,
+) -> dict[str, float | str | dict[str, float | int]]:
+    metric_row: dict[str, float | str | dict[str, float | int]] = {
+        "name": name,
+        "mae": float(metrics_bundle["mae"]),
+        "mape": float(metrics_bundle["mape"]),
+        "mdape": float(metrics_bundle["mdape"]),
+        "rmse": float(metrics_bundle["rmse"]),
+        "r2": float(metrics_bundle["r2"]),
+        "fit_seconds": fit_seconds,
+        "predict_seconds": predict_seconds,
+        "total_seconds": fit_seconds + predict_seconds,
+    }
+    if tuned_params:
+        metric_row["tuned_params"] = tuned_params
+    return metric_row
+
+
+def _record_model_metric_result(
+        *,
+        metrics: list[dict[str, float | str | dict[str, float | int]]],
+        metric_row: dict[str, float | str | dict[str, float | int]],
+        best_mape: float,
+        best_name: str,
+        best_pipeline: Pipeline | None,
+        name: str,
+        pipeline: Pipeline,
+) -> tuple[float, str, Pipeline | None, float, float, float, float]:
+    metrics.append(metric_row)
+    mae = float(metric_row["mae"])
+    mape = float(metric_row["mape"])
+    rmse = float(metric_row["rmse"])
+    r2 = float(metric_row["r2"])
+    if mape < best_mape:
+        best_mape = mape
+        best_name = name
+        best_pipeline = pipeline
+    return best_mape, best_name, best_pipeline, mae, mape, rmse, r2
+
 def make_temporal_split(
         frame: pd.DataFrame,
         *,
@@ -252,6 +308,8 @@ def _tune_xgboost_estimator(
         numeric: list[str],
         tune_enabled: bool = False,
         tuning_iterations: int = DEFAULT_XGBOOST_TUNING_ITERATIONS,
+        tuning_folds: int = DEFAULT_XGBOOST_TUNING_FOLDS,
+        tuning_grid: dict[str, list[float | int]] | None = None,
 ) -> tuple[XGBRegressor, dict[str, float | int]]:
     if not tune_enabled:
         return estimator, {}
@@ -261,7 +319,8 @@ def _tune_xgboost_estimator(
     months = sorted(pd.Series(train_frame["transaction_month"].dropna().unique()).tolist())
     if len(months) < 3:
         return estimator, {}
-    holdout_months = months[-min(DEFAULT_XGBOOST_TUNING_FOLDS, len(months) - 1):]
+    effective_tuning_folds = max(1, int(tuning_folds))
+    holdout_months = months[-min(effective_tuning_folds, len(months) - 1):]
     cv_splits: list[dict[str, object]] = []
     for holdout_month in holdout_months:
         split = make_temporal_split(
@@ -275,12 +334,27 @@ def _tune_xgboost_estimator(
     if not cv_splits:
         return estimator, {}
 
+    prepared_splits: list[dict[str, object]] = []
+    for split in cv_splits:
+        preprocessor = _price_preprocessor(categorical, numeric)
+        fitted_preprocessor = clone(preprocessor).fit(split["train_frame"][features])
+        prepared_splits.append(
+            {
+                "transformed_train": fitted_preprocessor.transform(split["train_frame"][features]),
+                "transformed_test": fitted_preprocessor.transform(split["test_frame"][features]),
+                "train_target": split["train_frame"]["log_price_per_sqm"],
+                "test_target": split["test_frame"]["log_price_per_sqm"],
+                "test_frame": split["test_frame"],
+            }
+        )
+
     best_params: dict[str, float | int] = {}
     best_score = np.inf
 
+    parameter_grid = XGBOOST_TUNING_GRID if tuning_grid is None else tuning_grid
     sampled_params = list(
         ParameterSampler(
-            XGBOOST_TUNING_GRID,
+            parameter_grid,
             n_iter=max(1, tuning_iterations),
             random_state=RANDOM_STATE,
         )
@@ -294,23 +368,19 @@ def _tune_xgboost_estimator(
         trial_start = time.perf_counter()
         LOGGER.info("XGBoost tuning trial start: %s", params)
         fold_scores: list[float] = []
-        for split in cv_splits:
-            preprocessor = _price_preprocessor(categorical, numeric)
-            fitted_preprocessor = clone(preprocessor).fit(split["train_frame"][features])
-            transformed_train = fitted_preprocessor.transform(split["train_frame"][features])
-            transformed_test = fitted_preprocessor.transform(split["test_frame"][features])
+        for split in prepared_splits:
             candidate = clone(estimator).set_params(
                 **params,
                 early_stopping_rounds=20,
                 eval_metric="mae",
             )
             candidate.fit(
-                transformed_train,
-                split["train_frame"]["log_price_per_sqm"],
-                eval_set=[(transformed_test, split["test_frame"]["log_price_per_sqm"])],
+                split["transformed_train"],
+                split["train_target"],
+                eval_set=[(split["transformed_test"], split["test_target"])],
                 verbose=False,
             )
-            log_predictions = candidate.predict(transformed_test)
+            log_predictions = candidate.predict(split["transformed_test"])
             fold_scores.append(float(_regression_metric_bundle(split["test_frame"], log_predictions)["mape"]))
         score = float(np.mean(fold_scores))
         LOGGER.info(
@@ -487,27 +557,22 @@ def _fit_regression_models(
         log_predictions = pipeline.predict(test_frame[features])
         predict_seconds = float(time.perf_counter() - predict_start)
         metrics_bundle = _regression_metric_bundle(test_frame, log_predictions)
-        mae = float(metrics_bundle["mae"])
-        mape = float(metrics_bundle["mape"])
-        r2 = float(metrics_bundle["r2"])
-        rmse = float(metrics_bundle["rmse"])
-        metric_row: dict[str, float | str | dict[str, float | int]] = {
-            "name": name,
-            "mae": mae,
-            "mape": mape,
-            "rmse": rmse,
-            "r2": r2,
-            "fit_seconds": fit_seconds,
-            "predict_seconds": predict_seconds,
-            "total_seconds": fit_seconds + predict_seconds,
-        }
-        if tuned_params:
-            metric_row["tuned_params"] = tuned_params
-        metrics.append(metric_row)
-        if mape < best_mape:
-            best_mape = mape
-            best_name = name
-            best_pipeline = pipeline
+        metric_row = _build_model_metric_row(
+            name=name,
+            metrics_bundle=metrics_bundle,
+            fit_seconds=fit_seconds,
+            predict_seconds=predict_seconds,
+            tuned_params=tuned_params,
+        )
+        best_mape, best_name, best_pipeline, mae, mape, rmse, r2 = _record_model_metric_result(
+            metrics=metrics,
+            metric_row=metric_row,
+            best_mape=best_mape,
+            best_name=best_name,
+            best_pipeline=best_pipeline,
+            name=name,
+            pipeline=pipeline,
+        )
         LOGGER.info(
             "Completed regression candidate: %s in %.1fs | MAE=%.0f RMSE=%.0f MAPE=%.2f%% R2=%.3f",
             name,
@@ -584,27 +649,22 @@ def _fit_direct_price_regression_models(
         log_predictions = pipeline.predict(test_frame[features])
         predict_seconds = float(time.perf_counter() - predict_start)
         metrics_bundle = _direct_regression_metric_bundle(test_frame, log_predictions)
-        mae = float(metrics_bundle["mae"])
-        mape = float(metrics_bundle["mape"])
-        r2 = float(metrics_bundle["r2"])
-        rmse = float(metrics_bundle["rmse"])
-        metric_row: dict[str, float | str | dict[str, float | int]] = {
-            "name": name,
-            "mae": mae,
-            "mape": mape,
-            "rmse": rmse,
-            "r2": r2,
-            "fit_seconds": fit_seconds,
-            "predict_seconds": predict_seconds,
-            "total_seconds": fit_seconds + predict_seconds,
-        }
-        if tuned_params:
-            metric_row["tuned_params"] = tuned_params
-        metrics.append(metric_row)
-        if mape < best_mape:
-            best_mape = mape
-            best_name = name
-            best_pipeline = pipeline
+        metric_row = _build_model_metric_row(
+            name=name,
+            metrics_bundle=metrics_bundle,
+            fit_seconds=fit_seconds,
+            predict_seconds=predict_seconds,
+            tuned_params=tuned_params,
+        )
+        best_mape, best_name, best_pipeline, mae, mape, rmse, r2 = _record_model_metric_result(
+            metrics=metrics,
+            metric_row=metric_row,
+            best_mape=best_mape,
+            best_name=best_name,
+            best_pipeline=best_pipeline,
+            name=name,
+            pipeline=pipeline,
+        )
         LOGGER.info(
             "Completed direct-price regression candidate: %s in %.1fs | MAE=%.0f RMSE=%.0f MAPE=%.2f%% R2=%.3f",
             name,
@@ -737,12 +797,15 @@ def _parse_storey_bounds(value: object) -> tuple[float, float]:
 
 def _augment_regression_features(frame: pd.DataFrame) -> pd.DataFrame:
     enriched = frame.copy()
+
     if "transaction_month" in enriched.columns and "year" not in enriched.columns:
         enriched["year"] = pd.to_datetime(enriched["transaction_month"]).dt.year.astype(float)
     elif "transaction_year" in enriched.columns and "year" not in enriched.columns:
         enriched["year"] = enriched["transaction_year"].astype(float)
+
     if "flat_age" in enriched.columns and "age" not in enriched.columns:
         enriched["age"] = enriched["flat_age"].astype(float)
+
     if "remaining_lease_effective" in enriched.columns and "remaining_lease_years" not in enriched.columns:
         enriched["remaining_lease_years"] = enriched["remaining_lease_effective"].astype(float)
     if "storey_range" in enriched.columns and (
@@ -852,9 +915,15 @@ def evaluate_predictions(actual: np.ndarray | pd.Series, predicted: np.ndarray |
     predicted_array = predicted_array[valid_mask]
     if len(actual_array) == 0:
         raise ValueError("No valid prediction rows remain after removing NaN/inf values.")
+    ape = np.where(
+        actual_array != 0.0,
+        np.abs((actual_array - predicted_array) / actual_array),
+        np.nan,
+    )
     return {
         "mae": float(mean_absolute_error(actual_array, predicted_array)),
         "mape": float(mean_absolute_percentage_error(actual_array, predicted_array)),
+        "mdape": float(np.nanmedian(ape)) if np.isfinite(ape).any() else np.nan,
         "rmse": float(np.sqrt(mean_squared_error(actual_array, predicted_array))),
         "r2": float(r2_score(actual_array, predicted_array)),
         "sample_count": int(len(actual_array)),

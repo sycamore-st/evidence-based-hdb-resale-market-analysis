@@ -17,6 +17,7 @@ from src.analysis.section2.S2_config import (
     QUESTION_A_MAIN_TRAINING_WINDOW,
     DEFAULT_XGBOOST_TUNING_ITERATIONS,
     MAX_REGRESSION_SAMPLE,
+    QUESTION_B_XGBOOST_BEST_PARAMS,
     QUESTION_A_DIAGNOSTIC_FEATURES,
     QUESTION_A_FEATURES,
     QUESTION_A_IMPUTATION_FEATURES,
@@ -31,7 +32,7 @@ from src.analysis.section2.S2_helpers import (
     LOGGER,
     ModelResult,
     _augment_regression_features,
-    _direct_regression_metric_bundle,
+    _build_time_rebase_lookup,
     _estimator_for_refit,
     _fit_direct_price_regression_models,
     _fit_regression_models,
@@ -39,9 +40,12 @@ from src.analysis.section2.S2_helpers import (
     _normalize_subject,
     _price_preprocessor,
     _recover_direct_resale_price,
+    _recover_resale_price,
     _sample_if_needed,
     _subject_frame,
+    _with_log_price_target,
     _with_log_resale_target,
+    evaluate_predictions,
 )
 from src.common.config import SECTION2_OUTPUT_RESULTS
 
@@ -61,6 +65,177 @@ QUESTION_A_WINDOW_LABELS = {
     "recent_1y": "Recent 1 Year",
 }
 
+QUESTION_A_DIAGNOSTIC_GROUP_COLUMNS = ["street_name", "block", "flat_type"]
+QUESTION_A_DIAGNOSTIC_BUILDING_ID_COLUMNS = ["street_name", "block"]
+QUESTION_A_DIAGNOSTIC_HISTORY_LOOKBACK_MONTHS = 36
+QUESTION_A_BUILDING_HEIGHT_HISTORY_START_YEAR = 1990
+QUESTION_A_BUILDING_HEIGHT_HISTORY_END_YEAR = 2023
+QUESTION_A_BUILDING_MAX_HEIGHT_FEATURE = "building_max_floor_level_1990_2023"
+QUESTION_A_BUILDING_HISTORY_AVG_FEATURE = "history_3y_building_avg_price"
+QUESTION_A_BUILDING_HISTORY_MEDIAN_FEATURE = "history_3y_building_median_price"
+QUESTION_A_BUILDING_HISTORY_COUNT_FEATURE = "history_3y_building_txn_count"
+QUESTION_A_BUILDING_HISTORY_START = pd.Timestamp("2021-01-01")
+QUESTION_A_BUILDING_HISTORY_END = pd.Timestamp("2023-12-31")
+QUESTION_A_DIAGNOSTIC_REBASE_TO_1990 = True
+QUESTION_A_POI_CATEGORICAL_FEATURES = [
+    "flat_model",
+    "storey_range",
+    "transaction_quarter",
+    "data_segment",
+    "nearest_mrt_station",
+    "nearest_bus_stop_num",
+    "nearest_school_name",
+    "building_match_status",
+]
+QUESTION_A_POI_NUMERIC_FEATURES = [
+    "lease_commence_date",
+    "remaining_lease_effective",
+    "town_latitude",
+    "town_longitude",
+    "distance_to_cbd_km",
+    "nearest_mrt_distance_km",
+    "nearest_bus_stop_distance_km",
+    "nearest_school_distance_km",
+    "building_latitude",
+    "building_longitude",
+    "bus_stop_count_within_1km",
+    "school_count_within_1km",
+]
+QUESTION_A_DIAGNOSTIC_SELECTED_POI_CATEGORICAL_FEATURES = [
+    "flat_model",
+    "storey_range",
+    "transaction_quarter",
+    "data_segment",
+    "nearest_mrt_station",
+    "nearest_bus_stop_num",
+    "nearest_school_name",
+]
+QUESTION_A_DIAGNOSTIC_SELECTED_POI_NUMERIC_FEATURES = [
+    "distance_to_cbd_km",
+    "nearest_mrt_distance_km",
+    "nearest_bus_stop_distance_km",
+    "nearest_school_distance_km",
+]
+
+
+def _attach_question_a_building_max_height_feature(
+        frame: pd.DataFrame,
+        *,
+        start_year: int = QUESTION_A_BUILDING_HEIGHT_HISTORY_START_YEAR,
+        end_year: int = QUESTION_A_BUILDING_HEIGHT_HISTORY_END_YEAR,
+) -> pd.DataFrame:
+    enriched = frame.copy()
+    if "transaction_year" not in enriched.columns:
+        enriched["transaction_year"] = pd.to_datetime(enriched["transaction_month"]).dt.year.astype(float)
+
+    required_columns = [column for column in QUESTION_A_DIAGNOSTIC_BUILDING_ID_COLUMNS + ["transaction_year", "max_floor_level"] if column in enriched.columns]
+    if len(required_columns) < len(QUESTION_A_DIAGNOSTIC_BUILDING_ID_COLUMNS) + 2:
+        enriched[QUESTION_A_BUILDING_MAX_HEIGHT_FEATURE] = np.nan
+        return enriched
+
+    history = enriched.loc[
+        enriched["transaction_year"].between(float(start_year), float(end_year), inclusive="both")
+        & enriched["max_floor_level"].notna(),
+        QUESTION_A_DIAGNOSTIC_BUILDING_ID_COLUMNS + ["max_floor_level"],
+    ].copy()
+    if history.empty:
+        enriched[QUESTION_A_BUILDING_MAX_HEIGHT_FEATURE] = np.nan
+        return enriched
+
+    building_heights = (
+        history.groupby(QUESTION_A_DIAGNOSTIC_BUILDING_ID_COLUMNS, dropna=False)["max_floor_level"]
+        .max()
+        .reset_index()
+        .rename(columns={"max_floor_level": QUESTION_A_BUILDING_MAX_HEIGHT_FEATURE})
+    )
+    return enriched.merge(building_heights, on=QUESTION_A_DIAGNOSTIC_BUILDING_ID_COLUMNS, how="left")
+
+
+def _attach_question_a_building_history_features(
+        frame: pd.DataFrame,
+) -> pd.DataFrame:
+    enriched = frame.copy()
+    group_columns = [column for column in QUESTION_A_DIAGNOSTIC_GROUP_COLUMNS if column in enriched.columns]
+    if not group_columns:
+        enriched[QUESTION_A_BUILDING_HISTORY_AVG_FEATURE] = np.nan
+        enriched[QUESTION_A_BUILDING_HISTORY_MEDIAN_FEATURE] = np.nan
+        enriched[QUESTION_A_BUILDING_HISTORY_COUNT_FEATURE] = np.nan
+        return enriched
+
+    monthly = (
+        enriched.groupby(group_columns + ["transaction_month"], dropna=False)
+        .agg(
+            monthly_avg_price=("resale_price", "mean"),
+            monthly_median_price=("resale_price", "median"),
+            monthly_txn_count=("resale_price", "size"),
+        )
+        .reset_index()
+    )
+    if monthly.empty:
+        enriched[QUESTION_A_BUILDING_HISTORY_AVG_FEATURE] = np.nan
+        enriched[QUESTION_A_BUILDING_HISTORY_MEDIAN_FEATURE] = np.nan
+        enriched[QUESTION_A_BUILDING_HISTORY_COUNT_FEATURE] = np.nan
+        return enriched
+    history_window = monthly.loc[
+        monthly["transaction_month"].between(QUESTION_A_BUILDING_HISTORY_START, QUESTION_A_BUILDING_HISTORY_END, inclusive="both")
+    ].copy()
+    if history_window.empty:
+        enriched[QUESTION_A_BUILDING_HISTORY_AVG_FEATURE] = np.nan
+        enriched[QUESTION_A_BUILDING_HISTORY_MEDIAN_FEATURE] = np.nan
+        enriched[QUESTION_A_BUILDING_HISTORY_COUNT_FEATURE] = np.nan
+        return enriched
+
+    history_window["monthly_weighted_sum"] = history_window["monthly_avg_price"] * history_window["monthly_txn_count"]
+    history = (
+        history_window.groupby(group_columns, dropna=False)
+        .agg(
+            monthly_weighted_sum=("monthly_weighted_sum", "sum"),
+            monthly_median_price_history=("monthly_median_price", "median"),
+            monthly_txn_count_history=("monthly_txn_count", "sum"),
+        )
+        .reset_index()
+    )
+    history[QUESTION_A_BUILDING_HISTORY_COUNT_FEATURE] = history["monthly_txn_count_history"]
+    history[QUESTION_A_BUILDING_HISTORY_AVG_FEATURE] = (
+        history["monthly_weighted_sum"] / history["monthly_txn_count_history"]
+    )
+    history[QUESTION_A_BUILDING_HISTORY_MEDIAN_FEATURE] = history["monthly_median_price_history"]
+    history = history[
+        group_columns
+        + [
+            QUESTION_A_BUILDING_HISTORY_AVG_FEATURE,
+            QUESTION_A_BUILDING_HISTORY_MEDIAN_FEATURE,
+            QUESTION_A_BUILDING_HISTORY_COUNT_FEATURE,
+        ]
+    ]
+    return enriched.merge(history, on=group_columns, how="left")
+
+
+def _prepare_question_a_diagnostic_source(frame: pd.DataFrame) -> pd.DataFrame:
+    enriched = _augment_regression_features(frame)
+    enriched["transaction_month"] = pd.to_datetime(enriched["transaction_month"]).dt.to_period("M").dt.to_timestamp()
+    enriched = _attach_question_a_building_max_height_feature(enriched)
+    enriched = _attach_question_a_building_history_features(enriched)
+    return enriched
+
+
+def _question_a_diagnostic_feature_spec(frame: pd.DataFrame) -> tuple[list[str], list[str], list[str]]:
+    features = QUESTION_A_DIAGNOSTIC_FEATURES.copy()
+    for feature in QUESTION_A_DIAGNOSTIC_SELECTED_POI_CATEGORICAL_FEATURES + QUESTION_A_DIAGNOSTIC_SELECTED_POI_NUMERIC_FEATURES:
+        if feature in frame.columns and feature not in features:
+            features.append(feature)
+    for extra_feature in [
+        QUESTION_A_BUILDING_MAX_HEIGHT_FEATURE,
+        QUESTION_A_BUILDING_HISTORY_AVG_FEATURE,
+        QUESTION_A_BUILDING_HISTORY_MEDIAN_FEATURE,
+        QUESTION_A_BUILDING_HISTORY_COUNT_FEATURE,
+    ]:
+        if extra_feature in frame.columns and extra_feature not in features:
+            features.append(extra_feature)
+    categorical = [column for column in ["town", "flat_type", *QUESTION_A_DIAGNOSTIC_SELECTED_POI_CATEGORICAL_FEATURES] if column in features]
+    numeric = [column for column in features if column not in categorical]
+    return features, categorical, numeric
+
 
 def _compact_currency(value: float) -> str:
     if abs(value) >= 1_000_000:
@@ -76,6 +251,23 @@ def _compact_amount(value: float) -> str:
     if abs(value) >= 1_000:
         return f"{value / 1_000:.0f}K"
     return f"{value:,.0f}"
+
+
+def _model_results_from_metrics(metrics: list[dict[str, object]]) -> list[ModelResult]:
+    return [
+        ModelResult(
+            name=str(metric["name"]),
+            mae=float(metric["mae"]),
+            rmse=float(metric["rmse"]),
+            mape=float(metric["mape"]),
+            mdape=float(metric.get("mdape", np.nan)),
+            r2=float(metric["r2"]),
+            fit_seconds=float(metric.get("fit_seconds", 0.0)),
+            predict_seconds=float(metric.get("predict_seconds", 0.0)),
+            total_seconds=float(metric.get("total_seconds", 0.0)),
+        )
+        for metric in metrics
+    ]
 
 
 def _build_question_a_candidates() -> dict[str, object]:
@@ -105,6 +297,18 @@ def _build_question_a_xgboost_only_candidate() -> dict[str, object]:
     return {"xgboost": _build_question_a_candidates()["xgboost"]}
 
 
+def _build_question_a_diagnostic_candidates() -> dict[str, object]:
+    return {
+        "xgb_extended_like": XGBRegressor(
+            objective="reg:squarederror",
+            **QUESTION_B_XGBOOST_BEST_PARAMS,
+            random_state=RANDOM_STATE,
+            n_jobs=-1,
+            tree_method="hist",
+        )
+    }
+
+
 def _question_a_age_bucket(value: object, *, width: int = 5) -> float:
     if value is None or pd.isna(value):
         return np.nan
@@ -112,14 +316,16 @@ def _question_a_age_bucket(value: object, *, width: int = 5) -> float:
 
 
 def _prepare_question_a_diagnostic_frame(frame: pd.DataFrame) -> pd.DataFrame:
-    enriched = _augment_regression_features(frame)
+    enriched = _prepare_question_a_diagnostic_source(frame)
+    diagnostic_features, _, _ = _question_a_diagnostic_feature_spec(enriched)
     sample = enriched.loc[
         enriched["transaction_year"].eq(2014),
-        QUESTION_A_DIAGNOSTIC_FEATURES + ["resale_price", "transaction_month", "transaction_year"],
+        diagnostic_features + ["resale_price", "transaction_month", "transaction_year"],
     ].copy()
     sample["flat_age_bucket"] = sample["flat_age"].map(_question_a_age_bucket)
     sample = sample.dropna(subset=["year", "town", "flat_type", "flat_age", "resale_price"]).copy()
-    sample = _with_log_resale_target(sample)
+    sample = _with_log_price_target(sample)
+
     return _sample_if_needed(sample, MAX_REGRESSION_SAMPLE)
 
 
@@ -143,7 +349,10 @@ def _build_question_a_controlled_variation_summary(frame: pd.DataFrame, *, top_n
         lambda row: f"{row['town']} | {row['flat_type']} | age {int(row['flat_age_bucket'])}-{int(row['flat_age_bucket']) + 4}",
         axis=1,
     )
-    return summary.sort_values(["transaction_count", "price_iqr"], ascending=[False, False]).head(top_n).reset_index(drop=True)
+    return summary.sort_values(
+        ["transaction_count", "price_iqr"],
+        ascending=[False, False]
+    ).head(top_n).reset_index(drop=True)
 
 
 def _build_question_a_imputation_correlation(frame: pd.DataFrame) -> pd.DataFrame:
@@ -426,17 +635,18 @@ def _apply_question_a_imputation_scenario(
     return scenario_frame, reference_summary
 
 
-def build_question_a_frame(frame: pd.DataFrame) -> pd.DataFrame:
+def build_question_a_frame(
+        frame: pd.DataFrame, *,
+        include_transaction_month: bool = False
+) -> pd.DataFrame:
     sample = _prepare_question_a_diagnostic_frame(frame)
-    official = sample[QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price", "transaction_year"]].copy()
-    official = _with_log_resale_target(official)
-    return official
-
-
-def _build_question_a_model_frame(frame: pd.DataFrame) -> pd.DataFrame:
-    sample = _prepare_question_a_diagnostic_frame(frame)
-    official = sample[QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price", "transaction_month",
-                                                      "transaction_year"]].copy()
+    extra_columns = ["floor_area_sqm", "resale_price"]
+    if include_transaction_month:
+        extra_columns.append("transaction_month")
+    extra_columns.append("transaction_year")
+    official = sample[
+        QUESTION_A_OFFICIAL_FEATURES + extra_columns
+    ].copy()
     official = _with_log_resale_target(official)
     return official
 
@@ -453,14 +663,20 @@ def _build_question_a_temporal_split(
         *,
         window_label: str = QUESTION_A_MAIN_TRAINING_WINDOW,
 ) -> dict[str, object]:
-    enriched = _augment_regression_features(frame)
+    enriched = _prepare_question_a_diagnostic_source(frame)
+    diagnostic_features, diagnostic_categorical, diagnostic_numeric = _question_a_diagnostic_feature_spec(enriched)
+
     sample = enriched.loc[
         enriched["transaction_year"] <= 2014,
-        QUESTION_A_DIAGNOSTIC_FEATURES + ["resale_price", "transaction_month", "transaction_year"],
+        diagnostic_features + ["resale_price", "transaction_month", "transaction_year"],
     ].copy()
+
     sample["flat_age_bucket"] = sample["flat_age"].map(_question_a_age_bucket)
-    sample = sample.dropna(subset=["flat_type", "town", "flat_age", "floor_area_sqm", "resale_price"]).copy()
-    sample = _with_log_resale_target(sample)
+    sample = sample.dropna(
+        subset=["flat_type", "town", "flat_age", "floor_area_sqm", "resale_price"]
+    ).copy()
+    time_rebase_lookup = _build_time_rebase_lookup(sample) if QUESTION_A_DIAGNOSTIC_REBASE_TO_1990 else None
+    sample = _with_log_price_target(sample, time_rebase_lookup=time_rebase_lookup)
 
     train_pool = sample.loc[sample["transaction_year"] < 2014].copy()
     test_frame = sample.loc[sample["transaction_year"] == 2014].copy()
@@ -479,11 +695,13 @@ def _build_question_a_temporal_split(
 
     train_frame["holdout_row_id"] = np.arange(len(train_frame), dtype=int)
     test_frame["holdout_row_id"] = np.arange(len(test_frame), dtype=int)
+
     official_train_frame = _with_log_resale_target(
         train_frame[
             QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price", "transaction_month", "transaction_year"]
         ].copy()
     )
+
     official_test_frame = _with_log_resale_target(
         test_frame[
             QUESTION_A_OFFICIAL_FEATURES + ["floor_area_sqm", "resale_price", "transaction_month", "transaction_year"]
@@ -491,6 +709,9 @@ def _build_question_a_temporal_split(
     )
     return {
         "window_label": window_label,
+        "diagnostic_features": diagnostic_features,
+        "diagnostic_categorical": diagnostic_categorical,
+        "diagnostic_numeric": diagnostic_numeric,
         "train_frame": train_frame,
         "test_frame": test_frame,
         "official_train_frame": official_train_frame,
@@ -555,6 +776,7 @@ def _evaluate_question_a_training_windows(
                 "mae": float(best_metrics["mae"]),
                 "rmse": float(best_metrics["rmse"]),
                 "mape": float(best_metrics["mape"]),
+                "mdape": float(best_metrics.get("mdape", np.nan)),
                 "r2": float(best_metrics["r2"]),
             }
         )
@@ -565,19 +787,31 @@ def predict_simplified_price(
         subject: dict[str, object],
         frame: pd.DataFrame | None = None,
         *,
+        test_best_impute_method: bool = False,
+        refit_best_model: bool = False,
         tune_xgboost: bool = False,
         xgboost_tuning_iterations: int = DEFAULT_XGBOOST_TUNING_ITERATIONS,
 ) -> dict[str, object]:
+
     if frame is None:
         frame = _load_frame()
+
     LOGGER.info("Question A start")
     diagnostic_sample = _prepare_question_a_diagnostic_frame(frame)
-    temporal_split = _build_question_a_temporal_split(frame, window_label=QUESTION_A_MAIN_TRAINING_WINDOW)
+    temporal_split = _build_question_a_temporal_split(
+        frame,
+        window_label=QUESTION_A_MAIN_TRAINING_WINDOW
+    )
+
     controlled_variation_summary = _build_question_a_controlled_variation_summary(diagnostic_sample)
     imputation_correlation = _build_question_a_imputation_correlation(diagnostic_sample)
     floor_area_by_flat_type = _build_question_a_floor_area_by_flat_type_summary(diagnostic_sample)
     feature_handling_table = _build_question_a_feature_handling_table()
+
     LOGGER.info("Question A diagnostic sample prepared with %d rows", len(diagnostic_sample))
+    diagnostic_features = temporal_split["diagnostic_features"]
+    diagnostic_categorical = temporal_split["diagnostic_categorical"]
+    diagnostic_numeric = temporal_split["diagnostic_numeric"]
     train_frame = temporal_split["train_frame"].copy()
     test_frame = temporal_split["test_frame"].copy()
     official_train_frame = temporal_split["official_train_frame"].copy()
@@ -587,6 +821,7 @@ def predict_simplified_price(
         "test_frame": official_test_frame.copy(),
         "holdout_months": sorted(pd.to_datetime(official_test_frame["transaction_month"]).unique().tolist()),
     }
+
     official_fit = _fit_direct_price_regression_models(
         split["train_frame"],
         split["test_frame"],
@@ -600,47 +835,58 @@ def predict_simplified_price(
     official_best_metrics = next(
         row for row in official_fit["candidate_metrics"] if row["name"] == official_fit["best_model"]
     )
+
     LOGGER.info(
-        "Question A official holdout metrics | best_model=%s rmse=%.0f mape=%.2f%% mae=%.0f r2=%.3f",
+        "Question A official holdout metrics | best_model=%s rmse=%.0f mape=%.2f%% mdape=%.2f%% mae=%.0f r2=%.3f",
         official_fit["best_model"],
         float(official_best_metrics["rmse"]),
         float(official_best_metrics["mape"]) * 100.0,
+        float(official_best_metrics.get("mdape", np.nan)) * 100.0,
         float(official_best_metrics["mae"]),
         float(official_best_metrics["r2"]),
     )
-    eval_log_predictions = official_fit["best_pipeline"].predict(split["test_frame"][QUESTION_A_OFFICIAL_FEATURES])
+    eval_log_predictions = official_fit["best_pipeline"].predict(
+        split["test_frame"][QUESTION_A_OFFICIAL_FEATURES]
+    )
     eval_predictions = _recover_direct_resale_price(eval_log_predictions)
-    eval_predictions_frame = split["test_frame"][
-        [column for column in ["transaction_month", "town", "flat_type", "flat_age", "resale_price"] if
-         column in split["test_frame"].columns]
-    ].copy()
+    eval_columns = [
+            column for column in ["transaction_month", "town", "flat_type", "flat_age", "resale_price"]
+            if column in split["test_frame"].columns
+        ]
+    eval_predictions_frame = split["test_frame"][eval_columns].copy()
     eval_predictions_frame["actual_price"] = eval_predictions_frame["resale_price"]
     eval_predictions_frame["predicted_price"] = eval_predictions
 
-    official_pipeline = Pipeline(
-        [
-            ("preprocessor", _price_preprocessor(["flat_type", "town"], ["flat_age"])),
-            ("model", _estimator_for_refit(official_fit["best_estimator"])),
-        ]
-    )
-    official_training_sample = _with_log_resale_target(
-        train_frame[QUESTION_A_OFFICIAL_FEATURES + ["resale_price"]].copy()
-    )
-    official_pipeline.fit(official_training_sample[QUESTION_A_OFFICIAL_FEATURES],
-                          official_training_sample["log_resale_price"])
+    if refit_best_model:
+        official_pipeline = Pipeline(
+            [
+                ("preprocessor", _price_preprocessor(["flat_type", "town"], ["flat_age"])),
+                ("model", _estimator_for_refit(official_fit["best_estimator"])),
+            ]
+        )
+        official_training_sample = _with_log_resale_target(
+            train_frame[QUESTION_A_OFFICIAL_FEATURES + ["resale_price"]].copy()
+        )
+        official_pipeline.fit(
+            official_training_sample[QUESTION_A_OFFICIAL_FEATURES],
+            official_training_sample["log_resale_price"],
+        )
+    else:
+        official_pipeline = official_fit["best_pipeline"]
     official_prediction = float(
         _recover_direct_resale_price(
             official_pipeline.predict(_subject_frame(subject, QUESTION_A_OFFICIAL_FEATURES)),
         )[0]
     )
 
-    diagnostic_fit = _fit_direct_price_regression_models(
+    # ----------------------------------------------------------------------------
+    diagnostic_fit = _fit_regression_models(
         train_frame,
         test_frame,
-        features=QUESTION_A_DIAGNOSTIC_FEATURES,
-        categorical=["town", "flat_type"],
-        numeric=["year", "flat_age", "floor_area_sqm", "min_floor_level", "max_floor_level"],
-        candidates=_build_question_a_candidates(),
+        features=diagnostic_features,
+        categorical=diagnostic_categorical,
+        numeric=diagnostic_numeric,
+        candidates=_build_question_a_diagnostic_candidates(),
         tune_xgboost=tune_xgboost,
         xgboost_tuning_iterations=xgboost_tuning_iterations,
     )
@@ -648,33 +894,49 @@ def predict_simplified_price(
         row for row in diagnostic_fit["candidate_metrics"] if row["name"] == diagnostic_fit["best_model"]
     )
     LOGGER.info(
-        "Question A diagnostic observed holdout metrics | best_model=%s rmse=%.0f mape=%.2f%% mae=%.0f r2=%.3f",
+        "Question A diagnostic observed holdout metrics | best_model=%s rmse=%.0f mape=%.2f%% mdape=%.2f%% mae=%.0f r2=%.3f",
         diagnostic_fit["best_model"],
         float(diagnostic_best_metrics["rmse"]),
         float(diagnostic_best_metrics["mape"]) * 100.0,
+        float(diagnostic_best_metrics.get("mdape", np.nan)) * 100.0,
         float(diagnostic_best_metrics["mae"]),
         float(diagnostic_best_metrics["r2"]),
     )
+
+    imputation_methods = QUESTION_A_IMPUTATION_METHODS if test_best_impute_method else ("baseline",)
+
     imputed_metrics: list[dict[str, object]] = []
     imputation_reference_frames: list[pd.DataFrame] = []
     diagnostic_eval_frames: list[pd.DataFrame] = []
-    for method in QUESTION_A_IMPUTATION_METHODS:
-        scenario_test_frame, reference_summary = _apply_question_a_imputation_scenario(test_frame, train_frame, method)
+    for method in imputation_methods:
+        scenario_test_frame, reference_summary = _apply_question_a_imputation_scenario(
+            test_frame, train_frame, method
+        )
         imputation_reference_frames.append(reference_summary)
         for metric in diagnostic_fit["candidate_metrics"]:
             model_name = str(metric["name"])
-            candidate_estimator = _build_question_a_candidates()[model_name]
+            candidate_estimator = _build_question_a_diagnostic_candidates()[model_name]
             scenario_pipeline = Pipeline(
                 [
-                    ("preprocessor", _price_preprocessor(["town", "flat_type"],
-                                                         ["year", "flat_age", "floor_area_sqm", "min_floor_level",
-                                                          "max_floor_level"])),
+                    ("preprocessor", _price_preprocessor(diagnostic_categorical, diagnostic_numeric)),
                     ("model", _estimator_for_refit(candidate_estimator)),
                 ]
             )
-            scenario_pipeline.fit(train_frame[QUESTION_A_DIAGNOSTIC_FEATURES], train_frame["log_resale_price"])
-            scenario_log_predictions = scenario_pipeline.predict(scenario_test_frame[QUESTION_A_DIAGNOSTIC_FEATURES])
-            scenario_metrics = _direct_regression_metric_bundle(scenario_test_frame, scenario_log_predictions)
+            scenario_pipeline.fit(train_frame[diagnostic_features], train_frame["log_price_per_sqm"])
+            scenario_log_predictions = scenario_pipeline.predict(scenario_test_frame[diagnostic_features])
+            recovery_floor_area = (
+                scenario_test_frame["recovery_floor_area_sqm"].astype(float).to_numpy()
+                if "recovery_floor_area_sqm" in scenario_test_frame.columns
+                else scenario_test_frame["floor_area_sqm"].astype(float).to_numpy()
+            )
+            scenario_predictions = _recover_resale_price(
+                scenario_log_predictions,
+                recovery_floor_area,
+            )
+            scenario_metrics = evaluate_predictions(
+                scenario_test_frame["resale_price"].astype(float).to_numpy(),
+                scenario_predictions,
+            )
             imputed_metrics.append(
                 {
                     "name": model_name,
@@ -682,6 +944,7 @@ def predict_simplified_price(
                     "mae": float(scenario_metrics["mae"]),
                     "rmse": float(scenario_metrics["rmse"]),
                     "mape": float(scenario_metrics["mape"]),
+                    "mdape": float(scenario_metrics.get("mdape", np.nan)),
                     "r2": float(scenario_metrics["r2"]),
                     "mape_uplift": float(scenario_metrics["mape"] - next(
                         row["mape"] for row in diagnostic_fit["candidate_metrics"] if row["name"] == model_name)),
@@ -692,7 +955,7 @@ def predict_simplified_price(
                     [column for column in ["holdout_row_id", "transaction_month", "town", "flat_type", "flat_age", "resale_price"] if
                      column in scenario_test_frame.columns]
                 ].copy()
-                frame_view["predicted_price"] = scenario_metrics["predicted_resale_price"]
+                frame_view["predicted_price"] = scenario_predictions
                 frame_view["actual_price"] = frame_view["resale_price"].astype(float)
                 frame_view["imputation_method"] = method
                 diagnostic_eval_frames.append(frame_view)
@@ -703,28 +966,34 @@ def predict_simplified_price(
         xgboost_tuning_iterations=xgboost_tuning_iterations,
     )
 
-    diagnostic_pipeline = Pipeline(
-        [
-            ("preprocessor", _price_preprocessor(["town", "flat_type"],
-                                                 ["year", "flat_age", "floor_area_sqm", "min_floor_level",
-                                                  "max_floor_level"])),
-            ("model", _estimator_for_refit(diagnostic_fit["best_estimator"])),
-        ]
-    )
-    diagnostic_pipeline.fit(train_frame[QUESTION_A_DIAGNOSTIC_FEATURES], train_frame["log_resale_price"])
+    if refit_best_model:
+        diagnostic_pipeline = Pipeline(
+            [
+                ("preprocessor", _price_preprocessor(diagnostic_categorical, diagnostic_numeric)),
+                ("model", _estimator_for_refit(diagnostic_fit["best_estimator"])),
+            ]
+        )
+        diagnostic_pipeline.fit(
+            train_frame[diagnostic_features],
+            train_frame["log_price_per_sqm"]
+        )
+    else:
+        diagnostic_pipeline = diagnostic_fit["best_pipeline"]
     normalized_subject = _normalize_subject(subject)
     normalized_subject.setdefault("year", 2014.0)
     normalized_subject["flat_age_bucket"] = _question_a_age_bucket(normalized_subject.get("flat_age"))
     subject_reference = _build_question_a_imputation_reference(train_frame, normalized_subject)
+
     prediction_under_imputations: list[dict[str, object]] = []
     prediction_lookup: dict[str, float] = {}
-    for method in QUESTION_A_IMPUTATION_METHODS:
+    for method in imputation_methods:
         scenario_subject = dict(normalized_subject)
         for feature, value in subject_reference["values"][method].items():
             scenario_subject[feature] = value
         predicted_price = float(
-            _recover_direct_resale_price(
-                diagnostic_pipeline.predict(_subject_frame(scenario_subject, QUESTION_A_DIAGNOSTIC_FEATURES)),
+            _recover_resale_price(
+                diagnostic_pipeline.predict(_subject_frame(scenario_subject, diagnostic_features)),
+                np.array([float(scenario_subject["floor_area_sqm"])]),
             )[0]
         )
         prediction_lookup[method] = predicted_price
@@ -753,11 +1022,12 @@ def predict_simplified_price(
             continue
         row = scenario_rows[0]
         LOGGER.info(
-            "Question A imputed holdout metrics | best_model=%s imputation=%s rmse=%.0f mape=%.2f%% uplift=%.2f%%",
+            "Question A imputed holdout metrics | best_model=%s imputation=%s rmse=%.0f mape=%.2f%% mdape=%.2f%% uplift=%.2f%%",
             diagnostic_fit["best_model"],
             method,
             float(row["rmse"]),
             float(row["mape"]) * 100.0,
+            float(row.get("mdape", np.nan)) * 100.0,
             float(row["mape_uplift"]) * 100.0,
         )
         imputation_summaries.append(
@@ -765,6 +1035,7 @@ def predict_simplified_price(
                 "imputation_method": method,
                 "rmse": float(row["rmse"]),
                 "mape": float(row["mape"]),
+                "mdape": float(row.get("mdape", np.nan)),
                 "mape_uplift": float(row["mape_uplift"]),
                 "reference_values": subject_reference["values"][method],
             }
@@ -779,21 +1050,30 @@ def predict_simplified_price(
             float(imputation_range_backtest_summary["average_range_width_pct_of_actual"]) * 100.0,
             int(imputation_range_backtest_summary["sample_count"]),
         )
-    recommended_low_candidates = np.asarray(
-        [prediction_lookup.get("p25", np.nan), prediction_lookup.get("null", np.nan)], dtype=float)
-    recommended_high_candidates = np.asarray(
-        [prediction_lookup.get("p75", np.nan), prediction_lookup.get("most_frequent", np.nan)], dtype=float)
-    recommended_low = float(np.nanmin(recommended_low_candidates)) if np.isfinite(
-        recommended_low_candidates).any() else np.nan
-    recommended_mid = float(prediction_lookup.get("baseline", np.nan))
-    recommended_high = float(np.nanmax(recommended_high_candidates)) if np.isfinite(
-        recommended_high_candidates).any() else np.nan
-    uncertainty_summary = (
-        f"With only coarse attributes, practical backtest MAPE is around {backtest_error_low:.0%} to {backtest_error_high:.0%} "
-        "because many flats share the same visible attributes but differ in size and floor."
-        if np.isfinite(backtest_error_low) and np.isfinite(backtest_error_high)
-        else "Imputation-based uncertainty could not be summarized from the current holdout."
-    )
+    if test_best_impute_method:
+        recommended_low_candidates = np.asarray(
+            [prediction_lookup.get("p25", np.nan), prediction_lookup.get("null", np.nan)], dtype=float)
+        recommended_high_candidates = np.asarray(
+            [prediction_lookup.get("p75", np.nan), prediction_lookup.get("most_frequent", np.nan)], dtype=float)
+        recommended_low = float(np.nanmin(recommended_low_candidates)) if np.isfinite(
+            recommended_low_candidates).any() else np.nan
+        recommended_mid = float(prediction_lookup.get("baseline", np.nan))
+        recommended_high = float(np.nanmax(recommended_high_candidates)) if np.isfinite(
+            recommended_high_candidates).any() else np.nan
+        uncertainty_summary = (
+            f"With only coarse attributes, practical backtest MAPE is around {backtest_error_low:.0%} to {backtest_error_high:.0%} "
+            "because many flats share the same visible attributes but differ in size and floor."
+            if np.isfinite(backtest_error_low) and np.isfinite(backtest_error_high)
+            else "Imputation-based uncertainty could not be summarized from the current holdout."
+        )
+    else:
+        recommended_mid = float(prediction_lookup.get("baseline", np.nan))
+        recommended_low = recommended_mid
+        recommended_high = recommended_mid
+        uncertainty_summary = (
+            "Imputation stress testing was skipped; the baseline imputation profile was used for the hidden fields."
+        )
+
     LOGGER.info(
         "Question A complete | official_best_model=%s official_rmse=%.0f diagnostic_best_model=%s diagnostic_rmse=%.0f predicted_price=%.0f",
         official_fit["best_model"],
@@ -802,9 +1082,10 @@ def predict_simplified_price(
         float(diagnostic_best_metrics["rmse"]),
         official_prediction,
     )
+
     return {
         "features": QUESTION_A_OFFICIAL_FEATURES,
-        "diagnostic_features": QUESTION_A_DIAGNOSTIC_FEATURES,
+        "diagnostic_features": diagnostic_features,
         "best_model": official_fit["best_model"],
         "candidate_metrics": official_fit["candidate_metrics"],
         "candidate_metrics_observed": diagnostic_fit["candidate_metrics"],
@@ -820,6 +1101,8 @@ def predict_simplified_price(
         "imputation_summaries": imputation_summaries,
         "prediction_under_imputations": prediction_under_imputations,
         "reference_imputation_values": subject_reference["values"],
+        "tested_imputation_methods": list(imputation_methods),
+        "test_best_impute_method": bool(test_best_impute_method),
         "recommended_prediction_range": {
             "low": recommended_low,
             "mid": recommended_mid,
@@ -838,6 +1121,7 @@ def predict_simplified_price(
         "feature_handling_table": feature_handling_table,
         "split_holdout_months": [month.strftime("%Y-%m") for month in split["holdout_months"]],
         "split_method": f"temporal_holdout_train_before_2014_eval_2014_{QUESTION_A_MAIN_TRAINING_WINDOW}",
+        "refit_best_model": bool(refit_best_model),
         "model_pipeline": official_pipeline,
         "diagnostic_model_pipeline": diagnostic_pipeline,
         "eval_predictions_frame": eval_predictions_frame,
@@ -1756,19 +2040,7 @@ def _load_question_a_reports_bundle(*, artifact_suffix: str = "") -> dict[str, o
 
 
 def build_question_a_summary_lines(result: dict[str, object]) -> list[str]:
-    question_a_results = [
-        ModelResult(
-            name=str(metric["name"]),
-            mae=float(metric["mae"]),
-            rmse=float(metric["rmse"]),
-            mape=float(metric["mape"]),
-            r2=float(metric["r2"]),
-            fit_seconds=float(metric.get("fit_seconds", 0.0)),
-            predict_seconds=float(metric.get("predict_seconds", 0.0)),
-            total_seconds=float(metric.get("total_seconds", 0.0)),
-        )
-        for metric in result["candidate_metrics"]
-    ]
+    question_a_results = _model_results_from_metrics(result["candidate_metrics"])
     observed_table = pd.DataFrame(result["candidate_metrics_observed"])
     imputed_table = pd.DataFrame(result["candidate_metrics_imputed"])
     training_window_table = pd.DataFrame(result["training_window_sensitivity"])
@@ -1776,10 +2048,10 @@ def build_question_a_summary_lines(result: dict[str, object]) -> list[str]:
     training_window_lines = (
         [
             "",
-            "| Training Window | Best Model | RMSE | MAPE | R2 | Train Rows |",
-            "| --- | --- | ---: | ---: | ---: | ---: |",
+            "| Training Window | Best Model | RMSE | MAPE | MdAPE | R2 | Train Rows |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: |",
             *[
-                f"| {row['training_window']} | {row['best_model']} | {float(row['rmse']):,.0f} | {float(row['mape']):.2%} | {float(row['r2']):.3f} | {int(row['train_row_count'])} |"
+                f"| {row['training_window']} | {row['best_model']} | {float(row['rmse']):,.0f} | {float(row['mape']):.2%} | {float(row.get('mdape', np.nan)):.2%} | {float(row['r2']):.3f} | {int(row['train_row_count'])} |"
                 for row in training_window_table.to_dict("records")
             ],
         ]
@@ -1794,26 +2066,26 @@ def build_question_a_summary_lines(result: dict[str, object]) -> list[str]:
         f"Diagnostic selected model with observed hidden features: **{result['diagnostic_best_model']}**.",
         result["question_a_uncertainty_summary"],
         "",
-        "| Official Model | MAE | RMSE | MAPE | R2 | Fit (s) | Predict (s) | Total (s) |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| Official Model | MAE | RMSE | MAPE | MdAPE | R2 | Fit (s) | Predict (s) | Total (s) |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
         *[
-            f"| {row.name} | {row.mae:,.0f} | {row.rmse:,.0f} | {row.mape:.2%} | {row.r2:.3f} | "
+            f"| {row.name} | {row.mae:,.0f} | {row.rmse:,.0f} | {row.mape:.2%} | {row.mdape:.2%} | {row.r2:.3f} | "
             f"{row.fit_seconds:.2f} | {row.predict_seconds:.2f} | {row.total_seconds:.2f} |"
             for row in question_a_results
         ],
         "",
-        "| Diagnostic Model | Observed MAE | Observed RMSE | Observed MAPE | Observed R2 | Fit (s) | Predict (s) | Total (s) |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| Diagnostic Model | Observed MAE | Observed RMSE | Observed MAPE | Observed MdAPE | Observed R2 | Fit (s) | Predict (s) | Total (s) |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
         *[
-            f"| {row['name']} | {float(row['mae']):,.0f} | {float(row['rmse']):,.0f} | {float(row['mape']):.2%} | "
+            f"| {row['name']} | {float(row['mae']):,.0f} | {float(row['rmse']):,.0f} | {float(row['mape']):.2%} | {float(row.get('mdape', np.nan)):.2%} | "
             f"{float(row['r2']):.3f} | {float(row.get('fit_seconds', 0.0)):.2f} | "
             f"{float(row.get('predict_seconds', 0.0)):.2f} | {float(row.get('total_seconds', 0.0)):.2f} |"
             for row in observed_table.to_dict('records')],
         "",
-        "| Imputation | Best-model RMSE | Best-model MAPE | MAPE uplift |",
-        "| --- | ---: | ---: | ---: |",
+        "| Imputation | Best-model RMSE | Best-model MAPE | Best-model MdAPE | MAPE uplift |",
+        "| --- | ---: | ---: | ---: | ---: |",
         *[
-            f"| {row['imputation_method']} | {float(row['rmse']):,.0f} | {float(row['mape']):.2%} | {float(row['mape_uplift']):+.2%} |"
+            f"| {row['imputation_method']} | {float(row['rmse']):,.0f} | {float(row['mape']):.2%} | {float(row.get('mdape', np.nan)):.2%} | {float(row['mape_uplift']):+.2%} |"
             for row in imputed_table.loc[imputed_table['name'].eq(result['diagnostic_best_model'])].to_dict('records')],
         "",
         "| Range Backtest | Coverage | Avg Width (SGD) | Median Width (SGD) | Avg Width (% of actual) | Sample |",
@@ -1833,10 +2105,13 @@ def build_question_a_summary_lines(result: dict[str, object]) -> list[str]:
 def run_question_a_workflow(
         frame: pd.DataFrame,
         *,
+        test_best_impute_method: bool = False,
+        refit_best_model: bool = False,
         tune_xgboost: bool = False,
         xgboost_tuning_iterations: int = DEFAULT_XGBOOST_TUNING_ITERATIONS,
         artifact_suffix: str = "",
 ) -> dict[str, object]:
+
     result = predict_simplified_price(
         {
             "flat_type": TARGET_TRANSACTION["flat_type"],
@@ -1844,30 +2119,31 @@ def run_question_a_workflow(
             "flat_age": 2017 - TARGET_TRANSACTION["lease_commence_date"],
         },
         frame=frame,
+        test_best_impute_method=test_best_impute_method,
+        refit_best_model=refit_best_model,
         tune_xgboost=tune_xgboost,
         xgboost_tuning_iterations=xgboost_tuning_iterations,
     )
-    question_a_results = [
-        ModelResult(
-            name=str(metric["name"]),
-            mae=float(metric["mae"]),
-            rmse=float(metric["rmse"]),
-            mape=float(metric["mape"]),
-            r2=float(metric["r2"]),
-            fit_seconds=float(metric.get("fit_seconds", 0.0)),
-            predict_seconds=float(metric.get("predict_seconds", 0.0)),
-            total_seconds=float(metric.get("total_seconds", 0.0)),
-        )
-        for metric in result["candidate_metrics"]
-    ]
+
+    question_a_results = _model_results_from_metrics(result["candidate_metrics"])
+
+    # ----------------------------------------------------
     pd.DataFrame([asdict(row) for row in question_a_results]).to_csv(
-        REPORTS / f"S2Qa_model_comparison{artifact_suffix}.csv", index=False)
+        REPORTS / f"S2Qa_model_comparison{artifact_suffix}.csv", 
+        index=False
+    )
     pd.DataFrame(result["candidate_metrics_observed"]).to_csv(
-        REPORTS / f"S2Qa_observed_model_comparison{artifact_suffix}.csv", index=False)
-    pd.DataFrame(result["candidate_metrics_imputed"]).to_csv(
-        REPORTS / f"S2Qa_imputed_model_comparison{artifact_suffix}.csv", index=False)
-    result["training_window_sensitivity"].to_csv(REPORTS / f"S2Qa_training_window_sensitivity{artifact_suffix}.csv",
-                                                 index=False)
+        REPORTS / f"S2Qa_observed_model_comparison{artifact_suffix}.csv", 
+        index=False
+    )
+    pd.DataFrame(
+        result["candidate_metrics_imputed"]).to_csv(
+        REPORTS / f"S2Qa_imputed_model_comparison{artifact_suffix}.csv", index=False
+    )
+    result["training_window_sensitivity"].to_csv(
+        REPORTS / f"S2Qa_training_window_sensitivity{artifact_suffix}.csv",
+        index=False
+    )
     result["controlled_variation_summary"].to_csv(
         REPORTS / f"S2Qa_controlled_variation_summary{artifact_suffix}.csv",
         index=False,
@@ -1895,6 +2171,7 @@ def run_question_a_workflow(
                                                            index=False)
     result["diagnostic_eval_predictions_frame"].to_csv(
         REPORTS / f"S2Qa_imputed_holdout_predictions{artifact_suffix}.csv", index=False)
+
     return {
         "result": result,
         "summary_lines": build_question_a_summary_lines(result),
@@ -1908,7 +2185,6 @@ def run_question_a_workflow(
 __all__ = [
     "_build_question_a_candidates",
     "_build_question_a_imputation_reference",
-    "_build_question_a_model_frame",
     "_prepare_question_a_diagnostic_frame",
     "build_question_a_figures",
     "build_question_a_frame",
@@ -1920,6 +2196,7 @@ __all__ = [
 
 
 def main() -> None:
+
     parser = argparse.ArgumentParser(description="Run Section 2 Question A only.")
     parser.add_argument("--skip-plotly", action="store_true", help="Skip writing Plotly HTML artifacts.")
     parser.add_argument(
@@ -1928,6 +2205,16 @@ def main() -> None:
         help="Reuse saved Question A CSV outputs to rebuild charts without rerunning the models.",
     )
     parser.add_argument("--tune-xgboost", action="store_true", help="Enable lightweight XGBoost tuning.")
+    parser.add_argument(
+        "--test-best-impute-method",
+        action="store_true",
+        help="Run the full Question A imputation stress test instead of using only the baseline imputation.",
+    )
+    parser.add_argument(
+        "--refit-best-model",
+        action="store_true",
+        help="Refit the selected best model before producing the final subject-level predictions.",
+    )
     parser.add_argument(
         "--xgboost-tuning-iterations",
         type=int,
@@ -1940,19 +2227,26 @@ def main() -> None:
 
     _configure_logging(args.log_level)
     REPORTS.mkdir(parents=True, exist_ok=True)
+
     if args.reuse_reports:
         LOGGER.info("Rebuilding Question A figures from saved reports only")
         result = _load_question_a_reports_bundle()
         workflow = {"figures": build_question_a_figures(result)}
+
     else:
         frame = _load_frame()
+
         workflow = run_question_a_workflow(
             frame=frame,
+            test_best_impute_method=args.test_best_impute_method,
+            refit_best_model=args.refit_best_model,
             tune_xgboost=args.tune_xgboost,
             xgboost_tuning_iterations=args.xgboost_tuning_iterations,
         )
+
         result = workflow["result"]
         result["eval_predictions_frame"].to_csv(REPORTS / "S2Qa_eval_predictions.csv", index=False)
+
     if not args.skip_plotly:
         _write_plotly_assets(workflow["figures"])
 

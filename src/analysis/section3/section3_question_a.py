@@ -236,10 +236,9 @@ def _build_s3qa_effect_figure(
             font={"size": annotation_font_size, "color": "#000000"},
         )
     fig.add_vline(x=0, line_dash="dash", line_color=GRAY, line_width=1)
-    fig.update_layout(
-        width=960,
-        height=max(640, 26 * len(ordered) + 180),
-    )
+    # fig.update_layout(
+    #     height=max(640, 26 * len(ordered) + 180),
+    # )
     return fig
 
 
@@ -286,10 +285,7 @@ def _build_s3qa_f3_plotly(area_story: pd.DataFrame, *, target_town: str) -> go.F
                 hovertemplate="Town: %{text}<br>Median floor area: %{x:.1f} sqm<br>Median resale price: SGD %{y:,.0f}<extra></extra>",
             )
         )
-    fig.update_layout(
-        width=1080,
-        height=720,
-    )
+    # fig.update_layout(height=720)
     return fig
 
 
@@ -422,11 +418,11 @@ def _render_s3qa_f4(interaction_df: pd.DataFrame, *, target_town: str) -> tuple[
     fig = _build_s3qa_effect_figure(
         prepared.rename(columns={"flat_type": "label"}),
         target_town=resolved_target,
-        marker_size=16,
-        marker_line_width=2.2,
+        # marker_size=16,
+        # marker_line_width=2.2,
         error_thickness=2.6,
         error_width=8,
-        annotation_font_size=16,
+        # annotation_font_size=16,
         annotation_xshift=34,
     )
     return save_plotly_figure(

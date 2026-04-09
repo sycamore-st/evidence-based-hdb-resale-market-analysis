@@ -429,7 +429,7 @@ export function DashboardThreeExplorer({
           <p>Shortlist HDB buildings by affordability and proximity to MRT, bus stops, schools, and the CBD.</p>
         </div>
         <div className="dashboard3-header-actions">
-          <SectionDashboardNav current="dashboard-3" className="dashboard3-header-actions-links" />
+          <SectionDashboardNav className="dashboard3-header-actions-links" />
         </div>
       </header>
 

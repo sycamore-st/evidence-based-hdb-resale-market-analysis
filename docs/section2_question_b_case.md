@@ -88,11 +88,12 @@ The main model uses richer property features than Question A, including:
 Candidate models in the saved run:
 
 - Linear Regression
+- CatBoost
 - XGBoost
 
 Train-test split method:
 
-- the main evaluation in [section2_question_b.py](/Users/claire/PycharmProjects/evidence-based-hdb-resale-market-analysis/src/analysis/section2/section2_question_b.py) uses a temporal holdout created by `make_temporal_split(...)`
+- the main evaluation in [section2_question_b.py](/src/analysis/section2/section2_question_b.py) uses a temporal holdout created by `make_temporal_split(...)`
 - that means the model is trained on earlier transactions and validated on later holdout months, which is more appropriate for a pricing task with time drift
 - the file also contains an optional notebook-style random `75/25` split benchmark, but that is secondary and only runs when `run_random_split_validation=True`
 
@@ -102,11 +103,20 @@ Saved comparison:
 
 Key holdout results:
 
-- XGBoost RMSE: about `31,718`
-- XGBoost MAPE: about `4.01%`
+- XGBoost RMSE: about `31,871`
+- XGBoost MAPE: about `3.87%`
 - XGBoost R²: about `0.979`
 
 This is a strong forecasting model by the standards of the case.
+
+The latest saved run reflects tuned XGBoost hyperparameters:
+
+- `max_depth=10`
+- `n_estimators=340`
+- `learning_rate=0.12`
+- `subsample=0.9`
+- `colsample_bytree=0.85`
+- `min_child_weight=3`
 
 Supporting charts:
 
@@ -123,8 +133,9 @@ Saved subject summary:
 Main result:
 
 - actual price: `SGD 550,800`
-- model expected price: about `SGD 345,182`
-- model-based 95% interval: about `SGD 283,016` to `SGD 407,347`
+- model expected price: about `SGD 339,332`
+- model-based 95% interval: about `SGD 277,037` to `SGD 401,627`
+- absolute deviation from expected price: about `SGD 211,468` (`+62.3%`)
 
 So the subject transaction is far above the model expectation.
 

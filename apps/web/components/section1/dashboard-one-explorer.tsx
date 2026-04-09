@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { memo, useMemo, useState, useTransition } from "react"
 import type { CSSProperties } from "react"
 
@@ -220,14 +219,6 @@ export function DashboardOneExplorer({
     return mapped
   }, [normalizedRightOrder])
 
-  const layoutHref = (layout: DashboardOneLayoutPreset) => {
-    const params = new URLSearchParams()
-    params.set("layout", layout)
-    params.set("side", mapSide)
-    params.set("order", normalizedRightOrder.join(","))
-    return `${layoutLinkBase}?${params.toString()}`
-  }
-
   return (
     <main className="dashboard1-page" style={styleVars as CSSProperties}>
       <header className="dashboard1-header">
@@ -240,40 +231,7 @@ export function DashboardOneExplorer({
           </p>
         </div>
         <div className="dashboard1-header-actions">
-          <div className="dashboard1-layout-switch">
-            <span>Layout</span>
-            <Link
-              href={layoutHref("editorial") as never}
-              className={layoutPreset === "editorial" ? "dashboard1-switch-link dashboard1-switch-link-active" : "dashboard1-switch-link"}
-            >
-              editorial
-            </Link>
-            <Link
-              href={layoutHref("balanced") as never}
-              className={layoutPreset === "balanced" ? "dashboard1-switch-link dashboard1-switch-link-active" : "dashboard1-switch-link"}
-            >
-              balanced
-            </Link>
-            <Link
-              href={layoutHref("chart-heavy") as never}
-              className={layoutPreset === "chart-heavy" ? "dashboard1-switch-link dashboard1-switch-link-active" : "dashboard1-switch-link"}
-            >
-              chart-heavy
-            </Link>
-            <Link
-              href={layoutHref("map-heavy") as never}
-              className={layoutPreset === "map-heavy" ? "dashboard1-switch-link dashboard1-switch-link-active" : "dashboard1-switch-link"}
-            >
-              map-heavy
-            </Link>
-            <Link
-              href={layoutHref("stacked") as never}
-              className={layoutPreset === "stacked" ? "dashboard1-switch-link dashboard1-switch-link-active" : "dashboard1-switch-link"}
-            >
-              stacked
-            </Link>
-          </div>
-          <SectionDashboardNav current="dashboard-1" className="dashboard1-header-actions-links" />
+          <SectionDashboardNav className="dashboard1-header-actions-links" />
         </div>
       </header>
 

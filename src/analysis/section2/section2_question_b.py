@@ -252,6 +252,7 @@ def _evaluate_question_b_random_split(
             "mae": float(best_metrics["mae"]),
             "rmse": float(best_metrics["rmse"]),
             "mape": float(best_metrics["mape"]),
+            "mdape": float(best_metrics.get("mdape", np.nan)),
             "r2": float(best_metrics["r2"]),
             "sample_count": int(len(test_frame)),
         },
@@ -947,16 +948,19 @@ def _evaluate_blended_holdout(
         return {
             "mae": np.nan,
             "mape": np.nan,
+            "mdape": np.nan,
             "rmse": np.nan,
             "r2": np.nan,
             "sample_size": 0,
             "ml_mae": np.nan,
             "ml_mape": np.nan,
+            "ml_mdape": np.nan,
             "ml_rmse": np.nan,
             "ml_r2": np.nan,
             "ml_sample_count": 0,
             "blended_mae": np.nan,
             "blended_mape": np.nan,
+            "blended_mdape": np.nan,
             "blended_rmse": np.nan,
             "blended_r2": np.nan,
             "blended_sample_count": 0,
@@ -996,11 +1000,13 @@ def _evaluate_blended_holdout(
             "sample_size": metrics["sample_count"],
             "ml_mae": metrics["mae"],
             "ml_mape": metrics["mape"],
+            "ml_mdape": metrics.get("mdape", np.nan),
             "ml_rmse": metrics["rmse"],
             "ml_r2": metrics["r2"],
             "ml_sample_count": metrics["sample_count"],
             "blended_mae": np.nan,
             "blended_mape": np.nan,
+            "blended_mdape": np.nan,
             "blended_rmse": np.nan,
             "blended_r2": np.nan,
             "blended_sample_count": 0,
@@ -1152,7 +1158,7 @@ def _evaluate_blended_holdout(
             np.asarray(blended_predictions, dtype=float),
         )
     else:
-        blended_metrics = {"mae": np.nan, "mape": np.nan, "rmse": np.nan, "r2": np.nan, "sample_count": 0}
+        blended_metrics = {"mae": np.nan, "mape": np.nan, "mdape": np.nan, "rmse": np.nan, "r2": np.nan, "sample_count": 0}
     coverage_rate = (
         float(blended_metrics["sample_count"]) / float(ml_metrics["sample_count"])
         if ml_metrics["sample_count"]
@@ -1161,16 +1167,19 @@ def _evaluate_blended_holdout(
     return {
         "mae": blended_metrics["mae"],
         "mape": blended_metrics["mape"],
+        "mdape": blended_metrics.get("mdape", np.nan),
         "rmse": blended_metrics["rmse"],
         "r2": blended_metrics["r2"],
         "sample_size": blended_metrics["sample_count"],
         "ml_mae": ml_metrics["mae"],
         "ml_mape": ml_metrics["mape"],
+        "ml_mdape": ml_metrics.get("mdape", np.nan),
         "ml_rmse": ml_metrics["rmse"],
         "ml_r2": ml_metrics["r2"],
         "ml_sample_count": ml_metrics["sample_count"],
         "blended_mae": blended_metrics["mae"],
         "blended_mape": blended_metrics["mape"],
+        "blended_mdape": blended_metrics.get("mdape", np.nan),
         "blended_rmse": blended_metrics["rmse"],
         "blended_r2": blended_metrics["r2"],
         "blended_sample_count": blended_metrics["sample_count"],
@@ -1415,6 +1424,7 @@ def score_transaction(
         catboost_tuning_iterations: int = DEFAULT_CATBOOST_TUNING_ITERATIONS,
 ) -> dict[str, object]:
     options = options or {}
+
     LOGGER.info("Question B start")
     normalized_subject = _normalize_subject(subject)
     min_year = int(options.get("min_year", DEFAULT_QUESTION_B_MIN_YEAR))
@@ -1423,6 +1433,7 @@ def score_transaction(
     run_random_split_validation = bool(options.get("run_random_split_validation", False))
     rebase_time_index_to_1990 = bool((options.get("adjustment_config") or {}).get("rebase_time_index_to_1990", False))
     time_rebase_lookup = _build_time_rebase_lookup(frame) if rebase_time_index_to_1990 else None
+
     evaluation_frame = _build_question_b_evaluation_frame(
         frame,
         min_year=min_year,
@@ -1436,6 +1447,7 @@ def score_transaction(
         baseline_only,
         min_year,
     )
+
     features, categorical, numeric = get_question_b_features(
         evaluation_frame,
         include_optional=not baseline_only,
@@ -1443,6 +1455,7 @@ def score_transaction(
     comparable_context = None
     if use_comparables:
         comparable_context = _build_comparable_context(comparable_frame)
+
     resolved_subject = resolve_subject_features(
         normalized_subject,
         evaluation_frame,
@@ -1524,16 +1537,19 @@ def score_transaction(
     LOGGER.info(
         (
             "Question B holdout metrics | "
-            "ml_sample=%d ml_rmse=%.0f ml_mape=%.2f%% | "
-            "blended_sample=%d blended_rmse=%.0f blended_mape=%.2f%% | "
+            "ml_sample=%d ml_rmse=%.0f ml_mape=%.2f%% ml_mdape=%.2f%% | "
+            "blended_sample=%d blended_rmse=%.0f blended_mape=%.2f%% blended_mdape=%.2f%% | "
             "coverage=%.2f%%"
         ),
         int(blended_validation["ml_sample_count"]),
         float(blended_validation["ml_rmse"]) if not pd.isna(blended_validation["ml_rmse"]) else float("nan"),
         float(blended_validation["ml_mape"]) * 100 if not pd.isna(blended_validation["ml_mape"]) else float("nan"),
+        float(blended_validation["ml_mdape"]) * 100 if not pd.isna(blended_validation["ml_mdape"]) else float("nan"),
         int(blended_validation["blended_sample_count"]),
         float(blended_validation["blended_rmse"]) if not pd.isna(blended_validation["blended_rmse"]) else float("nan"),
         float(blended_validation["blended_mape"]) * 100 if not pd.isna(blended_validation["blended_mape"]) else float(
+            "nan"),
+        float(blended_validation["blended_mdape"]) * 100 if not pd.isna(blended_validation["blended_mdape"]) else float(
             "nan"),
         float(blended_validation["comparable_coverage_rate"]) * 100,
     )
@@ -1550,11 +1566,12 @@ def score_transaction(
             catboost_tuning_iterations=catboost_tuning_iterations,
         )
         LOGGER.info(
-            "Question B random-split metrics | best_model=%s sample=%d rmse=%.0f mape=%.2f%% mae=%.0f r2=%.3f",
+            "Question B random-split metrics | best_model=%s sample=%d rmse=%.0f mape=%.2f%% mdape=%.2f%% mae=%.0f r2=%.3f",
             random_split_validation["best_model"],
             int(random_split_validation["metrics"]["sample_count"]),
             float(random_split_validation["metrics"]["rmse"]),
             float(random_split_validation["metrics"]["mape"]) * 100.0,
+            float(random_split_validation["metrics"].get("mdape", np.nan)) * 100.0,
             float(random_split_validation["metrics"]["mae"]),
             float(random_split_validation["metrics"]["r2"]),
         )
@@ -1915,13 +1932,25 @@ def build_question_b_figures(result: dict[str, object]) -> dict[str, go.Figure]:
     fig_b_distribution = go.Figure()
     if not local_distribution.empty:
         bins = 20
-        fig_b_distribution.add_histogram(
-            x=local_distribution["resale_price"],
-            nbinsx=bins,
+        prices = pd.to_numeric(local_distribution["resale_price"], errors="coerce").dropna()
+        counts, edges = np.histogram(prices, bins=bins)
+        centers = 0.5 * (edges[:-1] + edges[1:])
+        q25 = float(prices.quantile(0.25))
+        q75 = float(prices.quantile(0.75))
+        colors = [
+            theme.alpha(theme.blue, 0.35) if q25 <= center <= q75 else theme.alpha(theme.orange, 0.35)
+            for center in centers
+        ]
+        line_colors = [theme.blue if q25 <= center <= q75 else theme.orange for center in centers]
+        fig_b_distribution.add_bar(
+            x=centers,
+            y=counts,
+            width=np.diff(edges),
             name="Local Transactions",
-            opacity=1.0,
-            marker_color=theme.blue,
-            marker_line={"color": theme.blue, "width": 1},
+            marker_color=colors,
+            marker_line={"color": line_colors, "width": 1.2},
+            showlegend=False,
+            hovertemplate="Price bin center: SGD %{x:,.0f}<br>Count: %{y}<extra></extra>",
         )
         for value, label, color in [
             (result["actual_price"], "Actual", theme.primary_dark),
@@ -1945,25 +1974,42 @@ def build_question_b_figures(result: dict[str, object]) -> dict[str, go.Figure]:
         xaxis_title="Resale Price (SGD)",
         yaxis_title="Transaction Count",
     )
-    fig_b_distribution.update_layout(bargap=0.05)
+    fig_b_distribution.update_layout(
+        bargap=0.02,
+        showlegend=False,
+        annotations=list(fig_b_distribution.layout.annotations) + [
+            {
+                "xref": "paper",
+                "yref": "paper",
+                "x": 0.02,
+                "y": 1.1,
+                "text": "Orange bins are outside the 25th to 75th percentile range for the local window.",
+                "showarrow": False,
+                "xanchor": "left",
+                "font": {"size": 14, "color": "#000000"},
+            }
+        ],
+    )
     if not local_distribution.empty:
         max_bin_count = max(1, int(np.histogram(local_distribution["resale_price"], bins=bins)[0].max()))
         if not pd.isna(result["actual_price"]):
+            percentile = float((prices.le(float(result["actual_price"]))).mean())
+            percentile_text = "100%" if float(result["actual_price"]) >= float(prices.max()) else f"{percentile * 100.0:.1f}%"
             fig_b_distribution.add_annotation(
                 x=float(result["actual_price"]),
                 y=max_bin_count * 0.86,
-                text=f"Subject transaction<br>SGD {result['actual_price']:,.0f}",
+                text=f"Subject<br>{percentile_text}",
                 showarrow=True,
                 arrowhead=2,
                 arrowsize=1,
-                arrowwidth=1.6,
-                arrowcolor=theme.orange,
-                ax=70,
-                ay=-60,
-                bgcolor=theme.alpha(theme.surface, 0.96),
-                bordercolor=theme.orange,
+                arrowwidth=1.4,
+                arrowcolor=theme.primary_dark,
+                ax=45,
+                ay=-40,
+                bgcolor=theme.alpha(theme.surface, 0.95),
+                bordercolor=theme.primary_dark,
                 borderwidth=1,
-                font={"size": 16, "color": "#000000"},
+                font={"size": 13, "color": "#000000"},
             )
         fig_b_distribution.add_annotation(
             x=float(local_distribution["resale_price"].median()),
@@ -2248,21 +2294,23 @@ def build_question_b_summary_lines(result: dict[str, object]) -> list[str]:
         f"Shared holdout months: `{', '.join(result['split_holdout_months'])}`.",
         f"Feature source for the subject: **{result['feature_source']}**.",
         "",
-        "| Model | MAE | RMSE | MAPE | R2 |",
-        "| --- | ---: | ---: | ---: | ---: |",
-        *[f"| {metric['name']} | {metric['mae']:,.0f} | {metric['rmse']:,.0f} | {metric['mape']:.2%} | {metric['r2']:.3f} |" for metric in
+        "| Model | MAE | RMSE | MAPE | MdAPE | R2 |",
+        "| --- | ---: | ---: | ---: | ---: | ---: |",
+        *[f"| {metric['name']} | {metric['mae']:,.0f} | {metric['rmse']:,.0f} | {metric['mape']:.2%} | {metric.get('mdape', np.nan):.2%} | {metric['r2']:.3f} |" for metric in
           result['candidate_metrics']],
         "",
         f"Expected price from the model: **SGD {result['expected_price']:,.0f}**.",
         f"Actual price: **SGD {result['actual_price']:,.0f}**.",
         f"Deviation from expected price: **SGD {result['absolute_deviation']:,.0f}** ({result['percentage_deviation']:.1%}).",
         f"Holdout RMSE for the selected model: **SGD {next(metric['rmse'] for metric in result['candidate_metrics'] if metric['name'] == result['best_model']):,.0f}**.",
+        f"Holdout MdAPE for the selected model: **{next(metric.get('mdape', np.nan) for metric in result['candidate_metrics'] if metric['name'] == result['best_model']):.2%}**.",
         (
             (
                 "Notebook-style random 75/25 split benchmark: "
                 f"**{result['random_split_validation']['best_model']}** with "
                 f"RMSE **SGD {result['random_split_validation']['metrics']['rmse']:,.0f}**, "
                 f"MAPE **{result['random_split_validation']['metrics']['mape']:.2%}**, "
+                f"MdAPE **{result['random_split_validation']['metrics'].get('mdape', np.nan):.2%}**, "
                 f"R2 **{result['random_split_validation']['metrics']['r2']:.3f}**."
             )
             if result.get("random_split_validation") is not None
@@ -2309,6 +2357,7 @@ def run_question_b_workflow(
         artifact_suffix: str = "",
 ) -> dict[str, object]:
     question_b_options = question_b_options or {}
+
     result = score_transaction(
         TARGET_TRANSACTION,
         frame,
@@ -2318,8 +2367,10 @@ def run_question_b_workflow(
         tune_catboost=tune_catboost,
         catboost_tuning_iterations=catboost_tuning_iterations,
     )
-    pd.DataFrame(result['candidate_metrics']).to_csv(REPORTS / f"S2Qb_model_comparison{artifact_suffix}.csv",
-                                                     index=False)
+    pd.DataFrame(result['candidate_metrics']).to_csv(
+        REPORTS / f"S2Qb_model_comparison{artifact_suffix}.csv",
+        index=False
+    )
     pd.DataFrame([{
         "actual_price": result["actual_price"],
         "expected_price": result["expected_price"],

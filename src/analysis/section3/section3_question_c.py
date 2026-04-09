@@ -32,7 +32,7 @@ from src.analysis.section3.S3_helpers import (
     set_write_html,
     style_bar_patches,
 )
-from src.common.config import SECTION1_OUTPUT_DIAGNOSTICS
+from src.common.config import PROJECT_ROOT, SECTION1_OUTPUT_DIAGNOSTICS
 from src.pipeline.features import parse_mrt_geojson
 from src.pipeline.hdb_api import fetch_mrt_dataset_dir
 
@@ -73,6 +73,9 @@ DTL2_EXPERIMENT_TREATMENT_BANDS_KM = [
 ]
 DTL2_EXPERIMENT_CONTROL_LABEL = "1.5-4.0km control"
 PLANNING_AREA_BOUNDARIES_PATH = SECTION1_OUTPUT_DIAGNOSTICS / "planning_area_boundaries_2019.geojson"
+PLANNING_AREA_BOUNDARIES_FALLBACK_PATH = (
+    PROJECT_ROOT / "outputs_submission" / "section1" / "results" / "diagnostics" / "planning_area_boundaries_2019.geojson"
+)
 CORRIDOR_MAP_LABEL_STATIONS = [
     "BUKIT PANJANG MRT STATION",
     "BEAUTY WORLD MRT STATION",
@@ -786,13 +789,16 @@ def _iter_geojson_rings(geometry: dict[str, object]) -> list[list[list[float]]]:
 
 
 def _load_singapore_basemap_polygons() -> tuple[list[np.ndarray], tuple[float, float, float, float]]:
-    if not PLANNING_AREA_BOUNDARIES_PATH.exists():
+    basemap_path = PLANNING_AREA_BOUNDARIES_PATH
+    if not basemap_path.exists() and PLANNING_AREA_BOUNDARIES_FALLBACK_PATH.exists():
+        basemap_path = PLANNING_AREA_BOUNDARIES_FALLBACK_PATH
+    if not basemap_path.exists():
         raise FileNotFoundError(
             "Singapore planning-area GeoJSON is missing. "
-            f"Expected `{PLANNING_AREA_BOUNDARIES_PATH}`."
+            f"Expected `{PLANNING_AREA_BOUNDARIES_PATH}` or fallback `{PLANNING_AREA_BOUNDARIES_FALLBACK_PATH}`."
         )
 
-    basemap = json.loads(PLANNING_AREA_BOUNDARIES_PATH.read_text(encoding="utf-8"))
+    basemap = json.loads(basemap_path.read_text(encoding="utf-8"))
     polygons: list[np.ndarray] = []
     lon_min = float("inf")
     lon_max = float("-inf")
