@@ -45,6 +45,14 @@ const BUDGET_AFFORDABILITY_CSV = "outputs/section1/results/final/budget_affordab
 const BUDGET_METRICS_CSV = "outputs/section1/results/final/budget_affordability_metrics.csv"
 const BUDGET_LEGEND_CSV = "outputs/section1/results/final/budget_affordability_legend.csv"
 
+function isMissingAssetError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false
+  }
+  const maybeCode = (error as NodeJS.ErrnoException).code
+  return maybeCode === "ENOENT" || error.message.includes("Unable to load")
+}
+
 function parseCsvRow(line: string): string[] {
   const cells: string[] = []
   let current = ""
@@ -80,6 +88,9 @@ function parseCsvRow(line: string): string[] {
 function parseCsv(content: string): Array<Record<string, string>> {
   const lines = content.split(/\r?\n/).filter((line) => line.length > 0)
   const [headerLine, ...dataLines] = lines
+  if (!headerLine) {
+    return []
+  }
   const headers = parseCsvRow(headerLine)
 
   return dataLines.map((line) => {
@@ -97,11 +108,28 @@ function toNumber(value: string): number {
 }
 
 export async function loadDashboardTwoData(): Promise<DashboardTwoData> {
-  const [affordabilityCsv, metricsCsv, legendCsv] = await Promise.all([
-    readTextAsset(BUDGET_AFFORDABILITY_CSV),
-    readTextAsset(BUDGET_METRICS_CSV),
-    readTextAsset(BUDGET_LEGEND_CSV),
-  ])
+  let affordabilityCsv = ""
+  let metricsCsv = ""
+  let legendCsv = ""
+  try {
+    ;[affordabilityCsv, metricsCsv, legendCsv] = await Promise.all([
+      readTextAsset(BUDGET_AFFORDABILITY_CSV),
+      readTextAsset(BUDGET_METRICS_CSV),
+      readTextAsset(BUDGET_LEGEND_CSV),
+    ])
+  } catch (error) {
+    if (!isMissingAssetError(error)) {
+      throw error
+    }
+    return {
+      years: [],
+      budgets: [],
+      towns: [],
+      rows: [],
+      metricRows: [],
+      legend: [],
+    }
+  }
 
   const rows = parseCsv(affordabilityCsv).map<DashboardTwoRow>((row) => ({
     year: toNumber(row["Transaction Year"]),
