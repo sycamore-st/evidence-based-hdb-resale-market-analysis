@@ -1,113 +1,102 @@
 ---
-title: "Is Yishun Truly Cheaper After Controlling For Flat Mix?"
+title: "Is Yishun Structurally More Affordable After Controls?"
 kicker: "Section 3 / Question A"
-description: "A controlled town comparison to test whether Yishun remains a value location after adjusting for housing characteristics and time effects."
+description: "A controlled town comparison of whether Yishun's discount persists after accounting for flat type, flat age, and market timing."
 section: "section3"
-slug: "question-a"
+slug: "yishun-affordability-analysis"
 order: 1
 ---
 
-# Is Yishun Truly Cheaper After Controlling For Flat Mix?
+# Is Yishun Structurally More Affordable After Controls?
 
 ## Business Context
 
-Yishun is often viewed as a lower-priced town. The key question is whether that discount is real after controls, or whether it only appears because Yishun transacts a different mix of flats.
+Yishun is frequently characterized as a high-value, lower-priced HDB town. The central objective of this analysis is to determine whether this price differential is structural (intrinsic to the location) or merely a reflection of a specific transaction mix—such as a higher proportion of smaller flat types or older housing stock.
 
-## Constraints And Requirement
+## Scope and Constraints
 
-A fair comparison needs to isolate location effect from composition effects. The model therefore controls for:
+To rigorously isolate the "location effect" from "composition effects," the analysis employs a hedonic regression framework controlling for the following variables:
 
-- flat type
-- flat age
-- transaction month
+- Flat type
+- Flat age
+- Transaction month (to account for temporal market fluctuations)
 
-EDA is used to build intuition, not to claim a final answer.
+Exploratory Data Analysis (EDA) provides directional context, while the regression models provide the statistical basis for final inference.
 
-## EDA: Descriptive Signals Before Controls
+## Step 1: Descriptive Analysis (Unadjusted Positioning)
 
 <iframe src="/outputs/section3/charts/S3QaF1_yishun_candidate_towns_boxplot.html" title="Yishun versus candidate towns by flat type"></iframe>
 
 <iframe src="/outputs/section3/charts/S3QaF3_yishun_price_vs_space.html" title="Price versus space by town"></iframe>
 
-These views show Yishun in the lower-price cluster with favorable space-for-price positioning, but they cannot separate location discount from transaction composition.
+Descriptive statistics from the preliminary dataset reveal the following for Yishun:
 
-## Solution
+- **Median Resale Price:** SGD 440,000
+- **Median Price per SQM:** SGD 4,983.6
+- **Median Floor Area:** 92 sqm
 
-The implementation in `section3_question_a.py` uses two related regressions:
+While these metrics place Yishun within a lower-price cluster, they do not establish a causal relationship because the distribution of unit ages and types varies significantly across different towns.
 
-- baseline fixed-effects-style hedonic model: `log(price_per_sqm) ~ C(town) + C(flat_type) + flat_age + C(year_month)`
-- interaction model: `log(price_per_sqm) ~ C(town) * C(flat_type) + flat_age + C(year_month)`
+## Step 2: Baseline Controlled Model (Fixed Effects)
 
-The baseline model answers whether Yishun is still cheaper after controls. The interaction model checks whether that discount is broad across flat types or concentrated in specific segments.
+The baseline econometric specification is defined as follows:
 
-Written out more explicitly, the baseline specification is:
-
-$$ 
-\begin{aligned}
+$$
 \log(\text{price\_per\_sqm}_i)
-=\;&\alpha
-+ \sum_{t \neq \text{ref town}} \beta_t \mathbf{1}\{\text{town}_i=t\} \\
-&+ \sum_{f \neq \text{ref flat type}} \gamma_f \mathbf{1}\{\text{flat type}_i=f\} \\
-&+ \delta \,\text{flat\_age}_i
-+ \sum_m \lambda_m \mathbf{1}\{\text{year\_month}_i=m\}
+=
+\alpha
++ C(\text{town}_i)
++ C(\text{flat\_type}_i)
++ \beta\,\text{flat\_age}_i
++ C(\text{year\_month}_i)
 + \varepsilon_i
-\end{aligned}
-$$
-
-For the reported Yishun effect, the key coefficient is the town dummy for Yishun relative to the reference town, which in this run is `ANG MO KIO`.
-
-The interaction specification adds town-by-flat-type terms:
-
-$$ 
-\begin{aligned}
-\log(\text{price\_per\_sqm}_i)
-=\;&\alpha
-+ \sum_{t \neq \text{ref town}} \beta_t \mathbf{1}\{\text{town}_i=t\} \\
-&+ \sum_{f \neq \text{ref flat type}} \gamma_f \mathbf{1}\{\text{flat type}_i=f\} \\
-&+ \sum_{t \neq \text{ref town}} \sum_{f \neq \text{ref flat type}}
-\theta_{tf}\,\mathbf{1}\{\text{town}_i=t\}\mathbf{1}\{\text{flat type}_i=f\} \\
-&+ \delta \,\text{flat\_age}_i
-+ \sum_m \lambda_m \mathbf{1}\{\text{year\_month}_i=m\}
-+ \varepsilon_i
-\end{aligned}
-$$
-
-Because the dependent variable is in logs, the town effect is converted back to a percentage discount using:
-
-$$
-\text{effect \%} = \left(e^{\beta}-1\right)\times 100
 $$
 
 <iframe src="/outputs/section3/charts/S3QaF2_yishun_simple_regression_coefficients.html" title="Controlled coefficient view"></iframe>
 
+**Key Findings:**
+
+- **Yishun Log Coefficient:** -0.2374
+- **Implied Price Effect:** **-21.1%**
+- **95% Confidence Interval:** [-21.4%, -20.9%]
+
+The percentage impact is derived via the transformation: $\left(e^{\beta}-1\right)\times 100$.
+
+## Step 3: Heterogeneity Analysis by Flat Type
+
+To determine if the observed discount is uniform or segment-specific, an interaction model was implemented:
+
+$$
+\log(\text{price\_per\_sqm}_i)
+=
+\alpha
++ C(\text{town}_i) * C(\text{flat\_type}_i)
++ \beta\,\text{flat\_age}_i
++ C(\text{year\_month}_i)
++ \varepsilon_i
+$$
+
 <iframe src="/outputs/section3/charts/S3QaF4_yishun_interaction_effects_by_flat_type.html" title="Yishun interaction effects by flat type"></iframe>
+
+**Segment-Specific Discounts:**
+
+- **3-Room:** -11.5%
+- **4-Room:** -26.2%
+- **5-Room:** -30.1%
+
+The results indicate that while the discount is broad-based, it is significantly more pronounced in the larger flat segments.
+
+## Step 4: Comparative Adjusted Town Distribution
 
 <iframe src="/outputs/section3/charts/S3QaF5_yishun_all_town_dummy_coefficients.html" title="All-town adjusted coefficient comparison"></iframe>
 
-## Results
-
-Baseline controlled finding:
-
-- Yishun coefficient is about `-0.237` (log points)
-- implied effect is about `-21.1%` versus reference town (`ANG MO KIO`)
-- 95% CI is about `[-21.4%, -20.9%]`
-
-Interaction model finding (by flat type):
-
-- 4-room: about `-26.2%`
-- 5-room: about `-30.1%`
-- 3-room: about `-11.5%`
-
-The discount is broad-based but strongest in larger flats.
+The adjusted town distribution confirms that Yishun consistently resides on the lower end of the pricing spectrum even after normalization. Its effect size is comparable to other value-oriented towns, suggesting a consistent structural positioning within the broader market.
 
 ## Interpretation
 
-The evidence supports a structural value-town story, not only a composition story:
+The empirical evidence demonstrates that Yishun's affordability is not merely a statistical artifact of its transaction mix. After controlling for flat type, age, and temporal effects, Yishun remains significantly more affordable on a price-per-square-meter basis. Notably, the value proposition strengthens as flat size increases, with 4-room and 5-room units showing the most substantial discounts relative to the market baseline.
 
-- Yishun remains materially cheaper after controlling for flat type, flat age, and month effects
-- the discount is visible across major flat types, not limited to one segment
-- larger flat segments show the strongest value signal in this run
+## Recommended Strategy
 
-## Recommended Decision
-
-Frame Yishun as a genuine value location in market communication, and segment the message by flat type because the discount magnitude differs across 3-room, 4-room, and 5-room units.
+1. **Market Positioning:** Position Yishun as a structural value segment in both internal planning and external communications.
+2. **Segmented Messaging:** Rather than applying a single town-wide discount figure, utilize segment-specific data (especially for larger units) to provide a more accurate representation of the affordability landscape.
