@@ -1,6 +1,8 @@
 import { SectionLanding } from "@/components/content/section-landing"
 import { getSectionLandingItems } from "@/lib/sections"
 
+export const dynamic = "force-static"
+
 export default function Section1Page() {
   return (
     <SectionLanding

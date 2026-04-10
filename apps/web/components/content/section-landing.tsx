@@ -40,6 +40,17 @@ export function SectionLanding({
           <p>{`${getSectionLabel(section)} / ${section === "section1" ? "Interactive dashboards" : "Case writeups"}`}</p>
           <h1>{title}</h1>
           <span>{description}</span>
+          <p className="open-source-note">
+            Open source on{" "}
+            <a
+              href="https://github.com/sycamore-st/evidence-based-hdb-resale-market-analysis"
+              target="_blank"
+              rel="noreferrer"
+            >
+              GitHub
+            </a>
+            .
+          </p>
         </header>
 
         <div className="section-landing-grid section-landing-grid-sticky">

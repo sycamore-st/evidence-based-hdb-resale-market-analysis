@@ -232,6 +232,54 @@ const MANIFEST_PATH = `${DASHBOARD3_ROOT}/manifest.json`
 const manifestCache = { value: null as Promise<DashboardThreeManifest> | null }
 const townBundleCache = new Map<string, Promise<RawTownBundle>>()
 
+const EMPTY_TOWN: DashboardThreeManifestTown = {
+  town: "NATIONAL",
+  slug: "national",
+  counts: {
+    building_rows: 0,
+    transaction_rows: 0,
+    location_rows: 0,
+    poi_point_rows: 0,
+    poi_summary_rows: 0,
+    geometry_features: 0,
+  },
+  filters: {
+    transaction_years: [2026],
+    budgets: [800000],
+    flat_types: ["ALL FLAT TYPE"],
+  },
+  files: {
+    summary: "",
+    buildings: "",
+    transactions: "",
+    location: "",
+    poi_points: "",
+    poi_summary: "",
+    geometry: "",
+  },
+}
+
+const EMPTY_MANIFEST: DashboardThreeManifest = {
+  dataset_version: "unavailable",
+  generated_at: new Date(0).toISOString(),
+  artifact_root: DASHBOARD3_ROOT,
+  filters: {
+    towns: [EMPTY_TOWN.town],
+    transaction_years: [...EMPTY_TOWN.filters.transaction_years],
+    budgets: [...EMPTY_TOWN.filters.budgets],
+    flat_types: [...EMPTY_TOWN.filters.flat_types],
+  },
+  towns: [EMPTY_TOWN],
+}
+
+function isMissingAssetError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false
+  }
+  const maybeCode = (error as NodeJS.ErrnoException).code
+  return maybeCode === "ENOENT" || error.message.includes("Unable to load")
+}
+
 function normalizeNumber(value: number | null | undefined, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback
 }
@@ -284,7 +332,12 @@ function sortCandidates(left: DashboardThreeCandidate, right: DashboardThreeCand
 
 export async function loadDashboardThreeManifest(): Promise<DashboardThreeManifest> {
   if (!manifestCache.value) {
-    manifestCache.value = readJsonAsset<DashboardThreeManifest>(MANIFEST_PATH)
+    manifestCache.value = readJsonAsset<DashboardThreeManifest>(MANIFEST_PATH).catch((error) => {
+      if (!isMissingAssetError(error)) {
+        throw error
+      }
+      return EMPTY_MANIFEST
+    })
   }
   return manifestCache.value
 }
@@ -296,9 +349,22 @@ async function loadRawTownBundle(slug: string): Promise<RawTownBundle> {
   }
 
   const manifest = await loadDashboardThreeManifest()
-  const town = manifest.towns.find((item) => item.slug === slug)
+  const town = manifest.towns.find((item) => item.slug === slug) ?? manifest.towns[0]
   if (!town) {
     throw new Error(`Unknown Dashboard 3 town slug: ${slug}`)
+  }
+
+  if (!town.files.buildings || !town.files.transactions || !town.files.poi_points || !town.files.geometry) {
+    const emptyBundle: RawTownBundle = {
+      town,
+      buildings: [],
+      transactions: [],
+      poiPoints: [],
+      geometry: { type: "FeatureCollection", features: [] },
+    }
+    const emptyPromise = Promise.resolve(emptyBundle)
+    townBundleCache.set(slug, emptyPromise)
+    return emptyBundle
   }
 
   const bundlePromise = Promise.all([

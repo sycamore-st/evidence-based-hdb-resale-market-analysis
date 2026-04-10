@@ -3,6 +3,9 @@ import { notFound } from "next/navigation"
 import { ArticleVariantC } from "@/components/content/article-variant-c"
 import { getSiblingArticles, listSectionArticles, readArticle } from "@/lib/content"
 
+export const dynamic = "force-static"
+export const dynamicParams = false
+
 export function generateStaticParams() {
   return listSectionArticles("section3").map((article) => ({ slug: article.slug }))
 }

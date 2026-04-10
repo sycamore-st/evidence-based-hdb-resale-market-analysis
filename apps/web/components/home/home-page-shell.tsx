@@ -20,10 +20,21 @@ export function HomePageShell() {
         <section id="landing" className="compare-hero compare-anchor-section">
           <div className="compare-hero-copy">
             <p className="compare-kicker">Section index</p>
-            <h1>Browse the full HDB resale analysis by section.</h1>
+            <h1>HDB Resale Market Insights</h1>
             <p>
-              Move from the shared landing page into interactive dashboards, predictive case work, and policy-oriented
-              market analysis without losing the editorial flow of the project.
+              Explore the drivers of Singapore’s HDB resale market through interactive data visualizations.
+              From town-level price trends to building-specific amenity analysis, leverage evidence-based insights for strategic housing decisions.
+            </p>
+            <p className="open-source-note">
+              Open source on{" "}
+              <a
+                href="https://github.com/sycamore-st/evidence-based-hdb-resale-market-analysis"
+                target="_blank"
+                rel="noreferrer"
+              >
+                GitHub
+              </a>
+              .
             </p>
           </div>
 
@@ -85,6 +96,7 @@ export function HomePageShell() {
             </div>
           ))}
         </section>
+
       </section>
     </main>
   )

@@ -50,11 +50,23 @@ export function ArticleVariantC({
     <main className="article-page article-page-c" style={{ ["--article-panel-width" as string]: `${panelWidth}px` }}>
       <section className="article-scene-c">
         <aside className="article-panel-c">
-          <div className="article-panel-c-brand">HDB Resale Web</div>
+          <div className="article-panel-c-brand">HDB Resale Market Analysis</div>
 
           <div className="article-panel-c-copy">
             <p>{article.meta.kicker}</p>
             <h1>{article.meta.title}</h1>
+            <span>{article.meta.description}</span>
+            <p className="open-source-note open-source-note-inverse">
+              Open source on{" "}
+              <a
+                href="https://github.com/sycamore-st/evidence-based-hdb-resale-market-analysis"
+                target="_blank"
+                rel="noreferrer"
+              >
+                GitHub
+              </a>
+              .
+            </p>
           </div>
 
           <div className="article-panel-c-actions">

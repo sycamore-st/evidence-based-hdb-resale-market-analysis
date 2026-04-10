@@ -42,6 +42,14 @@ type GeoFeature = {
 const DASHBOARD_CSV = "outputs/section1/results/final/dashboard_market_overview.csv"
 const MAP_GEOJSON = "outputs/section1/results/final/planning_area_hdb_map_2019.geojson"
 
+function isMissingAssetError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false
+  }
+  const maybeCode = (error as NodeJS.ErrnoException).code
+  return maybeCode === "ENOENT" || error.message.includes("Unable to load")
+}
+
 function parseCsvRow(line: string): string[] {
   const cells: string[] = []
   let current = ""
@@ -77,6 +85,9 @@ function parseCsvRow(line: string): string[] {
 function parseCsv(content: string): Array<Record<string, string>> {
   const lines = content.split(/\r?\n/).filter((line) => line.length > 0)
   const [headerLine, ...dataLines] = lines
+  if (!headerLine) {
+    return []
+  }
   const headers = parseCsvRow(headerLine)
 
   return dataLines.map((line) => {
@@ -98,7 +109,15 @@ function toNumber(value: string): number {
 }
 
 async function readDashboardRows(): Promise<DashboardOneRow[]> {
-  const csv = await readTextAsset(DASHBOARD_CSV)
+  let csv = ""
+  try {
+    csv = await readTextAsset(DASHBOARD_CSV)
+  } catch (error) {
+    if (!isMissingAssetError(error)) {
+      throw error
+    }
+    return []
+  }
   const rows = parseCsv(csv)
 
   return rows.map((row) => ({
@@ -147,7 +166,18 @@ function buildPath(
 }
 
 async function readMapShapes(): Promise<MapShape[]> {
-  const geojson = await readJsonAsset<{ features: GeoFeature[] }>(MAP_GEOJSON)
+  let geojson: { features: GeoFeature[] }
+  try {
+    geojson = await readJsonAsset<{ features: GeoFeature[] }>(MAP_GEOJSON)
+  } catch (error) {
+    if (!isMissingAssetError(error)) {
+      throw error
+    }
+    return []
+  }
+  if (geojson.features.length === 0) {
+    return []
+  }
   const allPoints = geojson.features.flatMap((feature) => flattenRingPoints(feature.geometry))
   const xs = allPoints.map(([x]) => x)
   const ys = allPoints.map(([, y]) => y)
