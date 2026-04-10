@@ -1,11 +1,12 @@
 # Evidence-Based HDB Resale Market Analysis
 
-This repository packages the code, curated outputs, and reviewer-facing notes for a quantitative strategy case interview built on Singapore HDB resale data.
+This repository contains code, curated outputs, and web assets for an analysis project on Singapore HDB resale market trends, valuation, and policy interpretation.
 
 ## Deliverables
 
 - [Evidence-Based HDB Resale Market Analysis.pptx](deck/Evidence-Based%20HDB%20Resale%20Market%20Analysis.pptx)
 - [HDB Resale Market Analysis Tableau.twbx](deck/HDB%20Resale%20Market%20Analysis%20Tableau.twbx)
+- [Live Web App](https://hdb-resale-market-analysis.vercel.app)
 
 The work is organized into three sections:
 
@@ -16,74 +17,43 @@ The work is organized into three sections:
 ## What This Repo Contains
 
 - reproducible Python pipeline and analysis code under `src/`
-- reviewer-facing notes under `docs/`
-- frontend application scaffold under `apps/web/`
+- frontend application under `apps/web/`
 - published web artifacts under `artifacts/web/`
 - selected outputs under `outputs/`
-- slide-deck support artifacts under `deck/`
-- local data caches under `data/`, which are intentionally ignored in git
-
-This packaged copy is meant to be readable without rerunning the full workflow, while still documenting the commands needed to reproduce the main results locally.
+- deck support artifacts under `deck/`
+- local data caches under `data/` (intentionally ignored in git)
 
 ## Repository Structure
 
 ```text
-. 
+.
 ├── apps/
 │   └── web/
 │       ├── app/
 │       ├── components/
-│       ├── lib/
-│       └── public/
+│       ├── content/
+│       ├── docs/
+│       └── lib/
 ├── artifacts/
 │   └── web/
-│       ├── model/
-│       ├── overview/
-│       └── policy/
-├── configs/
-│   └── design_tokens.json
 ├── deck/
-│   ├── Evidence-Based HDB Resale Market Analysis.pptx
-│   ├── HDB Resale Market Analysis Tableau.twbx
-│   └── theme_tokens.json
-├── docs/
-│   ├── README.md
-│   ├── section1_dashboards.md
-│   ├── section2_question_a_case.md
-│   ├── section2_question_b_case.md
-│   ├── section2_question_c_case.md
-│   ├── section3_policy_notes.md
-│   ├── section3_question_a_case.md
-│   ├── section3_question_c_case.md
-│   ├── section3_question_c_model_summaries.md
-│   ├── section3_question_d_case.md
-│   └── section3_question_d_model_summaries.md
 ├── outputs/
-│   ├── section1/
-│   │   ├── results/
-│   │   └── screenshot/
-│   ├── section2/
-│   │   ├── charts/
-│   │   └── results/
-│   └── section3/
-│       ├── charts/
-│       └── results/
+├── scripts/
 ├── src/
 │   ├── analysis/
 │   ├── common/
 │   └── pipeline/
-├── .gitignore
 ├── pyproject.toml
 └── README.md
 ```
 
-Folder-level guides:
+## Folder Guides
 
 - [Pipeline Guide](src/pipeline/README.md)
 - [Analysis Guide](src/analysis/README.md)
-- [Supporting Docs](docs/README.md)
-- [Frontend Architecture](docs/frontend_architecture.md)
+- [Frontend Architecture](apps/web/docs/frontend_architecture.md)
 - [Web App Run Guide](apps/web/README.md)
+- [Scripts Guide](scripts/README.md)
 
 ## Environment Setup
 
@@ -95,7 +65,7 @@ python3 -m venv .venv
 ./.venv/bin/python -m pip install -e .
 ```
 
-## Reproducing The Results
+## Core Commands
 
 Build the canonical processed dataset:
 
@@ -103,7 +73,7 @@ Build the canonical processed dataset:
 ./.venv/bin/python -m src.pipeline.build_resale_analysis_dataset
 ```
 
-Build the building-level Tableau assets for Section 1:
+Build Section 1 building/tableau assets:
 
 ```bash
 ./.venv/bin/python -m src.pipeline.build_building_tableau_assets
@@ -115,19 +85,26 @@ Run the end-to-end analysis workflow:
 ./.venv/bin/python -m src.analysis.run_all
 ```
 
-Publish frontend-ready dashboard artifacts:
+Publish frontend-ready artifacts:
 
 ```bash
 ./.venv/bin/python -m src.pipeline.publish_web_artifacts
+./.venv/bin/python -m src.pipeline.publish_dashboard3_web_artifacts
 ```
 
-Validate the published web artifact contract:
+Validate web artifact contract:
 
 ```bash
 ./.venv/bin/python -m src.pipeline.validate_web_artifacts
 ```
 
-Run the frontend locally from the monorepo app:
+Upload web assets to R2:
+
+```bash
+bash scripts/upload_web_assets_r2.sh <bucket-name>
+```
+
+Run frontend locally:
 
 ```bash
 cd apps/web
@@ -135,37 +112,37 @@ npm install
 npm run dev
 ```
 
-From any terminal location, you can also use the absolute app path:
+## Live Deployment
 
-```bash
-cd /Users/claire/PycharmProjects/evidence-based-hdb-resale-market-analysis/apps/web
-npm install
-npm run dev
-```
+Current Vercel project: `hdb-resale-market-analysis`
 
-If you see `env: node: No such file or directory`, install or enable Node.js first, then rerun the commands above. See [apps/web/README.md](apps/web/README.md) for the frontend run guide, key routes, troubleshooting, and the recommended `npm run typecheck` verification step.
+- Production domain: `https://hdb-resale-market-analysis.vercel.app`
+- Preview domain pattern: `https://hdb-resale-market-analysis-git-<branch>-sycamore-sts-projects.vercel.app`
 
-Or run it from the repo root:
+Required environment variables for artifact loading (especially Dashboard 3):
 
-```bash
-make web-install
-make web-dev
-```
+- `ASSET_BASE_URL`
+- `NEXT_PUBLIC_ASSET_BASE_URL`
+- `SECTION1_DATA_BASE_URL`
 
-Dashboard 1 layout presets can be switched by URL:
+If these are missing in Preview/Development, Dashboard 3 may fall back to empty defaults (for example, missing budget/building selectors).
 
-- `http://localhost:3000/section1/dashboard-1?layout=editorial`
-- `http://localhost:3000/section1/dashboard-1?layout=balanced`
-- `http://localhost:3000/section1/dashboard-1?layout=chart-heavy`
+See [apps/web/README.md](apps/web/README.md) for local run and troubleshooting details.
 
-## Tracked Outputs Vs Local Caches
+## Release Flow
+
+- Push changes to `dev` and validate Preview deployment.
+- Merge `dev` into `production`.
+- Verify production deployment at `https://hdb-resale-market-analysis.vercel.app`.
+
+## Tracked Outputs vs Local Caches
 
 Tracked in git:
 
 - selected Section 1 export tables, diagnostics, and screenshot references
 - Section 2 modeling summaries and result tables
 - Section 3 policy summaries, figure tables, and selected static figures
-- reviewer-facing notes and deck support artifacts
+- web content and deployable assets needed for reproducible review
 
 Not tracked in git:
 
@@ -174,9 +151,8 @@ Not tracked in git:
 - generated `.html` and `.png` chart exports
 - temporary training logs, IDE files, and local caches
 
-## Manual Steps
+## Notes
 
-- Tableau dashboards are still assembled manually in Tableau Desktop from the exported Section 1 files in `outputs/section1/results/`.
-- The PowerPoint in `deck/` is a rebuildable support artifact for the final presentation workflow.
+- Tableau dashboards are assembled manually in Tableau Desktop from exported Section 1 files in `outputs/section1/results/`.
 - The frontend reads prepared files from `artifacts/web/` and does not depend on raw pipeline intermediates.
-- Some outputs are intentionally pretracked so a reviewer can inspect the work without rerunning the full pipeline.
+- Some outputs are intentionally pretracked so readers can inspect the work without rerunning the full pipeline.
