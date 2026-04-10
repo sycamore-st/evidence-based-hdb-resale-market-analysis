@@ -1,13 +1,10 @@
 import { DashboardOneExplorer } from "@/components/section1/dashboard-one-explorer"
 import { loadDashboardOneData } from "@/lib/section1-dashboard1"
 
-export default async function DashboardOnePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ layout?: string }>
-}) {
+export const dynamic = "force-static"
+
+export default async function DashboardOnePage() {
   const data = await loadDashboardOneData()
-  await searchParams
 
   return <DashboardOneExplorer data={data} layoutPreset="balanced" />
 }

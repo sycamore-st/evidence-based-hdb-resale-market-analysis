@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import type { ReactNode } from "react"
 
 import "@/app/globals.css"
-import "katex/dist/katex.min.css"
+import "@/app/katex.css"
 
 export const metadata: Metadata = {
   title: "Evidence-Based HDB Resale Market Analysis",

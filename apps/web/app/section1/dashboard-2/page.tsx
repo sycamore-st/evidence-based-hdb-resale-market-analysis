@@ -1,6 +1,8 @@
 import { DashboardTwoExplorer } from "@/components/section1/dashboard-two-explorer"
 import { loadDashboardTwoData } from "@/lib/section1-dashboard2"
 
+export const dynamic = "force-static"
+
 export default async function DashboardTwoPage() {
   const data = await loadDashboardTwoData()
 

@@ -1,6 +1,8 @@
 import { SectionLanding } from "@/components/content/section-landing"
 import { listArticleLandingItems } from "@/lib/content"
 
+export const dynamic = "force-static"
+
 export default function Section2Page() {
   return (
     <SectionLanding

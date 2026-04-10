@@ -20,6 +20,17 @@ export function QuestionBExtendedInlinePage({
             <p className="dashboard2-kicker">{article.meta.kicker}</p>
             <h1>{article.meta.title}</h1>
             <p>{article.meta.description}</p>
+            <p className="open-source-note">
+              Open source on{" "}
+              <a
+                href="https://github.com/sycamore-st/evidence-based-hdb-resale-market-analysis"
+                target="_blank"
+                rel="noreferrer"
+              >
+                GitHub
+              </a>
+              .
+            </p>
           </div>
           <div className="dashboard2-header-actions">
             <SectionDashboardNav className="dashboard2-header-actions-links" />

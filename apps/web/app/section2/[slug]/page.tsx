@@ -4,6 +4,9 @@ import { ArticleVariantC } from "@/components/content/article-variant-c"
 import { QuestionBExtendedInlinePage } from "@/components/section2/question-b-extended-inline-page"
 import { getSiblingArticles, listSectionArticles, readArticle } from "@/lib/content"
 
+export const dynamic = "force-static"
+export const dynamicParams = false
+
 export function generateStaticParams() {
   return listSectionArticles("section2").map((article) => ({ slug: article.slug }))
 }
