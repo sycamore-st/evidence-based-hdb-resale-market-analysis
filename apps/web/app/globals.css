@@ -2200,6 +2200,8 @@ a {
   --article-font-serif: "Arial", "Avenir Next", "Segoe UI", sans-serif;
   --article-font-mono: "JetBrains Mono", "SFMono-Regular", "Menlo", monospace;
   --article-panel-width: 420px;
+  --article-panel-effective-width: min(30vw, var(--article-panel-width));
+  --article-panel-copy-max-width: calc(var(--article-panel-effective-width) - 5.2rem);
   --article-body-size: 1rem;
   --article-body-line-height: 1.72;
   --article-block-gap: 0.45rem;
@@ -2281,7 +2283,7 @@ a {
 
 .article-panel-c-copy h1 {
   margin: 0;
-  max-width: 11ch;
+  max-width: var(--article-panel-copy-max-width);
   font-size: clamp(1.72rem, 2.7vw, 2.55rem);
   line-height: 1.1;
   letter-spacing: -0.06em;
@@ -2291,7 +2293,7 @@ a {
 
 .article-panel-c-copy span {
   display: block;
-  max-width: 18rem;
+  max-width: var(--article-panel-copy-max-width);
   margin-top: 1rem;
   font-size: 0.82rem;
   line-height: 1.62;
