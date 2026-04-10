@@ -11,6 +11,7 @@ export function HomePageShell() {
           <div className="compare-topnav">
             <a href="#landing">Landing</a>
             <a href="#menu">Menu</a>
+            <a href="#profile">Profile</a>
             <Link href="/section1">Section 1</Link>
             <Link href="/section2">Section 2</Link>
             <Link href="/section3">Section 3</Link>
@@ -84,6 +85,25 @@ export function HomePageShell() {
               </div>
             </div>
           ))}
+        </section>
+
+        <section id="profile" className="compare-hero compare-anchor-section">
+          <div className="compare-hero-copy">
+            <p className="compare-kicker">Profile</p>
+            <h1>Built as an open-source project.</h1>
+            <p>
+              Maintained by Yanjing Wu. The full codebase and project updates are available on GitHub.
+            </p>
+            <p>
+              <a
+                href="https://github.com/sycamore-st/evidence-based-hdb-resale-market-analysis"
+                target="_blank"
+                rel="noreferrer"
+              >
+                View on GitHub
+              </a>
+            </p>
+          </div>
         </section>
       </section>
     </main>
