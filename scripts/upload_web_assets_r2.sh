@@ -21,6 +21,17 @@ upload_tree() {
 }
 
 upload_tree "artifacts/web"
+while IFS= read -r file; do
+  echo "Uploading ${file}"
+  npx wrangler r2 object put "${bucket}/${file}" --file "${file}" --remote >/dev/null
+done < <(
+  find outputs/section1/results/final -maxdepth 1 -type f \
+    \( -name 'dashboard_market_overview.csv' \
+    -o -name 'planning_area_hdb_map_2019.geojson' \
+    -o -name 'budget_affordability.csv' \
+    -o -name 'budget_affordability_metrics.csv' \
+    -o -name 'budget_affordability_legend.csv' \) | sort
+)
 upload_tree "outputs/section2/charts"
 upload_tree "outputs/section2/results"
 upload_tree "outputs/section3/charts"

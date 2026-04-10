@@ -16,6 +16,12 @@ Run Section 2 only:
 ./.venv/bin/python -m src.analysis.section2.S2_models
 ```
 
+Run Section 2 extended holdout experiment only:
+
+```bash
+./.venv/bin/python -m src.analysis.section2.section2_extended_holdout
+```
+
 Run Section 3 only:
 
 ```bash
@@ -52,6 +58,7 @@ Run Section 1 Tableau exports from an existing processed dataset:
 - `section2_question_a.py`: question A price-model benchmarking
 - `section2_question_b.py`: question B valuation and comparables workflow
 - `section2_question_c.py`: question C classification and segmentation workflow
+- `section2_extended_holdout.py`: extended holdout benchmarking with richer feature bundles
 - `S2_helpers.py` and `S2_config.py`: shared configuration, loading, and artifact-writing helpers
 - `S2_ppt_summary.py`: markdown summaries for presentation use
 
@@ -63,6 +70,7 @@ Run Section 1 Tableau exports from an existing processed dataset:
 - `section3_question_c.py`: Downtown Line Stage 2 policy analysis
 - `section3_question_d.py`: COE relationship analysis
 - `S3_helpers.py`: shared loading, chart-writing, and reporting helpers
+- `section3/README.md`: implementation notes for the Section 3 Question B model specification
 
 ## Main Outputs
 
