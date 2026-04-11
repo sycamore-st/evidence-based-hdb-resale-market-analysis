@@ -4,6 +4,7 @@ import dynamic from "next/dynamic"
 import { useEffect, useMemo, useRef, useState } from "react"
 
 import {
+  DashboardPager,
   formatSectionCount,
   formatSectionCurrency,
   SECTION1_CONTROL_LABELS,
@@ -438,7 +439,13 @@ export function DashboardThreeExplorer({
           <div className="dashboard3-step-label">1. Set your budget and access preferences.</div>
 
           <label className="dashboard3-control">
-            <span>{SECTION1_CONTROL_LABELS.town}</span>
+            <span className="dashboard1-control-label">
+              {SECTION1_CONTROL_LABELS.town}
+              <span className="dashboard1-info-trigger" aria-label="Info">
+                i
+                <span className="dashboard1-info-tooltip">Loads the map and building data for this town.</span>
+              </span>
+            </span>
             <select value={townSlug} onChange={(event) => setTownSlug(event.target.value)}>
               {manifest.towns.map((item) => (
                 <option key={item.slug} value={item.slug}>
@@ -449,7 +456,13 @@ export function DashboardThreeExplorer({
           </label>
 
           <div className="dashboard3-control dashboard3-control-multiselect">
-            <span>{SECTION1_CONTROL_LABELS.flatType}</span>
+            <span className="dashboard1-control-label">
+              {SECTION1_CONTROL_LABELS.flatType}
+              <span className="dashboard1-info-trigger" aria-label="Info">
+                i
+                <span className="dashboard1-info-tooltip">Narrows the map and shortlist to these flat types.</span>
+              </span>
+            </span>
             <button type="button" className="dashboard3-multiselect-button" onClick={() => setFlatTypeMenuOpen((open) => !open)}>
               <strong>{flatTypeSummary}</strong>
               <span>{flatTypeMenuOpen ? "Hide" : "Choose"}</span>
@@ -478,7 +491,13 @@ export function DashboardThreeExplorer({
           </div>
 
           <label className="dashboard3-control">
-            <span>{SECTION1_CONTROL_LABELS.budget}</span>
+            <span className="dashboard1-control-label">
+              {SECTION1_CONTROL_LABELS.budget}
+              <span className="dashboard1-info-trigger" aria-label="Info">
+                i
+                <span className="dashboard1-info-tooltip">Only buildings with median price at or below this amount.</span>
+              </span>
+            </span>
             <select value={budget} onChange={(event) => setBudget(Number(event.target.value))}>
               {town.filters.budgets.map((item) => (
                 <option key={item} value={item}>
@@ -489,7 +508,13 @@ export function DashboardThreeExplorer({
           </label>
 
           <label className="dashboard3-control">
-            <span>{SECTION1_CONTROL_LABELS.transactionYear}</span>
+            <span className="dashboard1-control-label">
+              {SECTION1_CONTROL_LABELS.transactionYear}
+              <span className="dashboard1-info-trigger" aria-label="Info">
+                i
+                <span className="dashboard1-info-tooltip">Filters buildings and trends to this year.</span>
+              </span>
+            </span>
             <select value={year} onChange={(event) => setYear(Number(event.target.value))}>
               {[...town.filters.transaction_years].reverse().map((item) => (
                 <option key={item} value={item}>
@@ -500,7 +525,13 @@ export function DashboardThreeExplorer({
           </label>
 
           <label className="dashboard3-control">
-            <span>{SECTION1_CONTROL_LABELS.medianFloorArea}</span>
+            <span className="dashboard1-control-label">
+              {SECTION1_CONTROL_LABELS.medianFloorArea}
+              <span className="dashboard1-info-trigger" aria-label="Info">
+                i
+                <span className="dashboard1-info-tooltip">Minimum floor area — excludes smaller units.</span>
+              </span>
+            </span>
             <select value={minFloorArea} onChange={(event) => setMinFloorArea(Number(event.target.value))}>
               {[0, 50, 70, 90, 110, 130].map((item) => (
                 <option key={item} value={item}>
@@ -511,7 +542,13 @@ export function DashboardThreeExplorer({
           </label>
 
           <label className="dashboard3-control">
-            <span>{SECTION1_CONTROL_LABELS.schoolCountWithin1Km}</span>
+            <span className="dashboard1-control-label">
+              {SECTION1_CONTROL_LABELS.schoolCountWithin1Km}
+              <span className="dashboard1-info-trigger" aria-label="Info">
+                i
+                <span className="dashboard1-info-tooltip">Minimum number of schools within 1 km of the building.</span>
+              </span>
+            </span>
             <select value={minSchoolCount} onChange={(event) => setMinSchoolCount(Number(event.target.value))}>
               {[0, 1, 2, 3, 5].map((item) => (
                 <option key={item} value={item}>
@@ -522,7 +559,13 @@ export function DashboardThreeExplorer({
           </label>
 
           <div className="dashboard3-control dashboard3-control-multiselect">
-            <span>{SECTION1_CONTROL_LABELS.nearestSchoolWithin1Km}</span>
+            <span className="dashboard1-control-label">
+              {SECTION1_CONTROL_LABELS.nearestSchoolWithin1Km}
+              <span className="dashboard1-info-trigger" aria-label="Info">
+                i
+                <span className="dashboard1-info-tooltip">Filter by specific nearby schools.</span>
+              </span>
+            </span>
             <button type="button" className="dashboard3-multiselect-button" onClick={() => setSchoolMenuOpen((open) => !open)}>
               <strong>{schoolSummary}</strong>
               <span>{schoolMenuOpen ? "Hide" : "Choose"}</span>
@@ -550,7 +593,13 @@ export function DashboardThreeExplorer({
           </div>
 
           <label className="dashboard3-control">
-            <span>{SECTION1_CONTROL_LABELS.nearestMrtDistance}</span>
+            <span className="dashboard1-control-label">
+              {SECTION1_CONTROL_LABELS.nearestMrtDistance}
+              <span className="dashboard1-info-trigger" aria-label="Info">
+                i
+                <span className="dashboard1-info-tooltip">Maximum walking distance to the nearest MRT station.</span>
+              </span>
+            </span>
             <select value={maxMrtDistanceKm} onChange={(event) => setMaxMrtDistanceKm(Number(event.target.value))}>
               {[0.4, 0.6, 0.8, 1.2, 2].map((item) => (
                 <option key={item} value={item}>
@@ -561,16 +610,25 @@ export function DashboardThreeExplorer({
           </label>
 
           <div className="dashboard3-summary-card">
-            <span>Current shortlist</span>
+            <span className="dashboard1-control-label">
+              Current shortlist
+              <span className="dashboard1-info-trigger" aria-label="Info">
+                i
+                <span className="dashboard1-info-tooltip">Buildings matching all your filters above.</span>
+              </span>
+            </span>
             <strong>{formatSectionCount(payload.summary.shortlistCount)}</strong>
             <small>{formatSectionCount(payload.summary.buildingRowsScanned)} matching building-flat rows after filters.</small>
           </div>
         </aside>
 
         <section className="dashboard3-selector-card">
-          <div className="dashboard3-panel-header">
-            <span>2. Select an HDB building</span>
-            <strong>{payload.selectedBuilding ? `${payload.selectedBuilding.block} / ${payload.selectedBuilding.bestFlatType}` : "No shortlist match"}</strong>
+          <div className="dashboard3-step-label">2. Pick a building from the map or dropdown to see its location, nearby amenities, and transaction history.</div>
+          <div className="dashboard3-selected-building">
+            <span>Selected building</span>
+            <h3>
+              {payload.selectedBuilding ? `Block ${payload.selectedBuilding.block} / ${payload.selectedBuilding.bestFlatType}` : "No shortlist match"}
+            </h3>
           </div>
           <label className="dashboard3-control dashboard3-building-picker">
             <span>{SECTION1_CONTROL_LABELS.selectedBuilding}</span>
@@ -599,6 +657,7 @@ export function DashboardThreeExplorer({
               <span><i className="dashboard3-legend-chip dashboard3-legend-bus-stop">B</i>Bus stop</span>
               <span><i className="dashboard3-legend-chip dashboard3-legend-mrt">M</i>MRT</span>
               <span><i className="dashboard3-legend-chip dashboard3-legend-school">S</i>School</span>
+              <span><i className="dashboard3-legend-chip dashboard3-legend-candidate" />Meets criteria</span>
               <span><i className="dashboard3-legend-chip dashboard3-legend-selected" />Selected building</span>
             </div>
             {payload.selectedBuilding ? (
@@ -624,17 +683,19 @@ export function DashboardThreeExplorer({
         </section>
 
         <section className="dashboard3-trends-card">
-          <div className="dashboard3-panel-header">
-            <span>3. Compare transaction volume and median price trends below.</span>
-            <strong>{payload.selectedBuilding ? `Block ${payload.selectedBuilding.block}` : "No selected building"}</strong>
-          </div>
           <div className="dashboard3-trends-wrap">
             <div className="dashboard3-trend-panel">
-              <h2>Transactions over time</h2>
+              <div className="dashboard1-chart-header">
+                <h3>Transactions over time</h3>
+                <p>How many deals closed each year at this building, broken down by flat type.</p>
+              </div>
               <SectionTrendStackedBars history={payload.history} colors={SECTION1_FLAT_COLORS} className="dashboard3-bars" />
             </div>
             <div className="dashboard3-trend-panel">
-              <h2>Median price over time</h2>
+              <div className="dashboard1-chart-header">
+                <h3>Median price over time</h3>
+                <p>The middle-of-the-pack resale price each year. Compare lines across flat types.</p>
+              </div>
               <SectionTrendPriceLines history={payload.history} colors={SECTION1_FLAT_COLORS} className="dashboard3-lines" />
             </div>
           </div>
@@ -649,7 +710,20 @@ export function DashboardThreeExplorer({
         </section>
       </section>
 
-      {loading ? <div className="dashboard3-loading">Refreshing shortlist…</div> : null}
+      {loading ? (
+        <div className="dashboard3-loading-overlay">
+          <div className="dashboard3-loading">
+            <div className="dashboard3-loading-dots">
+              <span className="dashboard3-loading-dot" />
+              <span className="dashboard3-loading-dot" />
+              <span className="dashboard3-loading-dot" />
+            </div>
+            <p>Refreshing shortlist…</p>
+          </div>
+        </div>
+      ) : null}
+
+      <DashboardPager current="/section1/dashboard-3" />
     </main>
   )
 }
