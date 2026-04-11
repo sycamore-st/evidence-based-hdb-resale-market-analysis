@@ -13,8 +13,8 @@ export const SECTION1_FLAT_COLORS: Record<string, string> = {
 }
 
 export const SECTION1_CONTROL_LABELS = {
-  transactionYear: "Transaction year",
-  flatType: "Flat type",
+  transactionYear: "Select transaction year",
+  flatType: "Select flat type",
   town: "Town",
   budget: "Budget",
   nearestMrtDistance: "Nearest MRT distance",

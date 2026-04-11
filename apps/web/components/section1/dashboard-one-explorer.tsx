@@ -237,7 +237,13 @@ export function DashboardOneExplorer({
 
       <section className="dashboard1-controls">
         <label className="dashboard1-control">
-          <span>{`1. ${SECTION1_CONTROL_LABELS.transactionYear}`}</span>
+          <span className="dashboard1-control-label">
+            {`1. ${SECTION1_CONTROL_LABELS.transactionYear}`}
+            <span className="dashboard1-info-trigger" aria-label="Info">
+              i
+              <span className="dashboard1-info-tooltip">Updates the map shading and snapshot figures.</span>
+            </span>
+          </span>
           <select value={selectedYear} onChange={(event) => setSelectedYear(Number(event.target.value))}>
             {data.years.map((year) => (
               <option key={year} value={year}>
@@ -248,7 +254,13 @@ export function DashboardOneExplorer({
         </label>
 
         <label className="dashboard1-control">
-          <span>{`2. ${SECTION1_CONTROL_LABELS.flatType}`}</span>
+          <span className="dashboard1-control-label">
+            {`2. ${SECTION1_CONTROL_LABELS.flatType}`}
+            <span className="dashboard1-info-trigger" aria-label="Info">
+              i
+              <span className="dashboard1-info-tooltip">Filters the map, charts, and summary by flat type.</span>
+            </span>
+          </span>
           <select value={selectedFlatType} onChange={(event) => setSelectedFlatType(event.target.value)}>
             {data.flatTypes.map((flatType) => (
               <option key={flatType} value={flatType}>
@@ -259,7 +271,13 @@ export function DashboardOneExplorer({
         </label>
 
         <div className="dashboard1-control dashboard1-control-scope">
-          <span>3. Selected scope</span>
+          <span className="dashboard1-control-label">
+            3. Selected scope
+            <span className="dashboard1-info-trigger" aria-label="Info">
+              i
+              <span className="dashboard1-info-tooltip">Click a town on the map, or reset to the national view.</span>
+            </span>
+          </span>
           <strong>{activeScope}</strong>
           <button
             type="button"
@@ -273,7 +291,13 @@ export function DashboardOneExplorer({
         </div>
 
         <div className="dashboard1-control dashboard1-control-summary">
-          <span>Current snapshot</span>
+          <span className="dashboard1-control-label">
+            Current snapshot
+            <span className="dashboard1-info-trigger" aria-label="Info">
+              i
+              <span className="dashboard1-info-tooltip">Median price and volume for your current selection.</span>
+            </span>
+          </span>
           <strong>{summaryRow ? formatSectionCurrency(summaryRow.medianPrice) : "No data"}</strong>
           <small>
             {summaryRow ? `${summaryRow.transactions.toLocaleString()} transactions in ${selectedYear}` : "No data for this selection."}
@@ -285,10 +309,15 @@ export function DashboardOneExplorer({
         <div className="dashboard1-map-panel dashboard1-panel-map">
           <div className="dashboard1-panel-header">
             <div>
-              <p className="dashboard1-panel-label">3. Select a town on the map</p>
+              <p className="dashboard1-panel-label dashboard1-control-label">
+                4. Select a town on the map
+                <span className="dashboard1-info-trigger" aria-label="Info">
+                  i
+                  <span className="dashboard1-info-tooltip">Click any town to filter the charts and snapshot to that area.</span>
+                </span>
+              </p>
               <h2>{selectedTown ? `${selectedTown} selected` : "Country view"}</h2>
             </div>
-            <span>{selectedFlatType}</span>
           </div>
           <TownMap
             shapes={data.mapShapes}
@@ -316,7 +345,7 @@ export function DashboardOneExplorer({
           <div className="dashboard1-chart-shell">
             <div className="dashboard1-chart-header">
               <h3>Transactions over time</h3>
-              <span>Stacked by flat type</span>
+              <p>How many resale deals closed each year, broken down by flat type. Taller bars mean more activity in that segment.</p>
             </div>
             <SectionTrendStackedBars
               history={series.flatMap((entry) =>
@@ -337,7 +366,7 @@ export function DashboardOneExplorer({
           <div className="dashboard1-chart-shell">
             <div className="dashboard1-chart-header">
               <h3>Median price over time</h3>
-              <span>Linked to the same scope and flat type</span>
+              <p>The middle-of-the-pack resale price each year. Compare lines to see which flat types are rising fastest.</p>
             </div>
             <SectionTrendPriceLines
               history={series.flatMap((entry) =>

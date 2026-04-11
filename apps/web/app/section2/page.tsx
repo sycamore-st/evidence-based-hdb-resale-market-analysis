@@ -7,8 +7,8 @@ export default function Section2Page() {
   return (
     <SectionLanding
       section="section2"
-      title="Predictive case writeups for Section 2."
-      description="Model evaluation, valuation logic, and hidden-feature recovery writeups with supporting charts and discussion."
+      title="What can the data actually tell us?"
+      description="Four deep dives into pricing accuracy, valuation fairness, and the limits of incomplete information."
       items={listArticleLandingItems("section2")}
     />
   )
