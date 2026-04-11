@@ -36,6 +36,37 @@ export function formatSectionCount(value: number): string {
   return new Intl.NumberFormat("en-SG").format(value)
 }
 
+const DASHBOARD_PAGES = [
+  { href: "/section1/dashboard-1", title: "Town-level overview" },
+  { href: "/section1/dashboard-2", title: "Buyer budget planner" },
+  { href: "/section1/dashboard-3", title: "Find flats by budget and location" },
+] as const
+
+export function DashboardPager({ current }: { current: string }) {
+  const index = DASHBOARD_PAGES.findIndex((page) => page.href === current)
+  const previous = index > 0 ? DASHBOARD_PAGES[index - 1] : null
+  const next = index < DASHBOARD_PAGES.length - 1 ? DASHBOARD_PAGES[index + 1] : null
+
+  return (
+    <div className="article-pager">
+      {previous ? (
+        <Link href={previous.href} className="article-pager-link">
+          <small>Previous</small>
+          <strong>{previous.title}</strong>
+        </Link>
+      ) : (
+        <div />
+      )}
+      {next ? (
+        <Link href={next.href} className="article-pager-link article-pager-link-next">
+          <small>Next</small>
+          <strong>{next.title}</strong>
+        </Link>
+      ) : null}
+    </div>
+  )
+}
+
 export function SectionDashboardNav({
   className,
 }: {

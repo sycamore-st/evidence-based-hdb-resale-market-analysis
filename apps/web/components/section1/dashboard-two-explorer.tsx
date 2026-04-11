@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react"
 import type { MouseEvent } from "react"
 
-import { formatSectionCurrency, SECTION1_CONTROL_LABELS, SectionDashboardNav } from "@/components/section1/dashboard-shared"
+import { DashboardPager, formatSectionCurrency, SECTION1_CONTROL_LABELS, SectionDashboardNav } from "@/components/section1/dashboard-shared"
 import type { DashboardTwoData, DashboardTwoMetricRow, DashboardTwoRow } from "@/lib/section1-dashboard2"
 
 function extent(values: number[]) {
@@ -362,6 +362,8 @@ export function DashboardTwoExplorer({ data }: { data: DashboardTwoData }) {
         </div>
 
       </section>
+
+      <DashboardPager current="/section1/dashboard-2" />
     </main>
   )
 }

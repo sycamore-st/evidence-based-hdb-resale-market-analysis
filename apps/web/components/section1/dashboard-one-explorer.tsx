@@ -5,6 +5,7 @@ import type { CSSProperties } from "react"
 
 import {
   formatSectionCurrency,
+  DashboardPager,
   SECTION1_CONTROL_LABELS,
   SECTION1_FLAT_COLORS,
   SectionDashboardNav,
@@ -383,6 +384,8 @@ export function DashboardOneExplorer({
           </div>
         </div>
       </section>
+
+      <DashboardPager current="/section1/dashboard-1" />
     </main>
   )
 }

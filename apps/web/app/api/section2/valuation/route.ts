@@ -10,7 +10,11 @@ function asFiniteNumber(value: unknown, fallback: number): number {
 export async function GET() {
   try {
     const options = await getValuationOptions()
-    return NextResponse.json(options)
+    return NextResponse.json(options, {
+      headers: {
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+      },
+    })
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load valuation options."
     return NextResponse.json({ error: message }, { status: 500 })
