@@ -46,6 +46,7 @@ body::before {
 a {
   color: inherit;
   text-decoration: none;
+  transition: color 250ms ease;
 }
 
 .app-shell {
@@ -323,27 +324,55 @@ a {
   justify-content: space-between;
   gap: 1rem;
   align-items: center;
-  padding: 0 0 1rem;
-  border-bottom: 1px solid rgba(201, 181, 158, 0.72);
+  padding: 0 0 1.6rem;
+  border-bottom: 1px solid rgba(201, 181, 158, 0.38);
 }
 
 .compare-brand {
   margin: 0;
   font-family: "Avenir Next", "Segoe UI", sans-serif;
-  font-size: 0.92rem;
-  font-style: italic;
+  font-size: 0.96rem;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   color: rgba(17, 24, 39, 0.92);
 }
 
 .compare-topnav {
   display: flex;
-  gap: 2rem;
+  gap: 1.6rem;
   flex-wrap: wrap;
   font-family: "Avenir Next", "Segoe UI", sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
+  font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(17, 24, 39, 0.62);
+}
+
+.compare-topnav a {
+  position: relative;
+  padding-bottom: 0.15rem;
+  transition: color 250ms ease;
+}
+
+.compare-topnav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 1px;
+  background: rgba(17, 24, 39, 0.48);
+  transition: width 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.compare-topnav a:hover {
+  color: rgba(17, 24, 39, 0.88);
+}
+
+.compare-topnav a:hover::after {
+  width: 100%;
 }
 
 .compare-anchor-section {
@@ -354,40 +383,41 @@ a {
   min-height: calc(100vh - 8rem);
   display: grid;
   grid-template-columns: minmax(320px, 0.95fr) minmax(0, 1.35fr);
-  gap: 2.5rem;
+  gap: 3.5rem;
   align-items: start;
-  padding-top: 2rem;
+  padding-top: 4rem;
 }
 
 .compare-kicker {
   margin: 0 0 0.75rem;
   font-family: "Avenir Next", "Segoe UI", sans-serif;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  font-size: 0.8rem;
-  color: rgba(107, 114, 128, 0.92);
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: rgba(107, 114, 128, 0.82);
 }
 
 .compare-hero-copy {
   display: grid;
-  gap: 1rem;
+  gap: 1.4rem;
   align-self: center;
 }
 
 .compare-hero h1 {
   margin: 0;
-  max-width: 11ch;
+  max-width: 13ch;
   color: #111827;
-  font-size: clamp(2.4rem, 5vw, 4.4rem);
+  font-size: clamp(1.9rem, 4vw, 3.2rem);
   line-height: 0.94;
   letter-spacing: -0.05em;
 }
 
 .compare-hero p:last-child {
-  max-width: 30ch;
+  max-width: 34ch;
   margin: 0;
   font-size: 0.86rem;
-  line-height: 1.5;
+  line-height: 1.65;
   color: rgba(107, 114, 128, 0.96);
   font-family: "Avenir Next", "Segoe UI", sans-serif;
 }
@@ -402,21 +432,21 @@ a {
 
 .compare-card {
   display: grid;
-  gap: 1rem;
+  gap: 1.2rem;
   min-height: 360px;
-  padding: 1.7rem;
+  padding: 2rem;
   border-radius: 8px;
   border: none;
-  box-shadow: 0 22px 46px rgba(20, 15, 11, 0.2);
-  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  box-shadow: 0 22px 46px rgba(20, 15, 11, 0.14);
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 350ms cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
   overflow: hidden;
   width: min(100%, 26rem);
 }
 
 .compare-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 28px 54px rgba(20, 15, 11, 0.26);
+  transform: translateY(-4px);
+  box-shadow: 0 28px 54px rgba(20, 15, 11, 0.18);
 }
 
 .compare-card::before {
@@ -446,7 +476,7 @@ a {
 .compare-card h2 {
   margin: 0;
   max-width: 10ch;
-  font-size: 2.3rem;
+  font-size: 1.7rem;
   line-height: 0.94;
   letter-spacing: -0.04em;
   color: #111827;
@@ -462,7 +492,7 @@ a {
 .compare-card span {
   max-width: 26ch;
   font-size: 1rem;
-  line-height: 1.45;
+  line-height: 1.6;
 }
 
 .compare-card-footer {
@@ -475,7 +505,7 @@ a {
 .compare-card-footer b {
   font-family: "Avenir Next", "Segoe UI", sans-serif;
   font-size: 0.84rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: rgba(20, 16, 14, 0.9);
 }
@@ -687,8 +717,10 @@ a {
 .dashboard2-header-actions-links,
 .dashboard3-header-actions-links {
   display: flex;
-  width: 100%;
-  justify-content: space-between;
+  justify-content: flex-end;
+  gap: 1.6rem;
+  white-space: nowrap;
+  flex-wrap: nowrap;
 }
 
 .dashboard1-layout-switch {
@@ -748,9 +780,9 @@ a {
 .dashboard2-header h1,
 .dashboard3-header h1 {
   margin: 0;
-  font-size: clamp(1rem, 5vw, 3rem);
+  font-size: clamp(1rem, 4vw, 2.2rem);
   line-height: 0.94;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.04em;
 }
 
 /* Shared Section 1 dashboard supporting text. */
@@ -760,7 +792,7 @@ a {
 .dashboard1-control span,
 .dashboard1-control small,
 .dashboard1-panel-header span,
-.dashboard1-chart-header span,
+.dashboard1-chart-header p,
 .dashboard1-legend-row,
 .dashboard1-map-legend {
   font-family: "Avenir Next", "Segoe UI", sans-serif;
@@ -783,45 +815,147 @@ a {
 .dashboard1-map-panel,
 .dashboard1-chart-shell,
 .dashboard1-panel-legend {
-  border: 1px solid rgba(87, 78, 65, 0.12);
-  background: rgba(255, 252, 247, 0.78);
+  border: none;
+  background: transparent;
 }
 
-.dashboard1-control {
-  padding: 1rem;
+.dashboard1-control,
+.dashboard2-control {
+  padding: 0;
   display: grid;
-  gap: 0.55rem;
-  min-height: 82px;
-  max-height: 120px;
+  gap: 0.45rem;
 }
 
-.dashboard1-control span {
-  font-size: 0.88rem;
+.dashboard1-control span,
+.dashboard2-control span {
+  font-size: 0.82rem;
 }
 
-.dashboard1-control strong {
+.dashboard1-control strong,
+.dashboard2-control strong {
   font-size: 1.35rem;
   letter-spacing: -0.03em;
 }
 
+.dashboard1-control-summary,
+.dashboard2-control-summary {
+  border-bottom: 1px solid rgba(87, 78, 65, 0.2);
+  padding-bottom: 0.5rem;
+}
+
+.dashboard1-control-summary strong,
+.dashboard2-control-summary strong {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.dashboard1-control-label,
+.dashboard2-control-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dashboard1-info-trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1px solid rgba(38, 35, 31, 0.3);
+  font-size: 0.58rem;
+  font-style: normal;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-weight: 600;
+  color: rgba(38, 35, 31, 0.45);
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.dashboard1-info-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 200px;
+  padding: 0.5rem 0.7rem;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #26231f;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  font-size: 0.7rem;
+  font-style: normal;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: 0;
+  white-space: normal;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  z-index: 10;
+}
+
+.dashboard1-info-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #ffffff;
+}
+
+.dashboard1-info-trigger:hover .dashboard1-info-tooltip {
+  opacity: 1;
+}
+
 .dashboard1-control select,
-.dashboard1-control button {
-  border: 1px solid rgba(87, 78, 65, 0.16);
-  background: #fffdf9;
-  padding: 0.7rem 0.85rem;
+.dashboard1-control button,
+.dashboard2-control select,
+.dashboard2-multiselect-button {
+  border: none;
+  border-bottom: 1px solid rgba(87, 78, 65, 0.2);
+  border-radius: 0;
+  background: transparent;
+  padding: 0.5rem 0;
   font: inherit;
-  font-size: small;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #26231f;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.dashboard1-control select,
+.dashboard2-control select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2326231f' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0 center;
+  padding-right: 1.2rem;
+}
+
+.dashboard1-control select:focus,
+.dashboard1-control button:focus,
+.dashboard2-control select:focus {
+  outline: none;
+  border-bottom-color: rgba(87, 78, 65, 0.45);
 }
 
 .dashboard1-control button:disabled {
-  opacity: 0.45;
+  opacity: 0.35;
 }
 
 /* Scope card keeps the current scope text and reset button side by side. */
 .dashboard1-control.dashboard1-control-scope {
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
   grid-template-areas:
-    "label button"
+    "label label"
     "value button";
   column-gap: 0.75rem;
   align-items: center;
@@ -829,6 +963,7 @@ a {
 
 .dashboard1-control.dashboard1-control-scope span {
   grid-area: label;
+  white-space: nowrap;
 }
 
 .dashboard1-control.dashboard1-control-scope strong {
@@ -837,7 +972,7 @@ a {
 
 .dashboard1-control.dashboard1-control-scope button {
   grid-area: button;
-  align-self: center;
+  justify-self: end;
 }
 
 /* Dashboard 1 main layout grid and preset variations. */
@@ -849,7 +984,7 @@ a {
     "map bars"
     "map lines";
   gap: 21px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .dashboard1-map-panel {
@@ -955,13 +1090,45 @@ a {
 }
 
 /* Dashboard 1 shared panel headers. */
-.dashboard1-panel-header,
-.dashboard1-chart-header {
+.dashboard1-panel-header {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   align-items: baseline;
   margin-bottom: 1rem;
+}
+
+.dashboard1-chart-header,
+.dashboard2-chart-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 1rem;
+}
+
+.dashboard1-chart-header p,
+.dashboard2-chart-header p {
+  margin: 0.3rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  max-width: 72ch;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  color: rgba(38, 35, 31, 0.7);
+}
+
+.dashboard2-chart-header {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.dashboard2-inline-legend {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
 }
 
 /* Dashboard 1 map card. */
@@ -1059,9 +1226,9 @@ a {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
   margin-bottom: 1.25rem;
+  align-items: start;
 }
 
-.dashboard2-control,
 .dashboard2-guide-card {
   border: 1px solid rgba(87, 78, 65, 0.12);
   background: rgba(255, 252, 247, 0.78);
@@ -1072,28 +1239,7 @@ a {
 }
 
 .dashboard2-control {
-  padding: 1rem;
-  display: grid;
-  gap: 0.55rem;
-  min-height: 96px;
   position: relative;
-}
-
-.dashboard2-control span {
-  font-size: 0.88rem;
-}
-
-.dashboard2-control strong {
-  font-size: 1.2rem;
-  letter-spacing: -0.03em;
-}
-
-.dashboard2-control select {
-  border: 1px solid rgba(87, 78, 65, 0.16);
-  background: #fffdf9;
-  padding: 0.7rem 0.85rem;
-  font: inherit;
-  font-size: small;
 }
 
 .dashboard2-control-towns {
@@ -1106,16 +1252,12 @@ a {
   gap: 0.75rem;
   align-items: center;
   width: 100%;
-  border: 1px solid rgba(87, 78, 65, 0.16);
-  background: #fffdf9;
-  padding: 0.7rem 0.85rem;
-  font: inherit;
   text-align: left;
 }
 
 .dashboard2-multiselect-button strong {
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 0.92rem;
+  font-weight: 600;
 }
 
 .dashboard2-multiselect-button span {
@@ -1125,9 +1267,9 @@ a {
 
 .dashboard2-multiselect-menu {
   position: absolute;
-  left: 1rem;
-  right: 1rem;
-  top: calc(100% - 0.45rem);
+  left: 0;
+  right: 0;
+  top: calc(100% + 0.25rem);
   z-index: 12;
   max-height: 260px;
   overflow: auto;
@@ -1152,22 +1294,22 @@ a {
 .dashboard1-chart-header h3,
 .dashboard2-guide-section h2 {
   margin: 0;
-  font-size: 1.5rem;
-  letter-spacing: -0.04em;
-  font-family: Georgia, "Iowan Old Style", serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
 }
 
 /* Dashboard 2 main split layout: comparison table plus narrative guide. */
 .dashboard2-layout {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 1rem;
   align-items: start;
 }
 
 .dashboard2-table-card {
-  grid-column: 1 / span 3;
-  padding: 1rem 1rem 0;
+  padding: 0;
 }
 
 .dashboard2-table-head {
@@ -1809,6 +1951,13 @@ a {
   color: rgba(38, 35, 31, 0.7);
 }
 
+.section1-trend-x-tick {
+  fill: rgba(38, 35, 31, 0.7);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  font-size: 0.4rem;
+  color: rgba(38, 35, 31, 0.7);
+}
+
 .section1-trend-bars-stack {
   width: 100%;
   height: 14rem;
@@ -1826,7 +1975,7 @@ a {
 .dashboard3-lines,
 .section1-trend-lines {
   width: 100%;
-  height: 17rem;
+  /*height: 17rem;*/
 }
 
 .section1-trend-hover-card {
@@ -2105,17 +2254,15 @@ a {
 }
 
 .site-topnav {
-  display: grid;
-  grid-template-columns: repeat(4, max-content);
-  justify-content: space-between;
+  display: flex;
+  justify-content: flex-end;
   align-items: center;
-  column-gap: 1.5rem;
-  width: min(780px, 100%);
-  margin-left: auto;
+  gap: 1.6rem;
 }
 
 .site-topnav-links {
-  display: contents;
+  display: flex;
+  gap: 1.6rem;
 }
 
 .site-topnav-link,
@@ -2133,30 +2280,48 @@ a {
   color: rgba(54, 48, 40, 0.94);
 }
 
+.site-topnav-link {
+  transition: color 250ms ease;
+}
+
+.site-topnav-link:hover {
+  color: rgba(54, 48, 40, 0.58);
+}
+
 .site-topnav-action {
   display: inline;
   padding: 0;
   border-radius: 0;
   letter-spacing: 0.12em;
   background: transparent;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgba(54, 48, 40, 0.32);
+  transition: text-decoration-color 250ms ease;
+}
+
+.site-topnav-action:hover {
+  text-decoration-color: rgba(54, 48, 40, 0.72);
 }
 
 .section-landing-card,
 .article-card,
 .section-landing-hero {
-  border: 1px solid rgba(124, 112, 96, 0.12);
-  background: rgba(255, 252, 247, 0.82);
-  box-shadow: 0 22px 54px rgba(76, 63, 45, 0.08);
+  border: 1px solid rgba(124, 112, 96, 0.14);
+  background: rgba(255, 252, 247, 0.88);
+  box-shadow: 0 1px 2px rgba(76, 63, 45, 0.06), 0 8px 24px rgba(76, 63, 45, 0.07);
 }
 
 .section-landing-hero p,
 .section-landing-card p,
 .article-hero p {
   margin: 0 0 0.85rem;
-  font-size: 0.76rem;
-  letter-spacing: 0.18em;
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(95, 84, 66, 0.52);
+  color: rgba(95, 84, 66, 0.48);
   font-family: "Avenir Next", "Segoe UI", sans-serif;
 }
 
@@ -2185,7 +2350,7 @@ a {
 .section-landing-hero h1 {
   margin: 0;
   font-family: Georgia, "Iowan Old Style", serif;
-  font-size: clamp(2.4rem, 5vw, 4.4rem);
+  font-size: clamp(1.9rem, 4vw, 3.2rem);
   line-height: 0.94;
   letter-spacing: -0.05em;
 }
@@ -2909,12 +3074,16 @@ a {
 }
 
 .section-landing-hero {
-  border-radius: 30px;
-  padding: 2rem 2.1rem;
+  border: none;
+  border-radius: 0;
+  padding: 1.2rem 0 1.8rem;
+  margin-bottom: 1.8rem;
+  background: transparent;
+  box-shadow: none;
 }
 
 .section-landing-hero span {
-  margin-top: 0.95rem;
+  margin-top: 1.2rem;
   max-width: 46rem;
   font-size: 1.02rem;
 }
@@ -2922,7 +3091,7 @@ a {
 .section-landing-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1.4rem;
 }
 
 .section-landing-grid-sticky {
@@ -2931,15 +3100,16 @@ a {
 
 .section-landing-card {
   display: grid;
-  gap: 0.8rem;
-  border-radius: 24px;
-  padding: 1.4rem;
+  gap: 1rem;
+  border-radius: 3px;
+  padding: 1.8rem;
 }
 
 .section-landing-card h2 {
   margin: 0;
-  font-size: 1.55rem;
-  line-height: 1.02;
+  max-width: 80%;
+  font-size: 1.7rem;
+  line-height: 1.08;
   letter-spacing: -0.04em;
   font-family: Georgia, "Iowan Old Style", serif;
 }
@@ -2958,7 +3128,11 @@ a {
 }
 
 .section-landing-sticky-card.section-landing-card {
-  box-shadow: 0 22px 46px rgba(20, 15, 11, 0.2);
+  box-shadow:
+    0 1px 1px rgba(20, 15, 11, 0.12),
+    0 4px 8px rgba(20, 15, 11, 0.08),
+    0 16px 36px rgba(20, 15, 11, 0.10);
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 350ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .section-landing-sticky-card-0 {
@@ -2974,6 +3148,18 @@ a {
 .section-landing-sticky-card-2 {
   background: #2a4c65;
   transform: rotate(-0.6deg);
+}
+
+.section-landing-sticky-card-3 {
+  background: #D8B55B;
+  transform: rotate(0.8deg);
+}
+
+.section-landing-sticky-card.section-landing-sticky-card-3 p,
+.section-landing-sticky-card.section-landing-sticky-card-3 span,
+.section-landing-sticky-card.section-landing-sticky-card-3 .compare-card-footer b,
+.section-landing-sticky-card.section-landing-sticky-card-3 h2 {
+  color: #fcf7f1;
 }
 
 .section-landing-sticky-card p,

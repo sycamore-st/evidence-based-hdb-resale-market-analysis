@@ -1,25 +1,27 @@
 import Link from "next/link"
 
 import type { ArticleMeta, ArticleSection } from "@/lib/content"
+import type { SiteSection } from "@/lib/sections"
 
-function formatSectionLabel(section: ArticleSection): string {
-  return section === "section2" ? "Section 2" : "Section 3"
-}
-
-export function ArticleTopNav({ section }: { section: ArticleSection }) {
+export function ArticleTopNav({ section }: { section: SiteSection }) {
   return (
     <div className="article-topnav site-topnav">
       <div className="site-topnav-links">
-        <Link href="/section1" className="site-topnav-link">
-          Section 1
-        </Link>
-        <Link href="/section2" className="site-topnav-link">
-          Section 2
-        </Link>
-        <Link href="/section3" className="site-topnav-link">
-          Section 3
-        </Link>
-        <span className="site-topnav-current">{formatSectionLabel(section)}</span>
+        {section === "section1" ? (
+          <span className="site-topnav-current">Section 1</span>
+        ) : (
+          <Link href="/section1" className="site-topnav-link">Section 1</Link>
+        )}
+        {section === "section2" ? (
+          <span className="site-topnav-current">Section 2</span>
+        ) : (
+          <Link href="/section2" className="site-topnav-link">Section 2</Link>
+        )}
+        {section === "section3" ? (
+          <span className="site-topnav-current">Section 3</span>
+        ) : (
+          <Link href="/section3" className="site-topnav-link">Section 3</Link>
+        )}
       </div>
       <Link href="/#menu" className="site-topnav-action">
         Menu

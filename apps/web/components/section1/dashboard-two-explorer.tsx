@@ -193,7 +193,13 @@ export function DashboardTwoExplorer({ data }: { data: DashboardTwoData }) {
 
       <section className="dashboard2-controls">
         <label className="dashboard2-control">
-          <span>{`1. ${SECTION1_CONTROL_LABELS.transactionYear}`}</span>
+          <span className="dashboard2-control-label">
+            {`1. ${SECTION1_CONTROL_LABELS.transactionYear}`}
+            <span className="dashboard1-info-trigger" aria-label="Info">
+              i
+              <span className="dashboard1-info-tooltip">Filters the table to transactions from this year. Choose the year that matches your buying timeline.</span>
+            </span>
+          </span>
           <select value={selectedYear} onChange={(event) => setSelectedYear(Number(event.target.value))}>
             {data.years.map((year) => (
               <option key={year} value={year}>
@@ -204,7 +210,13 @@ export function DashboardTwoExplorer({ data }: { data: DashboardTwoData }) {
         </label>
 
         <label className="dashboard2-control">
-          <span>{`2. ${SECTION1_CONTROL_LABELS.budget}`}</span>
+          <span className="dashboard2-control-label">
+            {`2. ${SECTION1_CONTROL_LABELS.budget}`}
+            <span className="dashboard1-info-trigger" aria-label="Info">
+              i
+              <span className="dashboard1-info-tooltip">Choose the budget tier that reflects your target shortlist. Only combinations at or below this price appear.</span>
+            </span>
+          </span>
           <select value={selectedBudget} onChange={(event) => setSelectedBudget(Number(event.target.value))}>
             {data.budgets.map((budget) => (
               <option key={budget} value={budget}>
@@ -215,7 +227,13 @@ export function DashboardTwoExplorer({ data }: { data: DashboardTwoData }) {
         </label>
 
         <div className="dashboard2-control dashboard2-control-towns">
-          <span>{`3. ${SECTION1_CONTROL_LABELS.town}`}</span>
+          <span className="dashboard2-control-label">
+            {`3. ${SECTION1_CONTROL_LABELS.town}`}
+            <span className="dashboard1-info-trigger" aria-label="Info">
+              i
+              <span className="dashboard1-info-tooltip">Select one or more towns to compare, or keep ALL for the broad comparison set.</span>
+            </span>
+          </span>
           <button type="button" className="dashboard2-multiselect-button" onClick={() => setTownPickerOpen((open) => !open)}>
             <strong>{townSummary}</strong>
             <span>{townPickerOpen ? "Hide" : "Choose"}</span>
@@ -237,7 +255,13 @@ export function DashboardTwoExplorer({ data }: { data: DashboardTwoData }) {
         </div>
 
         <div className="dashboard2-control dashboard2-control-summary">
-          <span>Current best space</span>
+          <span className="dashboard2-control-label">
+            Current best space
+            <span className="dashboard1-info-trigger" aria-label="Info">
+              i
+              <span className="dashboard1-info-tooltip">Hover any row to inspect Min, P25, Median, P75, and Max values. The range line shows the spread and the hollow dot marks the median.</span>
+            </span>
+          </span>
           <strong>{topRow ? `${topRow.town} / ${topRow.flatType}` : "No data"}</strong>
           <small>
             {topRow ? `${topRow.medianFloorArea.toFixed(0)} sqm median area at ${formatSectionCurrency(topRow.medianPrice)}` : "No combinations for this selection."}
@@ -247,6 +271,18 @@ export function DashboardTwoExplorer({ data }: { data: DashboardTwoData }) {
 
       <section className="dashboard2-layout">
         <div className="dashboard2-table-card" ref={tableRef}>
+          <div className="dashboard2-chart-header">
+            <p>Each row compares one town and flat type within your budget and year. The line shows the min-to-max range, and the hollow dot marks the median. Hover any row for the full five-number summary.</p>
+            <div className="dashboard2-inline-legend">
+              <div className="dashboard2-guide-swatch">
+                <span className="dashboard2-range-dot dashboard2-range-dot-median" />
+              </div>
+              <div className="dashboard2-guide-labels">
+                <span>Range</span>
+                <span>Median</span>
+              </div>
+            </div>
+          </div>
           <div className="dashboard2-table-head">
             <div className="dashboard2-row-labels">
               <span>Town</span>
@@ -325,41 +361,6 @@ export function DashboardTwoExplorer({ data }: { data: DashboardTwoData }) {
           ) : null}
         </div>
 
-        <aside className="dashboard2-guide-card">
-          <div className="dashboard2-guide-section">
-            <h2>How to use this chart?</h2>
-            <ol className="dashboard2-guide-list">
-              <li>Select one or more towns, or keep `ALL` for the broad comparison set.</li>
-              <li>Choose the budget tier that reflects your target shortlist.</li>
-              <li>Read the range line as the observed spread and the hollow dot as the median.</li>
-              <li>Hover any row to inspect Min, P25, Median, P75, and Max values.</li>
-            </ol>
-          </div>
-
-          <div className="dashboard2-guide-section">
-            <div className="dashboard2-guide-legend">
-              <div className="dashboard2-guide-swatch">
-                <span className="dashboard2-range-dot dashboard2-range-dot-median" />
-              </div>
-              <div className="dashboard2-guide-labels">
-                <span>Range</span>
-                <span>Median</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="dashboard2-guide-section">
-            <h2>What this chart shows?</h2>
-            <p>
-              Each row compares one town and flat type within the selected budget and year. The left panel shows floor area
-              and the right panel shows resale price.
-            </p>
-            <p>
-              The line shows the observed range from min to max, while the hollow dot marks the median. Hovering reveals the
-              full five-number summary used for each comparison.
-            </p>
-          </div>
-        </aside>
       </section>
     </main>
   )

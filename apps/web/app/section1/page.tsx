@@ -7,8 +7,8 @@ export default function Section1Page() {
   return (
     <SectionLanding
       section="section1"
-      title="Interactive dashboards for market exploration."
-      description="Move between the three browser dashboards for market overview, buyer budget tradeoffs, and building-level location search."
+      title="Explore the market yourself."
+      description="Three interactive dashboards for browsing prices, comparing budgets, and shortlisting buildings across Singapore."
       items={getSectionLandingItems("section1")}
     />
   )
