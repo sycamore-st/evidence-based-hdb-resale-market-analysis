@@ -33,7 +33,7 @@ This is a valuation decision problem, not a causal inference exercise. The decis
 
 ## EDA: Local Market Positioning
 
-<iframe src="/outputs/section2/charts/S2QbF1_distribution_contexts.html" title="Distribution context around subject transaction"></iframe>
+<iframe src="/outputs/section2/charts/S2QbF1_distribution_contexts.html" title="Distribution context around subject transaction" data-caption="Fig 1 — Local price distribution for comparable Yishun 4-room transactions. X-axis: resale price (SGD); y-axis: frequency. The subject transaction (SGD 550,800) is marked against the empirical 95% band to show how far it deviates from typical prices."></iframe>
 
 In the local cohort around the subject flat (same town and type, with area/age filters), the empirical 95% band is about `SGD 291,000` to `SGD 425,000` (`n=209`), while the realized transaction is `SGD 550,800`.
 
@@ -43,7 +43,7 @@ The expected-price model uses richer structural features than Question A, includ
 
 Evaluation is done with a temporal holdout split (earlier months for training, later months for testing), which is more realistic than a random split for drifting housing markets.
 
-<iframe src="/outputs/section2/charts/S2QbF4_model_accuracy.html" title="Question B model accuracy comparison"></iframe>
+<iframe src="/outputs/section2/charts/S2QbF4_model_accuracy.html" title="Question B model accuracy comparison" data-caption="Fig 2 — Model accuracy comparison for the valuation task. X-axis: model type; y-axis: holdout performance metrics (RMSE, MAPE, R-squared). XGBoost is selected for its lowest error and highest explanatory power."></iframe>
 
 ## Results
 
