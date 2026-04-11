@@ -182,17 +182,6 @@ export function SectionTrendPriceLines({
   return (
     <div className="section1-trend-shell" ref={shellRef} onMouseLeave={() => setHoverState(null)}>
       <svg className={className} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden="true">
-        {[0, 0.33, 0.66, 1].map((stop) => (
-          <line
-            key={stop}
-            x1={padding}
-            x2={width - padding}
-            y1={height - padding - stop * (height - padding * 2)}
-            y2={height - padding - stop * (height - padding * 2)}
-            stroke="rgba(87, 78, 65, 0.12)"
-            strokeWidth="1"
-          />
-        ))}
         {hoverBreakdown ? (
           <line
             x1={xForIndex(years.indexOf(hoverBreakdown.year))}
