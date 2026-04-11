@@ -26,7 +26,7 @@ This is more appropriate than a random split for real estate, because market con
 
 ## EDA: Explanatory Power of the Input Features
 
-<iframe src="/outputs/section2/charts/S2QaF1_controlled_variation.html" title="Price dispersion under same visible features"></iframe>
+<iframe src="/outputs/section2/charts/S2QaF1_controlled_variation.html" title="Price dispersion under same visible features" data-caption="Fig 1 — Price range within groups that share the same town, flat type, and flat age. X-axis: grouped feature combinations; y-axis: resale price (SGD). Wide spread within each group shows how much variation the three visible fields leave unexplained."></iframe>
 
 Even among transactions with the same town, flat type, and flat age, prices vary widely. This indicates that unobserved factors — such as interior condition or proximity to specific amenities — still account for a meaningful share of the price difference.
 
@@ -41,7 +41,7 @@ Three models were compared:
 - XGBoost
     
 
-<iframe src="/outputs/section2/charts/S2QaF2_model_tradeoff.html" title="Model tradeoff comparison"></iframe>
+<iframe src="/outputs/section2/charts/S2QaF2_model_tradeoff.html" title="Model tradeoff comparison" data-caption="Fig 2 — Performance comparison of Linear Regression, Random Forest, and XGBoost on the 2014 holdout set. X-axis: model type; y-axis: error metrics (RMSE, MAPE) and R-squared. Lower error and higher R-squared indicate better predictive accuracy."></iframe>
 
 ## Model Comparison and Selection
 
@@ -70,13 +70,13 @@ Selected model: XGBoost. It produces the lowest RMSE and MAPE, and the highest R
 
 ## Impact of Training Window Selection
 
-<iframe src="/outputs/section2/charts/S2QaF4_training_window_sensitivity.html" title="Training window sensitivity"></iframe>
+<iframe src="/outputs/section2/charts/S2QaF4_training_window_sensitivity.html" title="Training window sensitivity" data-caption="Fig 3 — How the training window length affects model accuracy. X-axis: number of years of historical data used for training; y-axis: holdout-set performance metrics. A 3-year recent window outperforms longer histories."></iframe>
 
 The training period matters. Models trained on all available historical data performed worse than those using a shorter, more recent window. A 3-year recent window works best here — it is close enough to 2014 to reflect current market conditions, and large enough to train on without instability.
 
 ## Interpretation of Results
 
-<iframe src="/outputs/section2/charts/S2QaF3_actual_vs_predicted.html" title="Actual vs predicted resale prices"></iframe>
+<iframe src="/outputs/section2/charts/S2QaF3_actual_vs_predicted.html" title="Actual vs predicted resale prices" data-caption="Fig 4 — Actual versus predicted resale prices for the 2014 holdout set. X-axis: predicted price (SGD); y-axis: actual price (SGD). Points near the diagonal line indicate accurate predictions; scatter away from it shows residual error."></iframe>
 
 The model produces reasonable estimates given only three inputs. The remaining error comes from what these fields cannot capture — the model has no way to tell apart two properties that look the same on town, type, and age. This is expected when the feature set is this limited.
 

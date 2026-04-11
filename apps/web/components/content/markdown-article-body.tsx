@@ -84,13 +84,17 @@ export function MarkdownArticleBody({ body }: { body: string }) {
               <table>{children}</table>
             </div>
           ),
-          iframe: ({ src = "", title = "Embedded content" }) => {
+          iframe: ({ src = "", title = "Embedded content", ...rest }) => {
             const resolvedSrc = typeof src === "string" ? resolveMarkdownUrl(src) : ""
+            const caption = typeof (rest as Record<string, unknown>)["data-caption"] === "string"
+              ? (rest as Record<string, unknown>)["data-caption"] as string
+              : null
 
             return (
-              <div className="article-embed-shell">
+              <figure className="article-embed-shell">
                 <iframe src={resolvedSrc} title={title} className="article-embed-frame" loading="lazy" />
-              </div>
+                {caption ? <figcaption className="article-embed-caption">{caption}</figcaption> : null}
+              </figure>
             )
           },
         }}

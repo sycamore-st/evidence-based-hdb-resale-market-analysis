@@ -24,11 +24,11 @@ Performance is evaluated based on **label recovery precision** and **operational
 
 ## Step 1: Exploratory Data Analysis (Feature Separability)
 
-<iframe src="/outputs/section2/charts/S2QcF5_flat_type_count.html" title="Flat type count distribution"></iframe>
+<iframe src="/outputs/section2/charts/S2QcF5_flat_type_count.html" title="Flat type count distribution" data-caption="Fig 1 — Transaction count by flat type. X-axis: flat type category; y-axis: number of transactions. Shows the class balance — 4-room and 3-room dominate the dataset."></iframe>
 
-<iframe src="/outputs/section2/charts/S2QcF6_flat_type_floor_area_distribution.html" title="Floor area by flat type"></iframe>
+<iframe src="/outputs/section2/charts/S2QcF6_flat_type_floor_area_distribution.html" title="Floor area by flat type" data-caption="Fig 2 — Floor area distribution by flat type. X-axis: floor area (sqm); y-axis: flat type. Clear separation between categories shows floor area is a strong discriminating feature."></iframe>
 
-<iframe src="/outputs/section2/charts/S2QcF7_flat_type_resale_price_distribution.html" title="Resale price by flat type"></iframe>
+<iframe src="/outputs/section2/charts/S2QcF7_flat_type_resale_price_distribution.html" title="Resale price by flat type" data-caption="Fig 3 — Resale price distribution by flat type. X-axis: resale price (SGD); y-axis: flat type. Price ranges overlap more than floor areas, making price alone a weaker classifier."></iframe>
 
 Initial analysis reveals strong structural separation between flat types, particularly within the **floor area** dimension. For instance, the median area for 3-room flats is **67 sqm**, compared to **119 sqm** for 5-room flats. This high degree of feature variance provides a robust foundation for automated recovery.
 
@@ -36,11 +36,11 @@ Initial analysis reveals strong structural separation between flat types, partic
 
 The unsupervised approach involves partitioning the data and utilizing a majority-vote mapping strategy to assign labels.
 
-<iframe src="/outputs/section2/charts/S2QcF1_unsupervised_confusion.html" title="Unsupervised mapped confusion"></iframe>
+<iframe src="/outputs/section2/charts/S2QcF1_unsupervised_confusion.html" title="Unsupervised mapped confusion" data-caption="Fig 4 — Confusion matrix for unsupervised clustering mapped to flat-type labels. X-axis: predicted label; y-axis: true label. Off-diagonal cells show misclassification between similar flat types."></iframe>
 
-<iframe src="/outputs/section2/charts/S2QcF2_unsupervised_k_comparison.html" title="Unsupervised method comparison"></iframe>
+<iframe src="/outputs/section2/charts/S2QcF2_unsupervised_k_comparison.html" title="Unsupervised method comparison" data-caption="Fig 5 — KMeans versus RBM-KMeans comparison. Shows mapped accuracy, silhouette score, and Davies-Bouldin index for each method. Higher silhouette does not guarantee better label recovery."></iframe>
 
-<iframe src="/outputs/section2/charts/S2QcF3_unsupervised_segment_profile.html" title="Unsupervised segment profile"></iframe>
+<iframe src="/outputs/section2/charts/S2QcF3_unsupervised_segment_profile.html" title="Unsupervised segment profile" data-caption="Fig 6 — Profile of each unsupervised cluster showing feature distributions (floor area, price, age). Reveals how clusters correspond — or fail to correspond — to actual flat types."></iframe>
 
 **Comparative Performance:**
 
@@ -53,9 +53,9 @@ While the RBM-KMeans approach improves mathematical compactness (as indicated by
 
 The supervised model demonstrates near-perfect reconstruction of the missing attributes on the holdout set:
 
-<iframe src="/outputs/section2/charts/S2QcF8_supervised_model_summary.html" title="Supervised model summary"></iframe>
+<iframe src="/outputs/section2/charts/S2QcF8_supervised_model_summary.html" title="Supervised model summary" data-caption="Fig 7 — Supervised classification performance summary. Shows accuracy, precision, recall, and F1-score per flat type on the holdout set. Near-perfect scores across all categories."></iframe>
 
-<iframe src="/outputs/section2/charts/S2QcF9_supervised_confusion.html" title="Supervised confusion matrix"></iframe>
+<iframe src="/outputs/section2/charts/S2QcF9_supervised_confusion.html" title="Supervised confusion matrix" data-caption="Fig 8 — Confusion matrix for the supervised classifier. X-axis: predicted flat type; y-axis: true flat type. Diagonal dominance confirms near-perfect label recovery."></iframe>
 
 **Holdout Performance Metrics:**
 
