@@ -7,12 +7,26 @@ slug: "question-b-extended"
 order: 3
 ---
 
-This page extends the static writeup with a playable valuation workflow.
+# Question B Extended: Interactive Valuation Workbench
 
-You can choose a building and transaction profile, then generate:
+## Purpose
 
-- expected-price estimate
-- local transaction distribution context
-- candidate comparable transactions
+This page turns the static valuation note in Question B into a reusable transaction-review tool. Instead of evaluating only one Yishun deal, the workbench lets the reader change the building and transaction profile and inspect how the valuation evidence changes in response.
 
-The interactive workbench now lives directly inside this page, so the controls, charts, and comparable table follow the same dashboard rhythm as the rest of the site.
+## What the Workbench Produces
+
+For any selected transaction profile, the page returns three decision layers:
+
+- **Expected-price estimate:** the model-based central valuation implied by the structural inputs.
+- **Local distribution context:** the surrounding empirical price range for similar nearby transactions.
+- **Comparable-sales evidence:** the candidate transaction set used to judge whether the subject deal looks supported by direct market evidence.
+
+## How to Read It
+
+The workbench should be read in the same sequence as the static case note:
+
+1. Start with the model estimate to understand the expected price level.
+2. Compare the subject price against the local distribution to see whether it is merely high, or truly extreme.
+3. Review the comparable table to determine whether the model signal is supported by direct transaction evidence.
+
+This makes the page useful as a practical valuation screen rather than just a visualization demo.

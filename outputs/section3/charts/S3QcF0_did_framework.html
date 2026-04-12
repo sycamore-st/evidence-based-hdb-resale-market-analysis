@@ -1,0 +1,174 @@
+<html>
+<head><meta charset="utf-8" /></head>
+<body>
+    <div>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.4.0.min.js" integrity="sha256-KEmPoupLpFyGMyGAiOsiNDbKDKAvxXAn/W+oQa0ZAfk=" crossorigin="anonymous"></script>
+        <div id="did-chart" style="height:100%; width:100%;"></div>
+        <script>
+        (function () {
+            // ── Geometry ────────────────────────────────────────
+            // x: 0 = start, 1 = event, 2 = end
+            // Control:          y = 2 + 0.75·x            (slope 0.75)
+            // Treatment (pre):  y = 3.5 + 0.75·x          (parallel to control)
+            // Treatment (post): y = 4.25 + 2.25·(x − 1)   (steeper after shock)
+            // Counterfactual:   y = 4.25 + 0.75·(x − 1)   (same slope as control)
+
+            var xPre = 0.4, xPost = 1.6;
+
+            // Control line
+            var ctrlY = function (x) { return 2 + 0.75 * x; };
+            // Treatment line
+            var txY = function (x) { return x <= 1 ? 3.5 + 0.75 * x : 4.25 + 2.25 * (x - 1); };
+            // Counterfactual
+            var cfY = function (x) { return 4.25 + 0.75 * (x - 1); };
+
+            // Marker points (on the lines)
+            var cPre  = ctrlY(xPre),  cPost  = ctrlY(xPost);
+            var tPre  = txY(xPre),    tPost  = txY(xPost);
+            var cfPost = cfY(xPost);
+
+            // ── Palette ─────────────────────────────────────────
+            var colCtrl = "#CF864B";
+            var colTx   = "#5B7A59";
+            var colCf   = "#8EA68C";
+            var colMark = "rgba(36,32,27,0.82)";
+            var colLine = "rgba(36,32,27,0.28)";
+            var colText = "rgba(36,32,27,0.82)";
+            var colMuted = "rgba(36,32,27,0.48)";
+
+            // ── Traces ──────────────────────────────────────────
+            var traces = [
+                // Control line
+                { x: [0, 2], y: [ctrlY(0), ctrlY(2)], mode: "lines",
+                  line: { color: colCtrl, width: 2.4 },
+                  hoverinfo: "skip", showlegend: false },
+                // Treatment pre
+                { x: [0, 1], y: [txY(0), txY(1)], mode: "lines",
+                  line: { color: colTx, width: 2.4 },
+                  hoverinfo: "skip", showlegend: false },
+                // Treatment post
+                { x: [1, 2], y: [txY(1), txY(2)], mode: "lines",
+                  line: { color: colTx, width: 2.4 },
+                  hoverinfo: "skip", showlegend: false },
+                // Counterfactual (dashed)
+                { x: [1, 2], y: [cfY(1), cfY(2)], mode: "lines",
+                  line: { color: colCf, width: 1.8, dash: "dot" },
+                  hoverinfo: "skip", showlegend: false },
+
+                // ── Marker points ───────────────────────────────
+                { x: [xPre, xPre, xPost, xPost, xPost],
+                  y: [cPre, tPre, cPost, tPost, cfPost],
+                  mode: "markers",
+                  marker: { color: colMark, size: 7, symbol: "circle" },
+                  hoverinfo: "skip", showlegend: false },
+
+                // ── Vertical connectors (ΔA, ΔB) ───────────────
+                // ΔA: pre gap
+                { x: [xPre, xPre], y: [cPre, tPre], mode: "lines",
+                  line: { color: colLine, width: 1, dash: "dash" },
+                  hoverinfo: "skip", showlegend: false },
+                // ΔB: post gap
+                { x: [xPost, xPost], y: [cPost, tPost], mode: "lines",
+                  line: { color: colLine, width: 1, dash: "dash" },
+                  hoverinfo: "skip", showlegend: false },
+                // DiD bracket: counterfactual to treatment post (with horizontal ticks)
+                { x: [xPost, xPost], y: [cfPost, tPost], mode: "lines",
+                  line: { color: "rgba(36,32,27,0.55)", width: 1.5 },
+                  hoverinfo: "skip", showlegend: false },
+                // Top tick
+                { x: [xPost, xPost + 0.06], y: [tPost, tPost], mode: "lines",
+                  line: { color: "rgba(36,32,27,0.6)", width: 1.6 },
+                  hoverinfo: "skip", showlegend: false },
+                // Bottom tick
+                { x: [xPost, xPost + 0.06], y: [cfPost, cfPost], mode: "lines",
+                  line: { color: "rgba(36,32,27,0.6)", width: 1.6 },
+                  hoverinfo: "skip", showlegend: false },
+            ];
+
+            // ── Layout ──────────────────────────────────────────
+            var layout = {
+                font: { family: "Georgia, 'Iowan Old Style', serif", size: 12, color: colText },
+                title: {
+                    text: "Difference-in-Differences framework",
+                    font: { size: 16, color: colText, family: "'Avenir Next', 'Segoe UI', system-ui, sans-serif" },
+                    x: 0.01, xanchor: "left"
+                },
+                xaxis: {
+                    range: [-0.15, 2.35],
+                    showgrid: false, zeroline: false,
+                    showline: true, linecolor: "#111111", linewidth: 1,
+                    tickmode: "array",
+                    tickvals: [xPre, xPost],
+                    ticktext: ["Pre-treatment", "Post-treatment"],
+                    tickfont: { size: 11.5, color: colMuted },
+                    title: { text: "" }
+                },
+                yaxis: {
+                    range: [1.2, 7.2],
+                    showgrid: false, zeroline: false,
+                    showline: true, linecolor: "#111111", linewidth: 1,
+                    showticklabels: false,
+                    title: {
+                        text: "Outcome variable",
+                        font: { size: 11.5, color: colMuted }
+                    }
+                },
+                margin: { l: 80, r: 50, t: 52, b: 52 },
+                plot_bgcolor: "rgba(0,0,0,0)",
+                paper_bgcolor: "rgba(0,0,0,0)",
+                hoverlabel: { bgcolor: "#FCF7F1", font: { color: colText } },
+
+                // ── Event line ──────────────────────────────────
+                shapes: [{
+                    type: "line", x0: 1, x1: 1, y0: 1.3, y1: 6.8,
+                    line: { color: "rgba(36,32,27,0.18)", width: 1 }
+                }],
+
+                // ── Annotations ─────────────────────────────────
+                annotations: [
+                    // Event label
+                    { x: 1.02, y: 1.55, text: "DTL2 opens",
+                      font: { size: 10.5, color: colMuted, family: "'Avenir Next', system-ui, sans-serif" },
+                      showarrow: false, xanchor: "left" },
+
+                    // ΔA label
+                    { x: xPre - 0.06, y: (cPre + tPre) / 2, text: "ΔA",
+                      font: { size: 14, color: colText }, showarrow: false, xanchor: "right" },
+
+                    // ΔB label
+                    { x: xPost - 0.06, y: (cPost + tPost) / 2, text: "ΔB",
+                      font: { size: 14, color: colText }, showarrow: false, xanchor: "right" },
+
+                    // DiD bracket label
+                    { x: xPost + 0.1, y: (cfPost + tPost) / 2, text: "DiD<br>effect",
+                      font: { size: 12, color: "rgba(36,32,27,0.72)", family: "'Avenir Next', system-ui, sans-serif" },
+                      showarrow: false, xanchor: "left", align: "left" },
+
+                    // Formula box
+                    { x: 0.52, y: 6.6,
+                      text: "DiD  =  ΔB − ΔA",
+                      font: { size: 13, color: colText, family: "'Avenir Next', system-ui, sans-serif" },
+                      showarrow: false,
+                      bgcolor: "rgba(248,243,234,0.85)",
+                      bordercolor: "rgba(36,32,27,0.18)",
+                      borderpad: 8, borderwidth: 1 },
+
+                    // Group labels (at line endpoints)
+                    { x: 2.04, y: ctrlY(2), text: "Control",
+                      font: { size: 11, color: colCtrl },
+                      showarrow: false, xanchor: "left" },
+                    { x: 2.04, y: txY(2), text: "Treated",
+                      font: { size: 11, color: colTx },
+                      showarrow: false, xanchor: "left" },
+                    { x: 2.04, y: cfY(2), text: "Counterfactual",
+                      font: { size: 10, color: colCf },
+                      showarrow: false, xanchor: "left" },
+                ]
+            };
+
+            Plotly.newPlot("did-chart", traces, layout, { responsive: true, displayModeBar: false });
+        })();
+        </script>
+    </div>
+</body>
+</html>

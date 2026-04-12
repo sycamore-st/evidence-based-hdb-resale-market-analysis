@@ -11,106 +11,120 @@ order: 1
 
 ## Business Context
 
-The task works within a constraint: estimate 2014 HDB resale prices using only three visible attributes: town, flat type, and flat age.
+This question studies an intentionally constrained pricing problem: estimate HDB resale prices using only the three fields that are immediately visible in a coarse listing or summary table:
 
-A real valuation would also use floor area, storey level, and finer location data. This analysis is scoped to the three fields above. The aim is to see how well they perform on their own, and to measure how much uncertainty remains without the additional detail.
+- `town`
+- `flat_type`
+- `flat_age`
 
-## Constraints and Requirements
+In a production valuation system, we would also want floor area, storey level, flat model, remaining lease, and finer location information. The point of this exercise is therefore not to build the strongest possible model. It is to measure how much pricing signal remains when nearly all structural detail is removed.
 
-The model is trained and tested in a forward-looking setup:
+## Scope and Constraints
 
-- Training set: transactions before 2014
-- Test set: transactions within 2014
+The evaluation uses a forward-looking test design rather than a random split:
 
-This is more appropriate than a random split for real estate, because market conditions change over time. Testing on a later period reflects how the model would actually be used.
+- **Training set:** transactions before 2014
+- **Test set:** transactions within 2014
 
-## EDA: Explanatory Power of the Input Features
+This design matters because housing markets drift over time. A random split would mix earlier and later market conditions together and overstate performance. A temporal holdout is closer to the actual operating question: if we only knew the past, how well could we price the next year?
 
-<iframe src="/outputs/section2/charts/S2QaF1_controlled_variation.html" title="Price dispersion under same visible features" data-caption="Fig 1 — Price range within groups that share the same town, flat type, and flat age. X-axis: grouped feature combinations; y-axis: resale price (SGD). Wide spread within each group shows how much variation the three visible fields leave unexplained."></iframe>
+The official feature set is exactly:
 
-Even among transactions with the same town, flat type, and flat age, prices vary widely. This indicates that unobserved factors — such as interior condition or proximity to specific amenities — still account for a meaningful share of the price difference.
+$$
+X_i = \{\text{town}_i,\; \text{flat\_type}_i,\; \text{flat\_age}_i\}
+$$
 
-## Candidate Models
+Where:
 
-Three models were compared:
+- $\text{town}_i$ identifies the planning area of transaction $i$.
+- $\text{flat\_type}_i$ captures broad unit size category such as 3-room or 4-room.
+- $\text{flat\_age}_i$ measures the age of the flat at transaction time.
 
-- Linear Regression
-    
-- Random Forest
-    
-- XGBoost
-    
+## Step 1: Establish the Information Ceiling
 
-<iframe src="/outputs/section2/charts/S2QaF2_model_tradeoff.html" title="Model tradeoff comparison" data-caption="Fig 2 — Performance comparison of Linear Regression, Random Forest, and XGBoost on the 2014 holdout set. X-axis: model type; y-axis: error metrics (RMSE, MAPE) and R-squared. Lower error and higher R-squared indicate better predictive accuracy."></iframe>
+Before fitting any model, we first need to understand how much variation these three visible fields leave unexplained. The chart below groups transactions with the same visible attributes and shows the price spread that still remains inside each group.
 
-## Model Comparison and Selection
+<iframe src="/outputs/section2/charts/S2QaF1_controlled_variation.html" title="Price dispersion under same visible features" data-caption="Fig 1 — Price range within groups that share the same town, flat type, and flat age. X-axis: grouped feature combinations; y-axis: resale price (SGD). Wide spread inside a group shows the irreducible uncertainty left by the three-field constraint."></iframe>
 
-1. **Linear Regression:** The simplest baseline. Assumes a straight-line relationship between the inputs and price. Easy to interpret, and useful for checking whether a linear model is sufficient.
+This figure is important because it defines the difficulty of the task. If prices remain tightly clustered within each group, then a simple model would be enough. Instead, the within-group spread is still wide, which tells us that omitted features such as floor area, storey, exact building, and amenity access continue to matter materially.
 
-    Documentation: [LinearRegression (scikit-learn)](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html)
+In other words, the chart tells us that even a very strong model will face a genuine information ceiling under this feature restriction.
 
-2. **Random Forest Regressor:** A tree ensemble where each tree is trained on a random subset of the data. Handles nonlinear patterns and interactions between features without much hyperparameter tuning.
+## Step 2: Compare Candidate Models
 
-    Documentation: [RandomForestRegressor (scikit-learn)](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html)
+Given that the remaining signal is limited, the next question is whether nonlinear machine-learning models can still extract more information than a simple linear baseline. Three regressors were compared:
 
-3. **XGBoost Regressor:** A gradient boosting model that builds trees one at a time, each correcting the errors of the previous. Generally performs well on structured tabular data.
+- **Linear Regression:** a transparent baseline that assumes additive linear effects.
+- **Random Forest:** a tree ensemble that captures nonlinear interactions without heavy tuning.
+- **XGBoost:** a boosted-tree model that typically performs well on structured tabular data.
 
-    Documentation: [XGBRegressor (XGBoost Python API)](https://xgboost.readthedocs.io/en/stable/python/python_api.html?highlight=XGBRegressor)
-    
+<iframe src="/outputs/section2/charts/S2QaF2_model_tradeoff.html" title="Model tradeoff comparison" data-caption="Fig 2 — Performance comparison of Linear Regression, Random Forest, and XGBoost on the 2014 holdout set. X-axis: model type; y-axis: error metrics and R-squared. Lower RMSE/MAPE and higher R-squared indicate better predictive accuracy."></iframe>
 
-### Performance on 2014 Holdout Set
+We include this chart because model choice is itself part of the answer. The objective is not simply to show that prediction is possible, but to identify which model class works best when only three visible fields are available.
 
-|**Model**|**RMSE**|**MAPE**|**R²**|**Evaluation Summary**|
-|---|---|---|---|---|
-|**Linear Regression**|SGD 55,463|8.51%|0.797|Interpretable baseline; does not capture nonlinear patterns.|
-|**Random Forest**|SGD 53,894|8.87%|0.809|Handles nonlinearity, but has the highest MAPE of the three.|
-|**XGBoost**|SGD 51,425|8.44%|0.826|Lowest RMSE, lowest MAPE, and highest R² across all three models.|
+The holdout comparison shows:
 
-Selected model: XGBoost. It produces the lowest RMSE and MAPE, and the highest R², on the 2014 holdout set.
+| **Model** | **RMSE** | **MAPE** | **R²** | **Interpretation** |
+|---|---:|---:|---:|---|
+| Linear Regression | SGD 55,463 | 8.51% | 0.797 | Strong baseline, but too rigid to capture nonlinear market structure. |
+| Random Forest | SGD 53,894 | 8.87% | 0.809 | Improves fit, but produces the highest percentage error. |
+| XGBoost | SGD 51,425 | 8.44% | 0.826 | Best overall balance of error reduction and explanatory power. |
 
-## Impact of Training Window Selection
+XGBoost is selected because it achieves the lowest RMSE, the lowest MAPE, and the highest R² on the forward holdout set.
 
-<iframe src="/outputs/section2/charts/S2QaF4_training_window_sensitivity.html" title="Training window sensitivity" data-caption="Fig 3 — How the training window length affects model accuracy. X-axis: number of years of historical data used for training; y-axis: holdout-set performance metrics. A 3-year recent window outperforms longer histories."></iframe>
+## Step 3: Show What the Selected Model Gets Right and Wrong
 
-The training period matters. Models trained on all available historical data performed worse than those using a shorter, more recent window. A 3-year recent window works best here — it is close enough to 2014 to reflect current market conditions, and large enough to train on without instability.
+Once the best model is chosen, the next chart examines prediction quality at the transaction level.
 
-## Interpretation of Results
+<iframe src="/outputs/section2/charts/S2QaF3_actual_vs_predicted.html" title="Actual vs predicted resale prices" data-caption="Fig 3 — Actual versus predicted resale prices for the 2014 holdout set. X-axis: predicted price (SGD); y-axis: actual price (SGD). Points close to the diagonal are well predicted; wider scatter shows residual error created by missing structural details."></iframe>
 
-<iframe src="/outputs/section2/charts/S2QaF3_actual_vs_predicted.html" title="Actual vs predicted resale prices" data-caption="Fig 4 — Actual versus predicted resale prices for the 2014 holdout set. X-axis: predicted price (SGD); y-axis: actual price (SGD). Points near the diagonal line indicate accurate predictions; scatter away from it shows residual error."></iframe>
+This figure is necessary because summary metrics alone do not show *how* the model fails. The scatter makes two things visible:
 
-The model produces reasonable estimates given only three inputs. The remaining error comes from what these fields cannot capture — the model has no way to tell apart two properties that look the same on town, type, and age. This is expected when the feature set is this limited.
+- most transactions still lie near the 45-degree line, so the model captures broad pricing structure reasonably well;
+- the remaining misses are not random noise alone, but the predictable consequence of omitting critical building-level information.
 
-## Recommended Implementation
+Two units can share the same town, type, and age and still differ meaningfully in floor area, storey, renovation quality, or micro-location. The model has no way to distinguish them, so some residual error is unavoidable.
 
-Use XGBoost with a recent 3-year training window for this constrained task.
+## Step 4: Test Whether More History Helps
 
-Key takeaways:
+The final design choice is the training window. Should the model use all historical data, or only a more recent period?
 
-- Reasonable price estimates are possible with just three fields.
-- A persistent error margin remains because key property details are excluded.
-- This model is suited for directional pricing support, not full valuation-grade precision.
+<iframe src="/outputs/section2/charts/S2QaF4_training_window_sensitivity.html" title="Training window sensitivity" data-caption="Fig 4 — Holdout performance as the training window changes. X-axis: historical window length; y-axis: validation metrics. The 3-year recent window performs best, implying that recency matters more than sheer volume of historical data."></iframe>
+
+This chart matters because a housing model is not trained in a stationary environment. Older data increases sample size, but it also introduces stale market structure. The evidence here shows that the best result comes from a **recent 3-year window**, which balances recency against sample sufficiency.
+
+That result is intuitive: a 3-year window is close enough to 2014 to reflect contemporary pricing relationships, but long enough to train a stable model.
+
+## Interpretation
+
+The main conclusion is that **directionally useful price prediction is possible even under a severe feature constraint**, but the constraint imposes a hard ceiling on precision. The selected XGBoost model performs meaningfully better than the simpler alternatives, yet it still inherits the uncertainty created by the missing structural fields.
+
+This means the model is appropriate for:
+
+- rough screening,
+- first-pass pricing support,
+- and broad budget guidance.
+
+It is not appropriate for:
+
+- valuation-grade underwriting,
+- negotiation based on fine price differences,
+- or any task where omitted structural detail is likely to dominate.
+
+## Recommended Strategy
+
+1. **Operational Use:** Deploy XGBoost as the preferred constrained model when only `town`, `flat_type`, and `flat_age` are available.
+2. **Window Design:** Train on a recent 3-year history rather than the full archive, because recency improves forecast realism.
+3. **Communication:** Present the output as a directional estimate with known information loss, not as a final valuation.
 
 ## Latest Rerun Notes
 
-The latest rerun kept the official constrained result unchanged:
+The latest rerun keeps the official constrained result unchanged:
 
-- Best model: XGBoost
-- RMSE: SGD 51,425
-- MAE: SGD 37,408
-- MAPE: 8.44%
-- R²: 0.826
+- **Best model:** XGBoost
+- **RMSE:** SGD 51,425
+- **MAE:** SGD 37,408
+- **MAPE:** 8.44%
+- **R²:** 0.826
 
-The 2014 holdout comparison remains:
-
-|**Model**|**RMSE**|**MAPE**|**R²**|
-|---|---|---|---|
-|**Linear Regression**|SGD 55,463|8.51%|0.797|
-|**Random Forest**|SGD 53,894|8.87%|0.809|
-|**XGBoost**|SGD 51,425|8.44%|0.826|
-
-The diagnostic rerun changed more materially:
-
-- Observed hidden-feature benchmark: RMSE SGD 27,972, MAE SGD 19,708, MAPE 4.27%, R² 0.948
-- Baseline imputed benchmark: RMSE SGD 392,790, MAE SGD 378,505, MAPE 85.52%, R² -9.172
-
-This means the main answer is still the same, but the richer diagnostic path now shows an even larger gap between observed structural information and proxy-filled substitutes.
+The supplementary diagnostic rerun also confirms that once richer structural information is introduced, performance improves dramatically. That gap reinforces the central lesson of this question: most of the remaining error is not model failure, but missing-information failure.
