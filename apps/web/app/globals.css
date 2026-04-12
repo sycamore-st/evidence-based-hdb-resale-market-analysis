@@ -2939,6 +2939,12 @@ a {
   padding-bottom: 0.1rem;
 }
 
+.article-prose .katex * {
+  font-size: 1rem;
+  -ms-high-contrast-adjust: none !important;
+  border-color: currentColor;
+}
+
 .article-prose .katex-display > .katex {
   font-size: clamp(0.88em, 1.8vw, 1em);
 }

@@ -28,7 +28,7 @@ The conceptual diagram below makes the mechanics explicit.
 
 <iframe src="/outputs/section3/charts/S3QcF0_did_framework.html" title="Difference-in-differences framework for DTL2" data-caption="Fig 0 — Conceptual diagram of the Difference-in-Differences design. The control group (amber) follows a steady pre-trend; the treated group (green) follows a parallel pre-trend, then accelerates after the event. The counterfactual (dotted) shows where the treated group would have been absent the intervention. DiD = ΔB − ΔA: the post-treatment gap minus the pre-treatment gap."></iframe>
 
-The critical element in this diagram is the **counterfactual** (the dotted line): the hypothetical trajectory the treated group would have followed had the line never opened. DiD estimates this counterfactual by borrowing the control group's post-treatment trend. This borrowing is valid only if the **parallel-trends assumption** holds — that is, if the two groups were genuinely moving together before the intervention. We test this assumption explicitly later in the analysis.
+The critical element in this diagram is the **counterfactual** (the dotted line): the hypothetical trajectory the treated group would have followed had the line never opened. DiD estimates this counterfactual by borrowing the control group's post-treatment trend. This borrowing is valid only if the **parallel-trends assumption** holds, that is, if the two groups were genuinely moving together before the intervention. We test this assumption explicitly later in the analysis.
 
 ## Identification Requirements and Model Credibility
 
@@ -110,6 +110,8 @@ Breaking down the key terms:
 - $\gamma_1$, $\gamma_2$ control for unit characteristics (flat age and floor area) so the treatment estimate is not contaminated by compositional differences between groups.
 - $\alpha_{\text{Type}}$, $\delta_{\text{Town}}$, $\lambda_{\text{Year}}$ are fixed effects absorbing flat-type, town-level, and annual market factors.
 
+The key interpretive point is that $\beta_3$ is a **difference of differences**. It is not the post-opening treated-control gap by itself, and it is not the overall post-2015 market movement. It is the extra post-opening change in the treated group **relative to what happened in the control group**. Because the dependent variable is log price, we translate $\beta_3$ into an approximate percentage uplift using $(e^{\hat{\beta}_3}-1)\times100$. A positive value is consistent with a DTL2 premium; a zero value would imply treated units moved no differently from controls; a negative value would suggest weaker relative performance near the stations.
+
 ## Step 4: Event-Study Diagnostics — Testing the Parallel-Trends Assumption
 
 The baseline DiD produces a single estimate of the average treatment effect. An event study goes further by replacing the binary $\text{Post}$ indicator with a sequence of year-relative indicators, estimating the treated-control gap separately for each year around the opening:
@@ -132,6 +134,8 @@ $$
 
 The year immediately before the opening ($k = -1$) is omitted as the reference period, so all coefficients $\beta_k$ measure the treated-control gap *relative to the year before opening*. Coefficients for pre-opening years ($k < 0$) should be statistically indistinguishable from zero if the parallel-trends assumption holds — there should be no divergence before the intervention. Coefficients for post-opening years ($k \geq 0$) reveal whether the treatment effect builds over time.
 
+This means the event-study coefficients have a diagnostic, not just descriptive, role. The pre-treatment coefficients tell us whether the treated and control groups were already drifting apart before DTL2 opened; the post-treatment coefficients tell us whether any excess gap emerges or compounds afterwards. In practice, we read the event study as a credibility test for the main DiD estimate: clean pre-period coefficients strengthen the causal story, while large positive leads force a more cautious interpretation.
+
 <iframe src="/outputs/section3/charts/S3QcF2_dtl2_event_study_coefficients.html" title="DTL2 event-study coefficients" data-caption="Fig 4 — Event-study coefficients showing the treated-control price gap in each year relative to the year before DTL2 opened (k = −1). Negative k values are pre-opening leads; positive k values are post-opening lags. Error bars show 95% confidence intervals. Pre-opening leads near zero support parallel trends; positive and growing post-opening lags support a genuine treatment effect."></iframe>
 
 The event-study results reveal a pattern that is directionally encouraging but econometrically troubling:
@@ -147,16 +151,16 @@ The post-opening coefficients grow steadily, consistent with transit capitalizat
 - **Implied Price Uplift:** Approximately **+5.35%**, after converting from log scale via $(e^{0.0521} - 1) \times 100$.
 - **Pre-trend Check:** A separate regression estimated over the pre-opening period finds a statistically significant pre-trend coefficient (**+0.00736**, $p = 0.00125$), confirming that treated units were already diverging from controls before 2015.
 
-At a median treated-group price of SGD 450,000, a 5.35% uplift corresponds to approximately **SGD 24,000 per unit** — a material but not implausibly large effect for transit access in the Singapore context. The problem is that this figure cannot be cleanly attributed to DTL2 alone, given the positive pre-trend.
+At a median treated-group price of SGD 450,000, a 5.35% uplift corresponds to approximately **SGD 24,000 per unit**. That is a material but not implausibly large effect for transit access in the Singapore context. The problem is that this figure cannot be cleanly attributed to DTL2 alone, given the positive pre-trend.
 
 ## Interpretation
 
-The evidence is directionally consistent with a **DTL2 proximity premium** within the Bukit corridor. However, the positive pre-opening event-study coefficients are a serious identification challenge. They suggest that buyers were already discounting the *anticipated* future transit access before the line opened — either bidding up treated prices in expectation of the opening, or because concurrent localized improvements (rezoning, amenity upgrades) affected the two groups differently.
+The evidence is directionally consistent with a **DTL2 proximity premium** within the Bukit corridor. However, the positive pre-opening event-study coefficients are a serious identification challenge. They suggest that buyers were already discounting the *anticipated* future transit access before the line opened, either by bidding up treated prices in expectation of the opening or because concurrent localized improvements (rezoning, amenity upgrades) affected the two groups differently.
 
 The results are therefore best described as **quasi-causal evidence of a strong accessibility association** rather than a clean causal estimate. The DiD design identifies something real, but the strict parallel-trends condition required to call it *definitively* causal is not fully satisfied in this data.
 
 ## Recommended Strategy
 
 1. **Reporting:** Present the +5.35% estimate as a robust corridor-level signal of an accessibility premium, while being transparent about the pre-trend evidence and its implications for causal interpretation.
-2. **Terminology:** Use conservative language — "suggestive of capitalization" rather than "definitive causal proof" — particularly in any context where the distinction carries policy or legal weight.
+2. **Terminology:** Use conservative language, such as "suggestive of capitalization" rather than "definitive causal proof," particularly in any context where the distinction carries policy or legal weight.
 3. **Future Methodological Refinement:** Strengthen identification in future iterations by incorporating additional controls for concurrent localized developments or rezoning activity, or by applying a matching approach that constructs a more comparable control group on pre-opening trend characteristics.
