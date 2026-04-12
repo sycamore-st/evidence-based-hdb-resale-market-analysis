@@ -84,10 +84,18 @@ CORRIDOR_MAP_LABEL_STATIONS = [
     "LITTLE INDIA MRT STATION",
 ]
 TREATMENT_FOCUS_STATIONS = [
-    "CHOA CHU KANG MRT STATION",
-    "BUKIT PANJANG MRT STATION",
-    "BUKIT BATOK MRT STATION",
     "BEAUTY WORLD MRT STATION",
+    "BUKIT BATOK MRT STATION",
+    "HILLVIEW MRT STATION",
+    "CASHEW MRT STATION",
+    "BUKIT PANJANG MRT STATION",
+    "CHOA CHU KANG MRT STATION",
+]
+TREATMENT_LABEL_STATIONS = [
+    "BEAUTY WORLD MRT STATION",
+    "BUKIT BATOK MRT STATION",
+    "BUKIT PANJANG MRT STATION",
+    "CHOA CHU KANG MRT STATION",
 ]
 
 
@@ -134,12 +142,18 @@ def _load_named_station_points(station_names: list[str]) -> pd.DataFrame:
     selected = stations.loc[stations["station_name"].isin(station_names)].copy()
     if selected.empty:
         raise ValueError(f"No MRT stations were found for {station_names}.")
-    return selected.reset_index(drop=True)
+    order_map = {name: index for index, name in enumerate(station_names)}
+    selected["station_order"] = selected["station_name"].map(order_map)
+    return selected.sort_values("station_order").drop(columns="station_order").reset_index(drop=True)
 
 
 def _focus_and_secondary_station_points(dtl2_stations: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     focus_stations = _load_named_station_points(TREATMENT_FOCUS_STATIONS)
     secondary_stations = dtl2_stations.loc[~dtl2_stations["station_name"].isin(focus_stations["station_name"])].copy()
+    if not secondary_stations.empty:
+        secondary_order = {name: index for index, name in enumerate(DTL2_STAGE2_STATIONS)}
+        secondary_stations["station_order"] = secondary_stations["station_name"].map(secondary_order)
+        secondary_stations = secondary_stations.sort_values("station_order").drop(columns="station_order")
     return focus_stations.reset_index(drop=True), secondary_stations.reset_index(drop=True)
 
 
@@ -457,211 +471,6 @@ def _plotly_treated_vs_control_figure(plot_df: pd.DataFrame, scope_label: str) -
     return fig
 
 
-def _plotly_did_framework_figure(did_df: pd.DataFrame, scope_label: str) -> go.Figure:
-    fig = go.Figure()
-    x_pre_start = 0.16
-    x_pre_point = 0.30
-    x_event = 0.56
-    x_post_point = 0.84
-    x_post_end = 0.96
-
-    control_color = ORANGE
-    treated_color = GREEN
-
-    control_pre = 1.55
-    treated_pre = 3.05
-    event_level = 3.80
-    control_post = 2.55
-    treated_counterfactual_post = 4.55
-    treated_post = 5.60
-
-    fig.add_trace(
-        go.Scatter(
-            x=[x_pre_start, x_post_end],
-            y=[1.35, 2.85],
-            mode="lines",
-            name="Control group",
-            line={"color": control_color, "width": 2.6},
-            hoverinfo="skip",
-            showlegend=False,
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=[x_pre_start, x_event, x_post_end],
-            y=[2.80, event_level, 6.15],
-            mode="lines",
-            name="Treatment group",
-            line={"color": treated_color, "width": 2.8},
-            hoverinfo="skip",
-            showlegend=False,
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=[x_event, x_post_end],
-            y=[event_level, treated_counterfactual_post],
-            mode="lines",
-            name="Counterfactual",
-            line={"color": treated_color, "width": 2.0, "dash": "dash"},
-            hoverinfo="skip",
-            showlegend=False,
-        )
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=[x_pre_point, x_pre_point, x_post_point, x_post_point],
-            y=[control_pre, treated_pre, control_post, treated_post],
-            mode="markers",
-            marker={"size": 8, "color": "#111111"},
-            hoverinfo="skip",
-            showlegend=False,
-        )
-    )
-
-    fig.add_shape(type="line", x0=x_event, x1=x_event, y0=0.9, y1=6.85, line={"color": "rgba(120,120,120,0.6)", "width": 1.2})
-    fig.add_annotation(
-        x=x_event - 0.005,
-        y=1.35,
-        xref="x",
-        yref="y",
-        text="Event (Shock)",
-        textangle=-90,
-        showarrow=False,
-        font={"size": 12, "color": "rgba(120,120,120,0.85)"},
-    )
-
-    # ΔA connector
-    fig.add_trace(
-        go.Scatter(
-            x=[x_pre_point, x_pre_point],
-            y=[control_pre, treated_pre],
-            mode="lines",
-            line={"color": "#111111", "width": 1.2, "dash": "dash"},
-            hoverinfo="skip",
-            showlegend=False,
-        )
-    )
-    fig.add_annotation(
-        x=x_pre_point + 0.05,
-        y=(control_pre + treated_pre) / 2.0,
-        text="ΔA",
-        showarrow=False,
-        font={"size": 18, "color": "#111111"},
-        xanchor="left",
-        yanchor="middle",
-    )
-
-    # ΔB connector
-    fig.add_trace(
-        go.Scatter(
-            x=[x_post_point, x_post_point],
-            y=[control_post, treated_post],
-            mode="lines",
-            line={"color": "#111111", "width": 1.2, "dash": "dash"},
-            hoverinfo="skip",
-            showlegend=False,
-        )
-    )
-    fig.add_annotation(
-        x=x_post_point - 0.05,
-        y=(control_post + treated_post) / 2.0,
-        text="ΔB",
-        showarrow=False,
-        font={"size": 18, "color": "#111111"},
-        xanchor="right",
-        yanchor="middle",
-    )
-
-    # DiD connector
-    did_x = x_post_point
-    fig.add_trace(
-        go.Scatter(
-            x=[did_x, did_x],
-            y=[treated_counterfactual_post, treated_post],
-            mode="lines",
-            line={"color": "#111111", "width": 1.2, "dash": "dash"},
-            hoverinfo="skip",
-            showlegend=False,
-        )
-    )
-    fig.add_annotation(
-        x=did_x + 0.045,
-        y=(treated_counterfactual_post + treated_post) / 2.0,
-        text="DiD",
-        showarrow=False,
-        font={"size": 20, "color": "#111111"},
-        xanchor="left",
-        yanchor="middle",
-    )
-
-    fig.add_annotation(
-        x=0.33,
-        y=6.25,
-        xref="x",
-        yref="y",
-        text="DiD = ΔB - ΔA",
-        showarrow=False,
-        font={"size": 18, "color": "#111111"},
-        bgcolor="rgba(255,255,255,0.92)",
-        bordercolor="rgba(17,17,17,0.85)",
-        borderwidth=1,
-        borderpad=10,
-    )
-    fig.add_annotation(
-        x=0.105,
-        y=3.25,
-        text="Treatment<br>group",
-        showarrow=False,
-        font={"size": 16, "color": treated_color},
-        align="left",
-        xanchor="left",
-        yanchor="middle",
-    )
-    fig.add_annotation(
-        x=0.105,
-        y=1.05,
-        text="Control<br>group",
-        showarrow=False,
-        font={"size": 16, "color": control_color},
-        align="left",
-        xanchor="left",
-        yanchor="middle",
-    )
-
-    fig.update_layout(
-        title="",
-        xaxis={
-            "tickmode": "array",
-            "tickvals": [x_pre_point, x_post_point],
-            "ticktext": ["Pre-treatment period", "Post-treatment period"],
-            "title": "Time",
-            "range": [0.10, 1.02],
-            "showgrid": False,
-            "zeroline": False,
-            "showline": True,
-            "linecolor": "#111111",
-            "linewidth": 1.6,
-            "ticks": "",
-        },
-        yaxis={
-            "title": "Variable of interest<br>(Outcome)",
-            "showgrid": False,
-            "zeroline": False,
-            "showline": True,
-            "linecolor": "#111111",
-            "linewidth": 1.6,
-            "showticklabels": False,
-        },
-        margin={"l": 96, "r": 60, "t": 42, "b": 68},
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
-    )
-    fig.update_yaxes(range=[0.7, 6.95])
-    return fig
-
-
 def _plotly_event_study_figure(event_df: pd.DataFrame, scope_label: str) -> go.Figure:
     fig = go.Figure()
     color_map = {"Pre": ORANGE, "Post": GREEN}
@@ -930,12 +739,11 @@ def _plotly_treatment_map_figure(
             go.Scatter(
                 x=secondary_stations["longitude"],
                 y=secondary_stations["latitude"],
-                mode="markers+text",
+                mode="markers",
                 name="Other DTL stations",
                 marker={"symbol": "circle", "size": 7, "color": ACCENT, "line": {"color": ACCENT, "width": 1}},
-                text=secondary_labels,
-                textposition="bottom right",
-                hovertemplate="%{text}<extra></extra>",
+                customdata=np.array(secondary_labels).reshape(-1, 1),
+                hovertemplate="%{customdata[0]}<extra></extra>",
             )
         )
     for _, station in dtl2_stations.iterrows():
@@ -967,17 +775,42 @@ def _plotly_treatment_map_figure(
             marker={"symbol": "x", "size": 8, "color": GREEN, "line": {"color": GREEN, "width": 1.2}},
             text=station_labels,
             textposition="top right",
-            hovertemplate="%{text}<extra></extra>",
+            customdata=np.array(
+                dtl2_stations["station_name"].str.replace(" MRT STATION", "", regex=False).str.title()
+            ).reshape(-1, 1),
+            hovertemplate="%{customdata[0]}<extra></extra>",
         )
     )
-    lon_pad = (lon_max - lon_min) * 0.04
-    lat_pad = (lat_max - lat_min) * 0.04
+    focus_lon = pd.concat(
+        [
+            building_points["building_longitude"].dropna(),
+            dtl2_stations["longitude"].dropna(),
+            secondary_stations["longitude"].dropna() if secondary_stations is not None and not secondary_stations.empty else pd.Series(dtype=float),
+        ],
+        ignore_index=True,
+    )
+    focus_lat = pd.concat(
+        [
+            building_points["building_latitude"].dropna(),
+            dtl2_stations["latitude"].dropna(),
+            secondary_stations["latitude"].dropna() if secondary_stations is not None and not secondary_stations.empty else pd.Series(dtype=float),
+        ],
+        ignore_index=True,
+    )
+    zoom_lon_min = float(focus_lon.min())
+    zoom_lon_max = float(focus_lon.max())
+    zoom_lat_min = float(focus_lat.min())
+    zoom_lat_max = float(focus_lat.max())
+    zoom_lon_span = max(zoom_lon_max - zoom_lon_min, 0.03)
+    zoom_lat_span = max(zoom_lat_max - zoom_lat_min, 0.03)
+    zoom_lon_pad = zoom_lon_span * 0.14
+    zoom_lat_pad = zoom_lat_span * 0.18
     fig.update_layout(
         title=None,
-        xaxis={"visible": False, "range": [lon_min - lon_pad, lon_max + lon_pad]},
+        xaxis={"visible": False, "range": [zoom_lon_min - zoom_lon_pad, zoom_lon_max + zoom_lon_pad]},
         yaxis={
             "visible": False,
-            "range": [lat_min - lat_pad, lat_max + lat_pad],
+            "range": [zoom_lat_min - zoom_lat_pad, zoom_lat_max + zoom_lat_pad],
             "scaleanchor": "x",
             "scaleratio": 1,
         },
@@ -1122,20 +955,9 @@ def _plot_town_outputs(
     town_name: str | None,
     map_label_stations: list[str] | None = None,
 ) -> dict[str, str | None]:
-    did_df = (
-        sample.assign(period=np.where(sample["post"].eq(1), "Post", "Pre"))
-        .groupby(["period", "treated"], observed=False)
-        .agg(median_price=("resale_price", "median"))
-        .reset_index()
-    )
-    did_df["group"] = did_df["treated"].map({0: "Control buildings", 1: "Near DTL2 buildings"})
-    did_df["period"] = pd.Categorical(did_df["period"], categories=["Pre", "Post"], ordered=True)
-    f0_svg, f0_html, f0_data = save_plotly_figure(
-        f"{stem_prefix}F0_did_framework",
-        _plotly_did_framework_figure(did_df.copy(), scope_label),
-        title=f"Difference-in-differences logic: {scope_label}",
-        data=did_df.copy(),
-    )
+    f0_svg = None
+    f0_html = str(Path("outputs/section3/charts") / f"{stem_prefix}F0_did_framework.html")
+    f0_data = None
 
     plot_df = sample.groupby(["transaction_year", "treated"]).agg(median_price=("resale_price", "median")).reset_index()
     plot_df["group"] = plot_df["treated"].map({0: "Control buildings", 1: "Near DTL2 buildings"})
@@ -1205,34 +1027,11 @@ def _plot_town_outputs(
 
 
 def rebuild_question_c_figures() -> None:
-    _rebuild_s3qc_f0()
     _rebuild_s3qc_f1()
     _rebuild_s3qc_f2()
     _rebuild_s3qc_f3()
     _rebuild_s3qc_f4()
     _rebuild_s3qc_f5()
-
-
-def _rebuild_s3qc_f0() -> None:
-    try:
-        did_df = load_figure_data("S3QcF0_did_framework")
-    except FileNotFoundError:
-        plot_df = load_figure_data("S3QcF1_dtl2_treated_vs_control")
-        plot_df = plot_df.copy()
-        plot_df["period"] = np.where(plot_df["transaction_year"] < DTL2_STAGE2_EVENT_YEAR, "Pre", "Post")
-        did_df = (
-            plot_df.groupby(["period", "group"], observed=False)
-            .agg(median_price=("median_price", "median"))
-            .reset_index()
-        )
-        did_df["treated"] = did_df["group"].map({"Control buildings": 0, "Near DTL2 buildings": 1})
-        did_df["period"] = pd.Categorical(did_df["period"], categories=["Pre", "Post"], ordered=True)
-    save_plotly_figure(
-        "S3QcF0_did_framework",
-        _plotly_did_framework_figure(did_df, "the DTL2 Bukit Timah corridor"),
-        title="Difference-in-differences logic: the DTL2 Bukit Timah corridor",
-        data=did_df,
-    )
 
 
 def _rebuild_s3qc_f1() -> None:
@@ -1279,7 +1078,7 @@ def _rebuild_s3qc_f4() -> None:
         buildings,
         focus_stations,
         "the four-station Bukit corridor treatment design",
-        labeled_stations=TREATMENT_FOCUS_STATIONS,
+        labeled_stations=TREATMENT_LABEL_STATIONS,
         secondary_stations=secondary_stations,
     )
 
@@ -1551,8 +1350,8 @@ def analyze_dtl2(frame: pd.DataFrame) -> dict[str, object]:
             "in_town_parallel_trend_search": in_town_search_path,
             **matched_summary.get("model_outputs", {}),
         },
-        "charts": [overall_chart_outputs[key] for key in ["f0_chart", "f1_chart", "f2_chart", "f3_chart", "f4_chart"]],
-        "chart_html": [overall_chart_outputs[key] for key in ["f0_html", "f1_html", "f2_html", "f3_html", "f4_html"]],
+        "charts": [overall_chart_outputs[key] for key in ["f0_chart", "f1_chart", "f2_chart", "f3_chart", "f4_chart"] if overall_chart_outputs[key]],
+        "chart_html": [overall_chart_outputs[key] for key in ["f0_html", "f1_html", "f2_html", "f3_html", "f4_html"] if overall_chart_outputs[key]],
         "chart_data": [overall_chart_outputs[key] for key in ["f0_data", "f1_data", "f2_data", "f3_data", "f4_data"] if overall_chart_outputs[key]],
     }
     if search_chart_svg:
