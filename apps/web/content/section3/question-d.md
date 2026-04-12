@@ -56,6 +56,8 @@ That is why the next chart uses adjusted housing indices.
 
 This figure matters because it asks whether the story still holds once the comparison is cleaned up. The persistence of the pattern in the adjusted index suggests that the outer-town sensitivity signal is not just a by-product of changes in flat mix.
 
+The adjusted index is built in two steps. First, we estimate a **hedonic regression** separately for the far-town group and the central-town group, regressing transaction prices on flat age, floor area, flat type, and month fixed effects. This strips out composition effects and produces a month-by-month fitted price level for a like-for-like representative unit within each group. Second, we exponentiate those month effects and rebase the resulting series to 100 at the starting month. The result is a hedonic housing index: a time series intended to reflect price movement rather than changes in what happened to transact.
+
 ## Step 4: Estimate the Raw-Price Interaction Model
 
 The first formal model is estimated on median resale prices:
@@ -80,6 +82,8 @@ Where:
 - $\text{FarTown}_j$ equals 1 for Sengkang/Punggol and 0 for the central control group.
 - $\beta_3$ is the interaction term of interest: the extra COE sensitivity of far towns relative to central towns.
 - $\delta_j$ and $\lambda_t$ absorb group and time effects.
+
+The most important coefficient is $\beta_3$. Economically, it asks: when COE rises by 1%, do far-town prices move more than central-town prices, after netting out the average central-town response? A positive $\beta_3$ supports the housing-versus-car substitution story; a zero coefficient would imply no meaningful differential exposure; a negative coefficient would suggest that higher car costs are more of a drag than a substitution catalyst for outer towns. The baseline COE term, $\beta_1$, should be read as the elasticity for the central control group, while the total far-town elasticity is $\beta_1 + \beta_3$.
 
 <iframe src="/outputs/section3/charts/S3QdF4_coe_regression_coefficients.html" title="Raw model coefficients" data-caption="Fig 4 — Coefficient plot for the raw-price interaction model. It separates the baseline central-town COE elasticity, the incremental far-town sensitivity, and the implied total far-town elasticity. The purpose is to make the interaction term economically interpretable."></iframe>
 
@@ -111,6 +115,8 @@ Where:
 - $\text{AdjIndex}_{g,t}$ is the composition-adjusted housing index for group $g$ in period $t$.
 - $\theta_3$ is the parameter of interest, measuring incremental far-town sensitivity after adjustment.
 - The remaining terms retain the same interpretation as in the raw-price model.
+
+This adjusted specification is the preferred one because the dependent variable has already been purged of shifts in flat age, floor area, and flat-type mix. That changes the interpretation in a useful way: $\theta_3$ is no longer "extra sensitivity of whatever happened to transact in far towns." It is the extra COE sensitivity of the **far-town hedonic index** relative to the central hedonic index. In other words, it is a cleaner estimate of differential market response rather than differential sample composition.
 
 <iframe src="/outputs/section3/charts/S3QdF5_adjusted_index_regression_coefficients.html" title="Adjusted model coefficients" data-caption="Fig 5 — Coefficient plot for the adjusted-index model. This is the most policy-relevant figure because it shows whether the far-town sensitivity remains after filtering out composition effects."></iframe>
 

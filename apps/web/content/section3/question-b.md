@@ -13,7 +13,7 @@ order: 2
 
 There is a persistent belief among Singapore homebuyers that each successive generation of HDB flats is smaller than the last. The complaint is specific: a 4-room flat built in the 1990s feels noticeably larger than one completed in the 2010s, even though both carry the same flat-type label. The question is whether this perception corresponds to a measurable and statistically robust trend, or whether it is partly an artifact of how the housing stock has changed in composition over time.
 
-This distinction matters because the policy and business implications differ. If all flat types are uniformly shrinking, that points to a systemic change in design standards. If only certain segments are affected, the story is more nuanced — and targeted responses become appropriate.
+This distinction matters because the policy and business implications differ. If all flat types are uniformly shrinking, that points to a systemic change in design standards. If only certain segments are affected, the story is more nuanced, and targeted responses become appropriate.
 
 ## Scope and Constraints
 
@@ -24,7 +24,7 @@ We therefore use two parallel approaches:
 - **Descriptive analysis by segment:** Raw floor area trends plotted separately for each flat type, removing cross-type contamination.
 - **Controlled regression:** A weighted least-squares model that isolates the completion-year effect after explicitly holding flat type and town constant.
 
-Note that **completion year** here refers to the year the block was built (derived from lease commencement date), not the year of the transaction. This is the correct variable for studying design trends — a 1990s block transacting in 2023 still reflects 1990s design decisions.
+Note that **completion year** here refers to the year the block was built (derived from lease commencement date), not the year of the transaction. This is the correct variable for studying design trends. A 1990s block transacting in 2023 still reflects 1990s design decisions.
 
 ## Step 1: Long-Run Descriptive Trends
 
@@ -55,7 +55,7 @@ To quantify how fast each flat type is shrinking, we fit a linear trend line wit
 | 4-Room | −0.095 |
 | 3-Room | −0.009 |
 
-To appreciate what these slopes mean in practice, consider the range over a 30-year window — roughly the span from the early 1990s to early 2020s. An Executive flat has lost approximately **36 sqm** (1.214 × 30) over that period: the difference between a generous living room and an absent one. A 5-room flat has shed around **11.6 sqm**, roughly a small bedroom's worth of space. A 3-room flat has held nearly constant, declining by less than 0.3 sqm over the same period — barely perceptible.
+To appreciate what these slopes mean in practice, consider the range over a 30-year window, roughly the span from the early 1990s to early 2020s. An Executive flat has lost approximately **36 sqm** (1.214 × 30) over that period: the difference between a generous living room and an absent one. A 5-room flat has shed around **11.6 sqm**, roughly a small bedroom's worth of space. A 3-room flat has held nearly constant, declining by less than 0.3 sqm over the same period, which is barely perceptible.
 
 ## Step 3: Controlled Baseline Model
 
@@ -71,7 +71,9 @@ $$
 + \varepsilon_i
 $$
 
-Here, $\text{completion\_year}_i$ enters as a continuous variable, so $\hat{\beta}$ estimates the average sqm change per additional year of completion date, after controlling for flat type and town. $C(\text{flat\_type}_i)$ and $C(\text{town}_i)$ are sets of dummy variables absorbing the level differences between categories — a 5-room in Tampines starts from a different baseline than a 3-room in Queenstown, but the trend captured by $\hat{\beta}$ is estimated net of those differences.
+Here, $\text{completion\_year}_i$ enters as a continuous variable, so $\hat{\beta}$ estimates the average sqm change per additional year of completion date, after controlling for flat type and town. $C(\text{flat\_type}_i)$ and $C(\text{town}_i)$ are sets of dummy variables absorbing the level differences between categories. A 5-room in Tampines starts from a different baseline than a 3-room in Queenstown, but the trend captured by $\hat{\beta}$ is estimated net of those differences.
+
+The completion-year coefficient is therefore a **within-segment time trend**, not a raw comparison across unlike flats. If $\hat{\beta}$ is negative, newer cohorts are systematically smaller even after holding flat type and town fixed. If it were zero, the idea of "shrinking flats" would mainly be a composition story. If it were positive, it would imply newer cohorts are actually getting larger once we compare within the same segment. This makes the coefficient economically interpretable: it is the average sqm change associated with one more year of completion date.
 
 **Model results:**
 
@@ -79,7 +81,7 @@ Here, $\text{completion\_year}_i$ enters as a continuous variable, so $\hat{\bet
 - **95% Confidence Interval:** [−0.041, −0.037]
 - **p-value:** ≈ 0
 
-This is a small but precisely estimated coefficient. It says that, holding flat type and town constant, each additional year of completion date is associated with **0.039 sqm less floor area on average** — roughly 1.2 sqm per decade. The confidence interval is tight because the sample spans decades and tens of thousands of transactions. The effect is real and statistically unambiguous, even if modest in any single year.
+This is a small but precisely estimated coefficient. It says that, holding flat type and town constant, each additional year of completion date is associated with **0.039 sqm less floor area on average**, roughly 1.2 sqm per decade. The confidence interval is tight because the sample spans decades and tens of thousands of transactions. The effect is real and statistically unambiguous, even if modest in any single year.
 
 ## Step 4: Interaction Model — Non-linear Year Effects by Flat Type
 
@@ -96,17 +98,19 @@ $$
 
 This specification fits a separate completion-year effect for each flat type in each year, estimated using weighted least squares (WLS) where each cell is weighted by the number of transactions it contains. The coefficients are then expressed relative to the first available year for each flat type, so the chart shows cumulative change from the starting point.
 
+That relative-to-baseline setup is important for interpretation. The year-dummy coefficients are **not** annual slopes. Instead, each point says: for this flat type, how much larger or smaller were flats completed in year $t$ relative to the earliest observed cohort, after controlling for town? Negative values therefore indicate cumulative shrinkage from the baseline design era; flatter lines imply design stability; sharp drops indicate distinct policy or programme shifts rather than a smooth linear trend.
+
 <iframe src="/outputs/section3/charts/S3QbF4a_adjusted_year_trend_by_type.html" title="Adjusted completion-year trend by flat type (group A)" data-caption="Fig 5a — Composition-adjusted floor area trend for 3-room, 4-room, and 5-room flats by completion year. Each line is a year-dummy coefficient expressed relative to the earliest observed year for that flat type, after controlling for town. Non-linear patterns in the line reflect genuine policy-driven design shifts, not sampling noise."></iframe>
 
 <iframe src="/outputs/section3/charts/S3QbF4b_adjusted_year_trend_by_type.html" title="Adjusted completion-year trend by flat type (group B)" data-caption="Fig 5b — Same as Fig 5a, but for Executive and sparse flat types. The steeper and more volatile profiles reflect both genuine design changes and the smaller sample sizes in these categories."></iframe>
 
-The adjusted profiles are revealing. They show that the shrinkage is not a smooth march downward — there are periods of relative stability, punctuated by sharper declines that correspond to specific building programmes. Executive flats, in particular, show a concentrated step-down over a narrow band of completion years, consistent with a design-era shift rather than a gradual trend.
+The adjusted profiles are revealing. They show that the shrinkage is not a smooth march downward. There are periods of relative stability, punctuated by sharper declines that correspond to specific building programmes. Executive flats, in particular, show a concentrated step-down over a narrow band of completion years, consistent with a design-era shift rather than a gradual trend.
 
 ## Interpretation
 
 The evidence supports the perception that newer HDB flats are smaller, but with important caveats. The trend is **not uniform across the housing portfolio**:
 
-- **Executive and 5-room flats** have undergone meaningful contraction — the kind that a buyer would notice in daily use.
+- **Executive and 5-room flats** have undergone meaningful contraction, the kind that a buyer would notice in daily use.
 - **4-room flats** have declined modestly; the effect over 30 years is real but not dramatic.
 - **3-room flats** have remained essentially stable in floor area.
 
