@@ -14,6 +14,33 @@ The work is organized into three sections:
 - Section 2: resale-price modeling and comparables analysis
 - Section 3: policy analysis on affordability, flat sizes, transport access, and COE effects
 
+## Explore the Web App
+
+Start from the [landing page](https://hdb-resale-market-analysis.vercel.app), which links to the three main sections and the section menu.
+
+### Section 1: Interactive Dashboards
+
+- [Section 1 home](https://hdb-resale-market-analysis.vercel.app/section1) - overview of the buyer-facing dashboard suite
+- [Dashboard 1: Market overview](https://hdb-resale-market-analysis.vercel.app/section1/dashboard-1) - transaction volume, pricing, and long-run market trends
+- [Dashboard 2: Budget to space](https://hdb-resale-market-analysis.vercel.app/section1/dashboard-2) - compare how much floor area different budgets can buy
+- [Dashboard 3: Location optimizer](https://hdb-resale-market-analysis.vercel.app/section1/dashboard-3) - shortlist buildings by budget, transport access, and nearby amenities
+
+### Section 2: Modeling And Valuation
+
+- [Section 2 home](https://hdb-resale-market-analysis.vercel.app/section2) - overview of the modeling and valuation section
+- [Question A: Price prediction with restricted fields](https://hdb-resale-market-analysis.vercel.app/section2/question-a) - estimate resale prices when only visible listing fields are available
+- [Question B: Target transaction valuation](https://hdb-resale-market-analysis.vercel.app/section2/question-b) - assess whether a subject resale transaction looks materially over- or under-valued
+- [Question B Extended: Interactive valuation workbench](https://hdb-resale-market-analysis.vercel.app/section2/question-b-extended) - interactively inspect model estimates, local distributions, and comparable transactions
+- [Question C: Recover missing flat type](https://hdb-resale-market-analysis.vercel.app/section2/question-c) - compare supervised and unsupervised approaches for recovering flat type
+
+### Section 3: Policy And Market Interpretation
+
+- [Section 3 home](https://hdb-resale-market-analysis.vercel.app/section3) - overview of the policy-focused analysis section
+- [Question A: Is Yishun truly cheaper?](https://hdb-resale-market-analysis.vercel.app/section3/question-a) - test whether Yishun remains discounted after controlling for observed housing characteristics
+- [Question B: Are newer flats becoming smaller?](https://hdb-resale-market-analysis.vercel.app/section3/question-b) - examine floor-area compression over time across flat types
+- [Question C: Did DTL2 lift nearby prices?](https://hdb-resale-market-analysis.vercel.app/section3/question-c) - estimate whether the Downtown Line Stage 2 opening is associated with a local resale premium
+- [Question D: Do outer towns react more to COE?](https://hdb-resale-market-analysis.vercel.app/section3/question-d) - test whether outer-town resale values are more sensitive to car-ownership cost shocks
+
 ## What This Repo Contains
 
 - reproducible Python pipeline and analysis code under `src/`
