@@ -26,6 +26,16 @@ function buildHistoryMatrix(history: SectionTrendPoint[]) {
   return { years, flatTypes, byYear }
 }
 
+function formatCompactCurrencyTick(value: number): string {
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(value % 1_000_000 === 0 ? 0 : 1)}M`
+  }
+  if (value >= 1_000) {
+    return `${Math.round(value / 1_000)}k`
+  }
+  return `$${Math.round(value)}`
+}
+
 export function SectionTrendStackedBars({
   history,
   colors,
@@ -156,13 +166,15 @@ export function SectionTrendPriceLines({
   const shellRef = useRef<HTMLDivElement | null>(null)
   const [hoverState, setHoverState] = useState<{ year: number; left: number; top: number } | null>(null)
   const width = 720
-  const height = 180
+  const height = 188
   const padding = 18
+  const chartBottom = height - 24
+  const axisColor = "rgba(87, 78, 65, 0.78)"
   const { years, flatTypes, byYear } = useMemo(() => buildHistoryMatrix(history), [history])
   const prices = history.map((item) => item.medianPrice)
   const maxPrice = Math.max(...prices, 1)
   const xForIndex = (index: number) => padding + (index / Math.max(years.length - 1, 1)) * (width - padding * 2)
-  const yForValue = (value: number) => height - padding - (value / maxPrice) * (height - padding * 2)
+  const yForValue = (value: number) => chartBottom - (value / maxPrice) * (chartBottom - padding)
 
   const hoverBreakdown = useMemo(() => {
     if (!hoverState) return null
@@ -181,18 +193,16 @@ export function SectionTrendPriceLines({
 
   return (
     <div className="section1-trend-shell" ref={shellRef} onMouseLeave={() => setHoverState(null)}>
-      <svg className={className} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden="true">
-        {[0, 0.33, 0.66, 1].map((stop) => (
-          <line
-            key={stop}
-            x1={padding}
-            x2={width - padding}
-            y1={height - padding - stop * (height - padding * 2)}
-            y2={height - padding - stop * (height - padding * 2)}
-            stroke="rgba(87, 78, 65, 0.12)"
-            strokeWidth="1"
-          />
-        ))}
+      <svg className={className} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <line x1={padding} x2={padding} y1={padding} y2={chartBottom} stroke={axisColor} strokeWidth="1.15" />
+        <line
+          x1={padding}
+          x2={width - padding}
+          y1={chartBottom}
+          y2={chartBottom}
+          stroke={axisColor}
+          strokeWidth="1.15"
+        />
         {hoverBreakdown ? (
           <line
             x1={xForIndex(years.indexOf(hoverBreakdown.year))}
@@ -217,11 +227,11 @@ export function SectionTrendPriceLines({
           const color = colors[flatType] ?? "#7f8d9e"
           return (
             <g key={flatType}>
-              <polyline fill="none" stroke={color} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" points={points} />
+              <polyline fill="none" stroke={color} strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round" points={points} />
               {years.map((year, index) => {
                 const row = byYear.get(year)?.get(flatType)
                 if (!row) return null
-                return <circle key={`${flatType}-${year}`} cx={xForIndex(index)} cy={yForValue(row.medianPrice)} r="2.6" fill={color} />
+                return <circle key={`${flatType}-${year}`} cx={xForIndex(index)} cy={yForValue(row.medianPrice)} r="1.9" fill={color} />
               })}
             </g>
           )
@@ -231,26 +241,35 @@ export function SectionTrendPriceLines({
           const previousX = index === 0 ? padding : (xForIndex(index - 1) + x) / 2
           const nextX = index === years.length - 1 ? width - padding : (x + xForIndex(index + 1)) / 2
           return (
-            <rect
-              key={`hit-${year}`}
-              x={previousX}
-              y={padding}
-              width={Math.max(nextX - previousX, 6)}
-              height={height - padding * 2}
-              fill="transparent"
-              pointerEvents="all"
-              onMouseEnter={(event) => {
-                const shell = shellRef.current
-                if (!shell) return
-                const shellRect = shell.getBoundingClientRect()
-                const targetRect = event.currentTarget.getBoundingClientRect()
-                setHoverState({
-                  year,
-                  left: Math.min(Math.max(targetRect.left - shellRect.left + targetRect.width * 0.6, 14), Math.max(shellRect.width - 286, 14)),
-                  top: 14,
-                })
-              }}
-            />
+            <g key={`hit-${year}`}>
+              <text
+                className="section1-trend-x-tick"
+                x={x}
+                y={chartBottom + 11}
+                textAnchor="middle"
+              >
+                {String(year).slice(-2)}
+              </text>
+              <rect
+                x={previousX}
+                y={padding}
+                width={Math.max(nextX - previousX, 6)}
+                height={chartBottom - padding}
+                fill="transparent"
+                pointerEvents="all"
+                onMouseEnter={(event) => {
+                  const shell = shellRef.current
+                  if (!shell) return
+                  const shellRect = shell.getBoundingClientRect()
+                  const targetRect = event.currentTarget.getBoundingClientRect()
+                  setHoverState({
+                    year,
+                    left: Math.min(Math.max(targetRect.left - shellRect.left + targetRect.width * 0.6, 14), Math.max(shellRect.width - 286, 14)),
+                    top: 14,
+                  })
+                }}
+              />
+            </g>
           )
         })}
       </svg>

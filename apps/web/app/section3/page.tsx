@@ -7,8 +7,8 @@ export default function Section3Page() {
   return (
     <SectionLanding
       section="section3"
-      title="Policy and town-level case writeups for Section 3."
-      description="Town comparisons, market structure questions, and policy-facing analyses presented as narrative case notes."
+      title="Stories behind the numbers."
+      description="Town rivalries, shrinking flats, new train lines, and the ripple effects of policy — examined one question at a time."
       items={listArticleLandingItems("section3")}
     />
   )

@@ -32,5 +32,9 @@ export async function GET(request: Request) {
     flatTypes: query.flatTypes.length > 0 ? query.flatTypes : town.filters.flat_types,
   })
 
-  return NextResponse.json(payload)
+  return NextResponse.json(payload, {
+    headers: {
+      "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+    },
+  })
 }

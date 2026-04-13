@@ -7,6 +7,11 @@ if [[ $# -lt 1 ]]; then
 fi
 
 bucket="$1"
+wrangler_r2_put() {
+  local object_key="$1"
+  local file_path="$2"
+  npx wrangler r2 object put "${object_key}" --file "${file_path}" --remote >/dev/null
+}
 
 upload_tree() {
   local root="$1"
@@ -16,14 +21,14 @@ upload_tree() {
 
   while IFS= read -r file; do
     echo "Uploading ${file}"
-    npx wrangler r2 object put "${bucket}/${file}" --file "${file}" --remote >/dev/null
+    wrangler_r2_put "${bucket}/${file}" "${file}"
   done < <(find "$root" -type f | sort)
 }
 
 upload_tree "artifacts/web"
 while IFS= read -r file; do
   echo "Uploading ${file}"
-  npx wrangler r2 object put "${bucket}/${file}" --file "${file}" --remote >/dev/null
+  wrangler_r2_put "${bucket}/${file}" "${file}"
 done < <(
   find outputs/section1/results/final -maxdepth 1 -type f \
     \( -name 'dashboard_market_overview.csv' \

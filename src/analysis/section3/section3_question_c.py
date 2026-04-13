@@ -14,6 +14,7 @@ import seaborn as sns
 import statsmodels.formula.api as smf
 
 from src.analysis.section3.S3_helpers import (
+    ACCENT,
     BLUE,
     GRAY,
     GREEN,
@@ -82,6 +83,20 @@ CORRIDOR_MAP_LABEL_STATIONS = [
     "BOTANIC GARDENS MRT STATION",
     "LITTLE INDIA MRT STATION",
 ]
+TREATMENT_FOCUS_STATIONS = [
+    "BEAUTY WORLD MRT STATION",
+    "BUKIT BATOK MRT STATION",
+    "HILLVIEW MRT STATION",
+    "CASHEW MRT STATION",
+    "BUKIT PANJANG MRT STATION",
+    "CHOA CHU KANG MRT STATION",
+]
+TREATMENT_LABEL_STATIONS = [
+    "BEAUTY WORLD MRT STATION",
+    "BUKIT BATOK MRT STATION",
+    "BUKIT PANJANG MRT STATION",
+    "CHOA CHU KANG MRT STATION",
+]
 
 
 def _slugify(value: str) -> str:
@@ -120,6 +135,26 @@ def _load_dtl2_station_points() -> pd.DataFrame:
     if dtl2.empty:
         raise ValueError("No DTL2 stations were found in the MRT station dataset.")
     return dtl2.reset_index(drop=True)
+
+
+def _load_named_station_points(station_names: list[str]) -> pd.DataFrame:
+    stations = parse_mrt_geojson(fetch_mrt_dataset_dir(refresh=False))
+    selected = stations.loc[stations["station_name"].isin(station_names)].copy()
+    if selected.empty:
+        raise ValueError(f"No MRT stations were found for {station_names}.")
+    order_map = {name: index for index, name in enumerate(station_names)}
+    selected["station_order"] = selected["station_name"].map(order_map)
+    return selected.sort_values("station_order").drop(columns="station_order").reset_index(drop=True)
+
+
+def _focus_and_secondary_station_points(dtl2_stations: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    focus_stations = _load_named_station_points(TREATMENT_FOCUS_STATIONS)
+    secondary_stations = dtl2_stations.loc[~dtl2_stations["station_name"].isin(focus_stations["station_name"])].copy()
+    if not secondary_stations.empty:
+        secondary_order = {name: index for index, name in enumerate(DTL2_STAGE2_STATIONS)}
+        secondary_stations["station_order"] = secondary_stations["station_name"].map(secondary_order)
+        secondary_stations = secondary_stations.sort_values("station_order").drop(columns="station_order")
+    return focus_stations.reset_index(drop=True), secondary_stations.reset_index(drop=True)
 
 
 def _attach_dtl2_distance(sample: pd.DataFrame, dtl2_stations: pd.DataFrame) -> pd.DataFrame:
@@ -646,6 +681,7 @@ def _plotly_treatment_map_figure(
     scope_label: str,
     town_name: str | None = None,
     labeled_stations: list[str] | None = None,
+    secondary_stations: pd.DataFrame | None = None,
 ) -> go.Figure:
     fig = go.Figure()
     polygons, (lon_min, lon_max, lat_min, lat_max) = _load_singapore_basemap_polygons()
@@ -681,9 +717,33 @@ def _plotly_treatment_map_figure(
                 x=treated["building_longitude"],
                 y=treated["building_latitude"],
                 mode="markers",
-                name="Within 1km of DTL2",
+                name="Within 1km of focus stations",
                 marker={"size": 6, "color": "rgba(247,242,232,0.22)", "line": {"color": ORANGE, "width": 0.9}},
                 hovertemplate="Treated building<extra></extra>",
+            )
+        )
+    if len(dtl2_stations) >= 2:
+        fig.add_trace(
+            go.Scatter(
+                x=dtl2_stations["longitude"],
+                y=dtl2_stations["latitude"],
+                mode="lines",
+                name="Focus corridor",
+                line={"color": GREEN, "width": 2.5},
+                hoverinfo="skip",
+            )
+        )
+    if secondary_stations is not None and not secondary_stations.empty:
+        secondary_labels = secondary_stations["station_name"].str.replace(" MRT STATION", "", regex=False).str.title()
+        fig.add_trace(
+            go.Scatter(
+                x=secondary_stations["longitude"],
+                y=secondary_stations["latitude"],
+                mode="markers",
+                name="Other DTL stations",
+                marker={"symbol": "circle", "size": 7, "color": ACCENT, "line": {"color": ACCENT, "width": 1}},
+                customdata=np.array(secondary_labels).reshape(-1, 1),
+                hovertemplate="%{customdata[0]}<extra></extra>",
             )
         )
     for _, station in dtl2_stations.iterrows():
@@ -711,21 +771,46 @@ def _plotly_treatment_map_figure(
             x=dtl2_stations["longitude"],
             y=dtl2_stations["latitude"],
             mode="markers+text",
-            name="DTL2 stations",
+            name="Focus stations",
             marker={"symbol": "x", "size": 8, "color": GREEN, "line": {"color": GREEN, "width": 1.2}},
             text=station_labels,
             textposition="top right",
-            hovertemplate="%{text}<extra></extra>",
+            customdata=np.array(
+                dtl2_stations["station_name"].str.replace(" MRT STATION", "", regex=False).str.title()
+            ).reshape(-1, 1),
+            hovertemplate="%{customdata[0]}<extra></extra>",
         )
     )
-    lon_pad = (lon_max - lon_min) * 0.04
-    lat_pad = (lat_max - lat_min) * 0.04
+    focus_lon = pd.concat(
+        [
+            building_points["building_longitude"].dropna(),
+            dtl2_stations["longitude"].dropna(),
+            secondary_stations["longitude"].dropna() if secondary_stations is not None and not secondary_stations.empty else pd.Series(dtype=float),
+        ],
+        ignore_index=True,
+    )
+    focus_lat = pd.concat(
+        [
+            building_points["building_latitude"].dropna(),
+            dtl2_stations["latitude"].dropna(),
+            secondary_stations["latitude"].dropna() if secondary_stations is not None and not secondary_stations.empty else pd.Series(dtype=float),
+        ],
+        ignore_index=True,
+    )
+    zoom_lon_min = float(focus_lon.min())
+    zoom_lon_max = float(focus_lon.max())
+    zoom_lat_min = float(focus_lat.min())
+    zoom_lat_max = float(focus_lat.max())
+    zoom_lon_span = max(zoom_lon_max - zoom_lon_min, 0.03)
+    zoom_lat_span = max(zoom_lat_max - zoom_lat_min, 0.03)
+    zoom_lon_pad = zoom_lon_span * 0.14
+    zoom_lat_pad = zoom_lat_span * 0.18
     fig.update_layout(
         title=None,
-        xaxis={"visible": False, "range": [lon_min - lon_pad, lon_max + lon_pad]},
+        xaxis={"visible": False, "range": [zoom_lon_min - zoom_lon_pad, zoom_lon_max + zoom_lon_pad]},
         yaxis={
             "visible": False,
-            "range": [lat_min - lat_pad, lat_max + lat_pad],
+            "range": [zoom_lat_min - zoom_lat_pad, zoom_lat_max + zoom_lat_pad],
             "scaleanchor": "x",
             "scaleratio": 1,
         },
@@ -845,6 +930,7 @@ def _plot_treatment_map(
     scope_label: str,
     town_name: str | None = None,
     labeled_stations: list[str] | None = None,
+    secondary_stations: pd.DataFrame | None = None,
 ) -> tuple[str, str, str | None]:
     return save_plotly_figure(
         stem,
@@ -854,6 +940,7 @@ def _plot_treatment_map(
             scope_label,
             town_name=town_name,
             labeled_stations=labeled_stations,
+            secondary_stations=secondary_stations,
         ),
         title=None,
         data=building_points,
@@ -868,6 +955,10 @@ def _plot_town_outputs(
     town_name: str | None,
     map_label_stations: list[str] | None = None,
 ) -> dict[str, str | None]:
+    f0_svg = None
+    f0_html = str(Path("outputs/section3/charts") / f"{stem_prefix}F0_did_framework.html")
+    f0_data = None
+
     plot_df = sample.groupby(["transaction_year", "treated"]).agg(median_price=("resale_price", "median")).reset_index()
     plot_df["group"] = plot_df["treated"].map({0: "Control buildings", 1: "Near DTL2 buildings"})
     f1_svg, f1_html, f1_data = save_plotly_figure(
@@ -903,19 +994,23 @@ def _plot_town_outputs(
         data=proximity_plot.copy(),
     )
 
-    building_points = sample[["building_latitude", "building_longitude", "treated"]].drop_duplicates().copy()
-    town_stations = dtl2_stations.loc[dtl2_stations["station_name"].isin(sample["nearest_dtl2_station"].dropna().unique())].copy()
-    if town_stations.empty:
-        town_stations = dtl2_stations.copy()
+    focus_stations, secondary_stations = _focus_and_secondary_station_points(dtl2_stations)
+    building_points = sample[["building_latitude", "building_longitude"]].drop_duplicates().copy()
+    building_points = _attach_dtl2_distance(building_points, focus_stations)
+    building_points["treated"] = (building_points["dtl2_distance_km"] <= TREATMENT_DISTANCE_KM).astype(int)
     f4_svg, f4_html, f4_data = _plot_treatment_map(
         f"{stem_prefix}F4_dtl2_treatment_map",
         building_points,
-        town_stations,
+        focus_stations,
         scope_label,
         town_name=town_name,
-        labeled_stations=map_label_stations if map_label_stations is not None else town_stations["station_name"].tolist(),
+        labeled_stations=map_label_stations if map_label_stations is not None else focus_stations["station_name"].tolist(),
+        secondary_stations=secondary_stations,
     )
     return {
+        "f0_chart": f0_svg,
+        "f0_html": f0_html,
+        "f0_data": f0_data,
         "f1_chart": f1_svg,
         "f1_html": f1_html,
         "f1_data": f1_data,
@@ -969,22 +1064,23 @@ def _rebuild_s3qc_f3() -> None:
 def _rebuild_s3qc_f4() -> None:
     map_data = load_figure_data("S3QcF4_dtl2_treatment_map")
     buildings = (
-        map_data[["building_latitude", "building_longitude", "treated"]]
+        map_data[["building_latitude", "building_longitude"]]
         .dropna()
         .drop_duplicates()
         .copy()
     )
-    station_cols = ["station_name", "station_latitude", "station_longitude"]
-    if set(station_cols).issubset(map_data.columns):
-        stations = (
-            map_data.loc[:, station_cols]
-            .dropna()
-            .drop_duplicates()
-            .rename(columns={"station_latitude": "latitude", "station_longitude": "longitude"})
-        )
-    else:
-        stations = _load_dtl2_station_points()
-    _plot_treatment_map("S3QcF4_dtl2_treatment_map", buildings, stations, "the DTL2 Bukit Timah corridor")
+    dtl_stations = _load_dtl2_station_points()
+    focus_stations, secondary_stations = _focus_and_secondary_station_points(dtl_stations)
+    buildings = _attach_dtl2_distance(buildings, focus_stations)
+    buildings["treated"] = (buildings["dtl2_distance_km"] <= TREATMENT_DISTANCE_KM).astype(int)
+    _plot_treatment_map(
+        "S3QcF4_dtl2_treatment_map",
+        buildings,
+        focus_stations,
+        "the four-station Bukit corridor treatment design",
+        labeled_stations=TREATMENT_LABEL_STATIONS,
+        secondary_stations=secondary_stations,
+    )
 
 
 def _rebuild_s3qc_f5() -> None:
@@ -1254,9 +1350,9 @@ def analyze_dtl2(frame: pd.DataFrame) -> dict[str, object]:
             "in_town_parallel_trend_search": in_town_search_path,
             **matched_summary.get("model_outputs", {}),
         },
-        "charts": [overall_chart_outputs[key] for key in ["f1_chart", "f2_chart", "f3_chart", "f4_chart"]],
-        "chart_html": [overall_chart_outputs[key] for key in ["f1_html", "f2_html", "f3_html", "f4_html"]],
-        "chart_data": [overall_chart_outputs[key] for key in ["f1_data", "f2_data", "f3_data", "f4_data"] if overall_chart_outputs[key]],
+        "charts": [overall_chart_outputs[key] for key in ["f0_chart", "f1_chart", "f2_chart", "f3_chart", "f4_chart"] if overall_chart_outputs[key]],
+        "chart_html": [overall_chart_outputs[key] for key in ["f0_html", "f1_html", "f2_html", "f3_html", "f4_html"] if overall_chart_outputs[key]],
+        "chart_data": [overall_chart_outputs[key] for key in ["f0_data", "f1_data", "f2_data", "f3_data", "f4_data"] if overall_chart_outputs[key]],
     }
     if search_chart_svg:
         summary["charts"].append(search_chart_svg)
