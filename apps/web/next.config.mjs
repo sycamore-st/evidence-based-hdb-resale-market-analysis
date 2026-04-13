@@ -8,6 +8,12 @@ const nextConfig = {
   outputFileTracingRoot: path.resolve(__dirname, "../.."),
   typedRoutes: true,
   transpilePackages: ["react-markdown", "remark-gfm"],
+  env: {
+    NEXT_PUBLIC_ASSET_VERSION: process.env.NEXT_PUBLIC_ASSET_VERSION
+      ?? process.env.VERCEL_GIT_COMMIT_SHA
+      ?? process.env.GITHUB_SHA
+      ?? "",
+  },
 }
 
 export default nextConfig
