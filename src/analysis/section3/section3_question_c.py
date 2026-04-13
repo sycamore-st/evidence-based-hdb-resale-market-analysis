@@ -85,15 +85,13 @@ CORRIDOR_MAP_LABEL_STATIONS = [
 ]
 TREATMENT_FOCUS_STATIONS = [
     "BEAUTY WORLD MRT STATION",
-    "BUKIT BATOK MRT STATION",
-    "HILLVIEW MRT STATION",
-    "CASHEW MRT STATION",
     "BUKIT PANJANG MRT STATION",
     "CHOA CHU KANG MRT STATION",
 ]
 TREATMENT_LABEL_STATIONS = [
     "BEAUTY WORLD MRT STATION",
-    "BUKIT BATOK MRT STATION",
+    "HILLVIEW MRT STATION",
+    "CASHEW MRT STATION",
     "BUKIT PANJANG MRT STATION",
     "CHOA CHU KANG MRT STATION",
 ]
@@ -142,6 +140,9 @@ def _load_named_station_points(station_names: list[str]) -> pd.DataFrame:
     selected = stations.loc[stations["station_name"].isin(station_names)].copy()
     if selected.empty:
         raise ValueError(f"No MRT stations were found for {station_names}.")
+    missing = sorted(set(station_names) - set(selected["station_name"].unique()))
+    if missing:
+        raise ValueError(f"Missing MRT station(s) in dataset: {missing}")
     order_map = {name: index for index, name in enumerate(station_names)}
     selected["station_order"] = selected["station_name"].map(order_map)
     return selected.sort_values("station_order").drop(columns="station_order").reset_index(drop=True)

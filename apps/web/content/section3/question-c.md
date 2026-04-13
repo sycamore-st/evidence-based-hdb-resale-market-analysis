@@ -132,9 +132,11 @@ The gradient steepened after the line opened:
 
 The near-station units gained while the far units fell — a pattern consistent
 with the transit premium hypothesis. The treatment map below shows the
-geographic layout of treated and control zones across the Bukit corridor.
+geographic layout of treated and control zones across the Bukit corridor, using
+three focus corridor stations (`BUKIT PANJANG`, `CHOA CHU KANG`, `BEAUTY WORLD`)
+for the visual exposure overlay.
 
-<iframe src="/outputs/section3/charts/S3QcF4_dtl2_treatment_map.html?v=20260413" title="DTL2 treatment assignment map" data-caption="Fig 3 — Geographic assignment of treated (within 1 km, orange) and control (1.5–4 km, blue) units in the Bukit corridor. DTL2 stations are marked; the 1 km treatment rings are overlaid for reference."></iframe>
+<iframe src="/outputs/section3/charts/S3QcF4_dtl2_treatment_map.html?v=20260413" title="DTL2 treatment assignment map" data-caption="Fig 3 — Geographic assignment of treated (within 1 km, orange) and control (1.5–4 km, blue) units in the Bukit corridor. Focus corridor stations are marked; the 1 km treatment rings are overlaid for reference."></iframe>
 
 ## Step 3: Baseline Difference-in-Differences Specification
 
