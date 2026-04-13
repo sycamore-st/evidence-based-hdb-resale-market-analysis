@@ -7,6 +7,12 @@ const ASSET_BASE_URL = (
   process.env.NEXT_PUBLIC_ASSET_BASE_URL ??
   process.env.SECTION1_DATA_BASE_URL
 ) ?.replace(/\/+$/, "")
+const ASSET_VERSION = (
+  process.env.NEXT_PUBLIC_ASSET_VERSION ??
+  process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ??
+  process.env.ASSET_VERSION ??
+  process.env.VERCEL_GIT_COMMIT_SHA
+) ?.trim()
 const GITHUB_REPO_BASE = "https://github.com/sycamore-st/evidence-based-hdb-resale-market-analysis/blob/production"
 const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/sycamore-st/evidence-based-hdb-resale-market-analysis/production"
 
@@ -28,11 +34,32 @@ function toRemoteUrl(relativePath: string): string {
   if (!ASSET_BASE_URL) {
     throw new Error("ASSET_BASE_URL is not configured")
   }
-  return `${ASSET_BASE_URL}/${relativePath.replace(/^\/+/, "")}`
+  const base = `${ASSET_BASE_URL}/${relativePath.replace(/^\/+/, "")}`
+  return appendAssetVersion(base)
 }
 
 function sanitizeRepoPath(relativePath: string): string {
   return relativePath.replace(/^\/+/, "")
+}
+
+function appendAssetVersion(url: string): string {
+  if (!ASSET_VERSION) {
+    return url
+  }
+
+  try {
+    const parsed = new URL(url)
+    if (!parsed.searchParams.has("assetv")) {
+      parsed.searchParams.set("assetv", ASSET_VERSION)
+    }
+    return parsed.toString()
+  } catch {
+    if (url.includes("assetv=")) {
+      return url
+    }
+    const separator = url.includes("?") ? "&" : "?"
+    return `${url}${separator}assetv=${encodeURIComponent(ASSET_VERSION)}`
+  }
 }
 
 export function isRemoteSection1DataEnabled(): boolean {
@@ -59,6 +86,9 @@ export function resolvePublicAssetUrl(relativePath: string): string {
     normalizedPath.startsWith("artifacts/") ||
     normalizedPath.startsWith("docs/")
   ) {
+    if (normalizedPath.startsWith("outputs/") || normalizedPath.startsWith("artifacts/")) {
+      return appendAssetVersion(`/${normalizedPath}`)
+    }
     return `/${normalizedPath}`
   }
 

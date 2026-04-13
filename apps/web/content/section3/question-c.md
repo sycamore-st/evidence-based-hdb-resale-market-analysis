@@ -20,8 +20,8 @@ general market is not straightforward: prices in the treated area may have been
 rising anyway, or may have already incorporated expectations before the line
 opened.
 
-This study evaluates whether the commencement of **Downtown Line Stage 2 (DTL2)
-** in December 2015 is associated with an appreciation in HDB resale prices for
+This study evaluates whether the commencement of **Downtown Line Stage 2 (DTL2)**
+in December 2015 is associated with an appreciation in HDB resale prices for
 units located in the immediate vicinity of the new stations.
 
 ## Theoretical Framework: Difference-in-Differences
@@ -45,13 +45,13 @@ comparisons:
 
 The conceptual diagram below makes the mechanics explicit.
 
-<iframe src="/outputs/section3/charts/S3QcF0_did_framework.html" title="Difference-in-differences framework for DTL2" data-caption="Fig 0 — Conceptual diagram of the Difference-in-Differences design. The control group (amber) follows a steady pre-trend; the treated group (green) follows a parallel pre-trend, then accelerates after the event. The counterfactual (dotted) shows where the treated group would have been absent the intervention. DiD = ΔB − ΔA: the post-treatment gap minus the pre-treatment gap."></iframe>
+<iframe src="/outputs/section3/charts/S3QcF0_did_framework.html?v=20260413" title="Difference-in-differences framework for DTL2" data-caption="Fig 0 — Conceptual diagram of the Difference-in-Differences design. The control group (amber) follows a steady pre-trend; the treated group (green) follows a parallel pre-trend, then accelerates after the event. The counterfactual (dotted) shows where the treated group would have been absent the intervention. DiD = ΔB − ΔA: the post-treatment gap minus the pre-treatment gap."></iframe>
 
 The critical element in this diagram is the **counterfactual** (the dotted
 line): the hypothetical trajectory the treated group would have followed had the
 line never opened. DiD estimates this counterfactual by borrowing the control
-group's post-treatment trend. This borrowing is valid only if the *
-*parallel-trends assumption** holds, that is, if the two groups were genuinely
+group's post-treatment trend. This borrowing is valid only if the **parallel-trends assumption** holds, that is, if the
+two groups were genuinely
 moving together before the intervention. We test this assumption explicitly
 later in the analysis.
 
@@ -99,7 +99,7 @@ Before fitting any model, we examine whether treated and control groups visually
 diverge after the opening. This provides both a sanity check on the data and a
 first look at the parallel-trends assumption.
 
-<iframe src="/outputs/section3/charts/S3QcF1_dtl2_treated_vs_control.html" title="DTL2 treated versus control trend" data-caption="Fig 1 — Annual median resale price for treated (within 1 km) versus control (1.5–4 km) units over time. The vertical dashed line marks December 2015. A widening gap post-2015 is consistent with a transit-driven premium, but does not yet rule out pre-existing divergence."></iframe>
+<iframe src="/outputs/section3/charts/S3QcF1_dtl2_treated_vs_control.html?v=20260413" title="DTL2 treated versus control trend" data-caption="Fig 1 — Annual median resale price for treated (within 1 km) versus control (1.5–4 km) units over time. The vertical dashed line marks December 2015. A widening gap post-2015 is consistent with a transit-driven premium, but does not yet rule out pre-existing divergence."></iframe>
 
 The raw price paths show a widening valuation gap between the two cohorts after
 the opening:
@@ -123,20 +123,18 @@ those farther away benefit less. The chart below examines median price-per-sqm
 by distance band from DTL2 stations, comparing the pre-opening and post-opening
 periods.
 
-<iframe src="/outputs/section3/charts/S3QcF3_dtl2_mrt_proximity_bands.html" title="Price gradient by station distance" data-caption="Fig 2 — Median price per sqm by distance band from DTL2 stations, split into pre-opening (before Dec 2015) and post-opening (from Dec 2015) periods. A steeper post-opening gradient — falling faster as distance increases — is consistent with a proximity premium being priced in after the line opened."></iframe>
+<iframe src="/outputs/section3/charts/S3QcF3_dtl2_mrt_proximity_bands.html?v=20260413" title="Price gradient by station distance" data-caption="Fig 2 — Median price per sqm by distance band from DTL2 stations, split into pre-opening (before Dec 2015) and post-opening (from Dec 2015) periods. A steeper post-opening gradient — falling faster as distance increases — is consistent with a proximity premium being priced in after the line opened."></iframe>
 
 The gradient steepened after the line opened:
 
-- **0–500m band:** Pre-opening **SGD 4,959/sqm** → Post-opening **SGD 5,155/sqm
-  ** (+4.0%).
-- **2.0–4.0km band:** Pre-opening **SGD 4,191/sqm** → Post-opening **SGD
-  3,664/sqm** (−12.6%).
+- **0–500m band:** Pre-opening **SGD 4,959/sqm** → Post-opening **SGD 5,155/sqm** (+4.0%).
+- **2.0–4.0km band:** Pre-opening **SGD 4,191/sqm** → Post-opening **SGD 3,664/sqm** (−12.6%).
 
 The near-station units gained while the far units fell — a pattern consistent
 with the transit premium hypothesis. The treatment map below shows the
 geographic layout of treated and control zones across the Bukit corridor.
 
-<iframe src="/outputs/section3/charts/S3QcF4_dtl2_treatment_map.html" title="DTL2 treatment assignment map" data-caption="Fig 3 — Geographic assignment of treated (within 1 km, orange) and control (1.5–4 km, blue) units in the Bukit corridor. DTL2 stations are marked; the 1 km treatment rings are overlaid for reference."></iframe>
+<iframe src="/outputs/section3/charts/S3QcF4_dtl2_treatment_map.html?v=20260413" title="DTL2 treatment assignment map" data-caption="Fig 3 — Geographic assignment of treated (within 1 km, orange) and control (1.5–4 km, blue) units in the Bukit corridor. DTL2 stations are marked; the 1 km treatment rings are overlaid for reference."></iframe>
 
 ## Step 3: Baseline Difference-in-Differences Specification
 
@@ -212,13 +210,14 @@ $$
 
 The year immediately before the opening ($k = -1$) is omitted as the reference
 period, so all coefficients $\beta_k$ measure the treated-control gap *relative
-to the year before opening*. 
+to the year before opening*.
+
 - Coefficients for pre-opening years ($k < 0$) should
-be statistically indistinguishable from zero if the parallel-trends assumption
-holds — there should be no divergence before the intervention. 
+  be statistically indistinguishable from zero if the parallel-trends assumption
+  holds — there should be no divergence before the intervention.
 - Coefficients for
-post-opening years ($k \geq 0$) reveal whether the treatment effect builds over
-time.
+  post-opening years ($k \geq 0$) reveal whether the treatment effect builds over
+  time.
 
 This means the event-study coefficients have a diagnostic, not just descriptive,
 role. The pre-treatment coefficients tell us whether the treated and control
@@ -228,7 +227,7 @@ practice, we read the event study as a credibility test for the main DiD
 estimate: clean pre-period coefficients strengthen the causal story, while large
 positive leads force a more cautious interpretation.
 
-<iframe src="/outputs/section3/charts/S3QcF2_dtl2_event_study_coefficients.html" title="DTL2 event-study coefficients" data-caption="Fig 4 — Event-study coefficients showing the treated-control price gap in each year relative to the year before DTL2 opened (k = −1). Negative k values are pre-opening leads; positive k values are post-opening lags. Error bars show 95% confidence intervals. Pre-opening leads near zero support parallel trends; positive and growing post-opening lags support a genuine treatment effect."></iframe>
+<iframe src="/outputs/section3/charts/S3QcF2_dtl2_event_study_coefficients.html?v=20260413" title="DTL2 event-study coefficients" data-caption="Fig 4 — Event-study coefficients showing the treated-control price gap in each year relative to the year before DTL2 opened (k = −1). Negative k values are pre-opening leads; positive k values are post-opening lags. Error bars show 95% confidence intervals. Pre-opening leads near zero support parallel trends; positive and growing post-opening lags support a genuine treatment effect."></iframe>
 
 The event-study results reveal a pattern that is directionally encouraging but
 econometrically troubling:
@@ -251,8 +250,7 @@ measuring purely the DTL2 effect.
 - **Implied Price Uplift:** Approximately **+5.35%**, after converting from log
   scale via $(e^{0.0521} - 1) \times 100$.
 - **Pre-trend Check:** A separate regression estimated over the pre-opening
-  period finds a statistically significant pre-trend coefficient (**+0.00736
-  **, $p = 0.00125$), confirming that treated units were already diverging from
+  period finds a statistically significant pre-trend coefficient (**+0.00736**, $p = 0.00125$), confirming that treated units were already diverging from
   controls before 2015.
 
 At a median treated-group price of SGD 450,000, a 5.35% uplift corresponds to
@@ -271,8 +269,7 @@ opened, either by bidding up treated prices in expectation of the opening or
 because concurrent localized improvements (rezoning, amenity upgrades) affected
 the two groups differently.
 
-The results are therefore best described as **quasi-causal evidence of a strong
-accessibility association** rather than a clean causal estimate. The DiD design
+The results are therefore best described as **quasi-causal evidence of a strong accessibility association** rather than a clean causal estimate. The DiD design
 identifies something real, but the strict parallel-trends condition required to
 call it *definitively* causal is not fully satisfied in this data.
 

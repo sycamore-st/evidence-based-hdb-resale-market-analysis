@@ -11,8 +11,7 @@ order: 4
 
 ## Business Context
 
-A common housing-market hypothesis is that households trade off **where they
-live** against **how much it costs to own a car**. If that trade-off is real,
+A common housing-market hypothesis is that households trade off **where they live** against **how much it costs to own a car**. If that trade-off is real,
 then outer-rim towns should be more exposed to Certificate of Entitlement (COE)
 shocks than central towns, because households in peripheral locations may depend
 more heavily on private transport.
@@ -23,8 +22,7 @@ COE movements than prices in central control towns.
 ## Scope and Constraints
 
 The design is deliberately relative. We are not asking whether COE matters for
-all HDB prices in the same way. We are asking whether the **far-town response
-exceeds the central-town response**.
+all HDB prices in the same way. We are asking whether the **far-town response exceeds the central-town response**.
 
 The town groups are:
 
@@ -86,8 +84,7 @@ changes in flat mix.
 
 The adjusted index is built in two steps.
 
-- First, we estimate a **hedonic
-  regression** separately for the far-town group and the central-town group,
+- First, we estimate a **hedonic regression** separately for the far-town group and the central-town group,
   regressing transaction prices on flat age, floor area, flat type, and month
   fixed effects. This strips out composition effects and produces a
   month-by-month fitted price level for a like-for-like representative unit within each group.
