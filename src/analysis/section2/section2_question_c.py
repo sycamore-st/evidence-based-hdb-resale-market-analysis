@@ -65,7 +65,7 @@ QUESTION_C_UNSUPERVISED_METHOD_TRAIN_SAMPLE = {
 QUESTION_C_UNSUPERVISED_METHODS = (
     "kmeans",
     "rbm_kmeans",
-    "gaussian_mixture",
+    # "gaussian_mixture",
     # "agglomerative",
     # "birch",
 )

@@ -58,15 +58,15 @@ This makes the comparison sharp: can the missing label be recovered from pure st
 
 Before choosing a recovery method, we need to know whether the classes are visibly separable in the observed data.
 
-<iframe src="/outputs/section2/charts/S2QcF5_flat_type_count.html" title="Flat type count distribution" data-caption="Fig 1 — Transaction count by flat type. X-axis: flat type; y-axis: transaction count. This shows the class balance in the source data and whether some labels are much more common than others."></iframe>
+<iframe src="/outputs/section2/charts/S2QcF5_flat_type_count.html?v=20260413" title="Flat type count distribution" data-caption="Fig 1 — Transaction count by flat type. X-axis: flat type; y-axis: transaction count. This shows the class balance in the source data and whether some labels are much more common than others."></iframe>
 
 This first chart is included because recovery difficulty depends partly on class balance. A highly imbalanced dataset can make rare labels hard to recover even when the features are informative.
 
-<iframe src="/outputs/section2/charts/S2QcF6_flat_type_floor_area_distribution.html" title="Floor area by flat type" data-caption="Fig 2 — Floor area distribution by flat type. X-axis: floor area (sqm); y-axis: flat type. Clear spacing between categories indicates that floor area is a strong discriminator."></iframe>
+<iframe src="/outputs/section2/charts/S2QcF6_flat_type_floor_area_distribution.html?v=20260413" title="Floor area by flat type" data-caption="Fig 2 — Floor area distribution by flat type. X-axis: floor area (sqm); y-axis: flat type. Clear spacing between categories indicates that floor area is a strong discriminator."></iframe>
 
 This chart matters because it tells us whether the recovery problem is structurally feasible. Here, the separation is strong: floor area alone already splits several classes cleanly.
 
-<iframe src="/outputs/section2/charts/S2QcF7_flat_type_resale_price_distribution.html" title="Resale price by flat type" data-caption="Fig 3 — Resale price distribution by flat type. X-axis: resale price (SGD); y-axis: flat type. The overlap is wider than for floor area, showing that price helps, but is not sufficient by itself."></iframe>
+<iframe src="/outputs/section2/charts/S2QcF7_flat_type_resale_price_distribution.html?v=20260413" title="Resale price by flat type" data-caption="Fig 3 — Resale price distribution by flat type. X-axis: resale price (SGD); y-axis: flat type. The overlap is wider than for floor area, showing that price helps, but is not sufficient by itself."></iframe>
 
 This third chart complements the area view. It shows that price carries useful signal, but the overlap across classes is much larger than for floor area. That is why the supervised model uses a richer feature set rather than relying on price alone.
 
@@ -88,15 +88,15 @@ Where:
 
 The key weakness is that the business label is **not** learned directly. It is recovered only after the clustering step, which creates an information-loss layer.
 
-<iframe src="/outputs/section2/charts/S2QcF1_unsupervised_confusion.html" title="Unsupervised mapped confusion" data-caption="Fig 4 — Confusion matrix for the mapped unsupervised labels. X-axis: predicted flat type; y-axis: true flat type. Off-diagonal mass shows where clustering-based recovery merges nearby categories."></iframe>
+<iframe src="/outputs/section2/charts/S2QcF1_unsupervised_confusion.html?v=20260413" title="Unsupervised mapped confusion" data-caption="Fig 4 — Confusion matrix for the mapped unsupervised labels. X-axis: predicted flat type; y-axis: true flat type. Off-diagonal mass shows where clustering-based recovery merges nearby categories."></iframe>
 
 We include this chart because cluster-quality statistics are not enough. The business question is whether the recovered labels match the original flat-type field, and the confusion matrix shows exactly where the method fails.
 
-<iframe src="/outputs/section2/charts/S2QcF2_unsupervised_k_comparison.html" title="Unsupervised method comparison" data-caption="Fig 5 — Comparison of unsupervised methods and cluster-quality statistics. The chart contrasts mapped label accuracy with silhouette and Davies-Bouldin scores, showing that mathematically cleaner clusters do not necessarily produce better flat-type recovery."></iframe>
+<iframe src="/outputs/section2/charts/S2QcF2_unsupervised_k_comparison.html?v=20260413" title="Unsupervised method comparison" data-caption="Fig 5 — Comparison of unsupervised methods and cluster-quality statistics. The chart contrasts mapped label accuracy with silhouette and Davies-Bouldin scores, showing that mathematically cleaner clusters do not necessarily produce better flat-type recovery."></iframe>
 
 This comparison is important because it explains why a method with stronger cluster compactness can still be worse for the actual operational task.
 
-<iframe src="/outputs/section2/charts/S2QcF3_unsupervised_segment_profile.html" title="Unsupervised segment profile" data-caption="Fig 6 — Feature profiles of the unsupervised clusters. This helps interpret which structural segments correspond cleanly to flat types and which ones blur together."></iframe>
+<iframe src="/outputs/section2/charts/S2QcF3_unsupervised_segment_profile.html?v=20260413" title="Unsupervised segment profile" data-caption="Fig 6 — Feature profiles of the unsupervised clusters. This helps interpret which structural segments correspond cleanly to flat types and which ones blur together."></iframe>
 
 The cluster profile chart is included to make the failure mode interpretable. It shows that some clusters represent useful structural segments, but those segments do not always map one-to-one into the business labels we need.
 
@@ -125,9 +125,9 @@ Where:
 
 Because the target is optimized directly, the supervised model does not suffer from the cluster-to-label mapping problem.
 
-<iframe src="/outputs/section2/charts/S2QcF8_supervised_model_summary.html" title="Supervised model summary" data-caption="Fig 7 — Supervised classification summary showing accuracy, precision, recall, and F1. This chart demonstrates whether a direct classifier can recover the original label at production-ready accuracy."></iframe>
+<iframe src="/outputs/section2/charts/S2QcF8_supervised_model_summary.html?v=20260413" title="Supervised model summary" data-caption="Fig 7 — Supervised classification summary showing accuracy, precision, recall, and F1. This chart demonstrates whether a direct classifier can recover the original label at production-ready accuracy."></iframe>
 
-<iframe src="/outputs/section2/charts/S2QcF9_supervised_confusion.html" title="Supervised confusion matrix" data-caption="Fig 8 — Confusion matrix for the supervised classifier. Near-total diagonal concentration indicates that the original flat-type labels are recovered almost perfectly."></iframe>
+<iframe src="/outputs/section2/charts/S2QcF9_supervised_confusion.html?v=20260413" title="Supervised confusion matrix" data-caption="Fig 8 — Confusion matrix for the supervised classifier. Near-total diagonal concentration indicates that the original flat-type labels are recovered almost perfectly."></iframe>
 
 These charts are included because they answer the operational question directly: can the missing field be reconstructed at a standard high enough for downstream pricing use?
 
